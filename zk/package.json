@@ -1,0 +1,37 @@
+{
+  "dependencies": {
+    "bitwise-buffer": "^1.0.2",
+    "buffer-xor": "^2.0.2",
+    "ethers": "^5.6.8",
+    "wtfprotocol-helpers": "^1.2.3",
+    "zokrates-js": "^1.0.44"
+  },
+  "name": "lobby3holo",
+  "version": "1.0.0",
+  "main": "root.zok",
+  "scripts": {
+    "compile": "zokrates compile -i proveCredential.zok",
+    "build": "npm run compile && zokrates setup && zokrates 
+export-verifier",
+    "test": "zokrates compile -i test.zok"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "holo",
+    "zero",
+    "knowledge",
+    "proofs",
+    "snark"
+  ],
+  "author": "Nanak Nihal Khalsa",
+  "license": "ISC",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "description": ""
+}
+
