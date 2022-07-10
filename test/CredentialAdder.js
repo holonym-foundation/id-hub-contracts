@@ -40,6 +40,24 @@ describe("CredentialAdder", function () {
     // });
   });
 
+  describe("Starts with right msg.sender", function () {
+    before(async function() {
+      this.ca = await (await ethers.getContractFactory("CredentialAdder")).deploy()
+    })
+    it("Returns true when message starts with sender", async function (){
+      const [account] = await ethers.getSigners();
+      expect(
+        await this.ca.isForSender(Buffer.from(account.address.replace("0x","") + "abcdefabcdef00", "hex"))
+      ).to.equal(true)
+    })
+    it("Returns false when message does not with sender", async function (){
+      const [account] = await ethers.getSigners();
+      expect(
+        await this.ca.isForSender(Buffer.from("abc" + account.address.replace("0x","") + "abcdefabcdef00", "hex"))
+      ).to.equal(false)
+    })
+  });
+
   describe("Signature", function () {
     before(async function() {
       this.ca = await (await ethers.getContractFactory("CredentialAdder")).deploy()
