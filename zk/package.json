@@ -8,11 +8,10 @@
   },
   "name": "lobby3holo",
   "version": "1.0.0",
-  "main": "root.zok",
+  "main": "proveCredential.zok",
   "scripts": {
     "compile": "zokrates compile -i proveCredential.zok",
-    "build": "npm run compile && zokrates setup && zokrates 
-export-verifier",
+    "build": "npm run compile && zokrates setup && zokrates export-verifier",
     "test": "zokrates compile -i test.zok"
   },
   "repository": {
