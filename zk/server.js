@@ -31,17 +31,15 @@ fs.readFile("./deleteThis.zok", (err, data) => {
             // Setup
             // keypair = zokratesProvider.setup(globals.artifacts.program);
             globals.provingKey = fs.readFileSync("./proving.key");
-            generateProof(["1"])
+            console.log(generateProof(["1"]))
         })
     }
 })
 
 function generateProof(args) {
     const { witness, output } = globals.zokratesProvider.computeWitness(globals.artifacts, args);
-    console.log(witness, output)
     const proof = globals.zokratesProvider.generateProof(globals.artifacts.program, witness, globals.provingKey);
-    console.log(proof)
-    console.log(globals.zokratesProvider.generateProof(globals.artifacts.program, witness, globals.provingKey))
+    return proof;
 }
 
 // setTimeout(()=>console.log(source, globals.artifacts, keypair), 1000)
