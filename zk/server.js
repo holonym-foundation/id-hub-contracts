@@ -31,36 +31,20 @@ const init = (args = {
     })
 }
 
-// const options = {
-//     location: "./proveCredential.zok", // location of the root module
-//     resolveCallback: (from, to) => {
-//         console.error('a;lkfna;dklvma;sdlkvnmasd;lkcmas;dlkvmasd;lfams;dlf;lfksm')
-//         const location = path.resolve(path.dirname(path.resolve(from)), to);
-//         const source = fs.readFileSync(location).toString();
-//         // return { source, location };
-//         return {
-//             source: "def main(): return", 
-//             location: to
-//         }
-//       }
-// };
-
-// app.get('/', (req, res) => {
-//     res.send('Hello World!')
-//   })
-  
-//   app.listen(port, () => {
-//     console.log(`Example app listening on port ${port}`)
-//   })
-
-
 function generateProof(args) {
     const { witness, output } = globals.zokratesProvider.computeWitness(globals.artifacts, args);
     const proof = globals.zokratesProvider.generateProof(globals.artifacts.program, witness, globals.provingKey);
     return proof;
 }
 
-init()
+app.get("/prove/:witness", (req, res) => {
+    res.send(generateProof(JSON.parse(req.params.witness)))
+})
+
+app.listen(port, () => {
+    init();
+    console.log(`Listening: Port ${port}`);
+})
 
 // setTimeout(()=>console.log(source, globals.artifacts, keypair), 1000)
 
