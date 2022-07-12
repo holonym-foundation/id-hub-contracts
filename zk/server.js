@@ -1,8 +1,35 @@
-const { initialize } = require('zokrates-js');
+const { initialize } = require("zokrates-js");
+const express = require("express");
 const fs = require("fs");
 const path = require("path");
 
-var globals = {} //store global variables for circuit
+const app = express();
+const port = 8080;
+
+// Initialize global variables
+var globals = {}
+const init = (args = {
+    mainPath : "./deleteThis.zok",
+    provingKeyPath : "./proving.key"
+}) => {
+    fs.readFile(args.mainPath, (err, data) => {
+        if(err) {
+            console.error("Error: could not find proveCredential.zok");
+        } else {
+            let source = data.toString();
+            // Initialize ZoKrates:
+            initialize().then((zokratesProvider) => {
+                globals.zokratesProvider = zokratesProvider;
+                // Compilation
+                globals.artifacts = zokratesProvider.compile(source);//, options);
+                // Setup
+                // keypair = zokratesProvider.setup(globals.artifacts.program);
+                globals.provingKey = fs.readFileSync(args.provingKeyPath);
+                console.log(generateProof(["1"]))
+            })
+        }
+    })
+}
 
 // const options = {
 //     location: "./proveCredential.zok", // location of the root module
@@ -18,29 +45,22 @@ var globals = {} //store global variables for circuit
 //       }
 // };
 
-fs.readFile("./deleteThis.zok", (err, data) => {
-    if(err) {
-        console.error("Error: could not find proveCredential.zok");
-    } else {
-        let source = data.toString();
-        // Initialize ZoKrates:
-        initialize().then((zokratesProvider) => {
-            globals.zokratesProvider = zokratesProvider;
-            // Compilation
-            globals.artifacts = zokratesProvider.compile(source);//, options);
-            // Setup
-            // keypair = zokratesProvider.setup(globals.artifacts.program);
-            globals.provingKey = fs.readFileSync("./proving.key");
-            console.log(generateProof(["1"]))
-        })
-    }
-})
+// app.get('/', (req, res) => {
+//     res.send('Hello World!')
+//   })
+  
+//   app.listen(port, () => {
+//     console.log(`Example app listening on port ${port}`)
+//   })
+
 
 function generateProof(args) {
     const { witness, output } = globals.zokratesProvider.computeWitness(globals.artifacts, args);
     const proof = globals.zokratesProvider.generateProof(globals.artifacts.program, witness, globals.provingKey);
     return proof;
 }
+
+init()
 
 // setTimeout(()=>console.log(source, globals.artifacts, keypair), 1000)
 
