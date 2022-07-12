@@ -1,81 +1,15 @@
 {
   "inputs": [
     {
-      "name": "rootCommitment",
+      "name": "a",
       "public": true,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "root",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "trapdoor",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "directionSelector",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "bool"
-      }
-    },
-    {
-      "name": "path",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "array",
-        "components": {
-          "size": 8,
-          "type": "u32"
-        }
-      }
-    },
-    {
-      "name": "issuerAddress",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 5,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "creds",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 7,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "nullifier",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 4,
-        "type": "u32"
-      }
+      "type": "field"
     }
   ],
-  "outputs": []
+  "output": {
+    "type": "tuple",
+    "components": {
+      "elements": []
+    }
+  }
 }

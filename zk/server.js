@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 var zprovider;
-var keypair;
+var provingKey;
 var artifacts;
 var source;
 
@@ -21,7 +21,7 @@ var source;
 //       }
 // };
 
-fs.readFile("./proveCredential.zok", (err, data) => {
+fs.readFile("./deleteThis.zok", (err, data) => {
     if(err) {
         console.error("Error: could not find proveCredential.zok");
     } else {
@@ -32,7 +32,13 @@ fs.readFile("./proveCredential.zok", (err, data) => {
             // Compilation
             artifacts = zokratesProvider.compile(source);//, options);
             // Setup
-            keypair = zokratesProvider.setup(artifacts.program);
+            // keypair = zokratesProvider.setup(artifacts.program);
+            provingKey = fs.readFileSync("./proving.key")
+            const { witness, output } = zokratesProvider.computeWitness(artifacts, ["1"]);
+            console.log(witness, output)
+            const proof = zokratesProvider.generateProof(artifacts.program, witness, provingKey);
+            console.log(proof)
+            console.log(zokratesProvider.generateProof(artifacts.program, witness, provingKey))
         })
     }
 })

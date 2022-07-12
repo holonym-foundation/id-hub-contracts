@@ -1,4 +1,4 @@
-// from "./proveCredential.zok" import u32sToU8s, flattenedToBytes, checkMask, maskString, substringAt, hasSubstringAt, checkAud, hasMaskedString, checkJwt
+from "./proveCredential.zok" import leafExists, recreateLeaf, trapdoorCommit
 // import "hashes/sha256/sha256"
 
 // def testCheckMask() -> bool:
