@@ -2,10 +2,7 @@ const { initialize } = require('zokrates-js');
 const fs = require("fs");
 const path = require("path");
 
-var zprovider;
-var provingKey;
-var artifacts;
-var source;
+var globals = {} //store global variables for circuit
 
 // const options = {
 //     location: "./proveCredential.zok", // location of the root module
@@ -25,25 +22,29 @@ fs.readFile("./deleteThis.zok", (err, data) => {
     if(err) {
         console.error("Error: could not find proveCredential.zok");
     } else {
-        source = data.toString();
+        let source = data.toString();
         // Initialize ZoKrates:
         initialize().then((zokratesProvider) => {
-            zprovider = zokratesProvider;
+            globals.zokratesProvider = zokratesProvider;
             // Compilation
-            artifacts = zokratesProvider.compile(source);//, options);
+            globals.artifacts = zokratesProvider.compile(source);//, options);
             // Setup
-            // keypair = zokratesProvider.setup(artifacts.program);
-            provingKey = fs.readFileSync("./proving.key")
-            const { witness, output } = zokratesProvider.computeWitness(artifacts, ["1"]);
-            console.log(witness, output)
-            const proof = zokratesProvider.generateProof(artifacts.program, witness, provingKey);
-            console.log(proof)
-            console.log(zokratesProvider.generateProof(artifacts.program, witness, provingKey))
+            // keypair = zokratesProvider.setup(globals.artifacts.program);
+            globals.provingKey = fs.readFileSync("./proving.key");
+            generateProof(["1"])
         })
     }
 })
 
-// setTimeout(()=>console.log(source, artifacts, keypair), 1000)
+function generateProof(args) {
+    const { witness, output } = globals.zokratesProvider.computeWitness(globals.artifacts, args);
+    console.log(witness, output)
+    const proof = globals.zokratesProvider.generateProof(globals.artifacts.program, witness, globals.provingKey);
+    console.log(proof)
+    console.log(globals.zokratesProvider.generateProof(globals.artifacts.program, witness, globals.provingKey))
+}
+
+// setTimeout(()=>console.log(source, globals.artifacts, keypair), 1000)
 
 
 
@@ -64,10 +65,10 @@ fs.readFile("./deleteThis.zok", (err, data) => {
 //     // try {
 
 //         // computation
-//         const { witness, output } = zokratesProvider.computeWitness(artifacts, args);
+//         const { witness, output } = zokratesProvider.computeWitness(globals.artifacts, args);
 
 //         // generate proof
-//         const proof = zokratesProvider.generateProof(artifacts.program, witness, keypair.pk);
+//         const proof = zokratesProvider.generateProof(globals.artifacts.program, witness, keypair.pk);
 
 //         // export solidity verifier
 //         // const verifier = zokratesProvider.exportSolidityVerifier(keypair.vk);
