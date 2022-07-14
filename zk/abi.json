@@ -1,9 +1,89 @@
 {
   "inputs": [
     {
-      "name": "a",
+      "name": "rootCommitment",
       "public": true,
-      "type": "field"
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "root",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "trapdoor",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "directionSelector",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "bool"
+      }
+    },
+    {
+      "name": "path",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "array",
+        "components": {
+          "size": 8,
+          "type": "u32"
+        }
+      }
+    },
+    {
+      "name": "issuerAddress",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 5,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "creds",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 7,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "nullifier",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 4,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "myAddress",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 20,
+        "type": "u8"
+      }
     }
   ],
   "output": {

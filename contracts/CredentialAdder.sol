@@ -119,7 +119,7 @@ contract CredentialAdder {
 
     function addCredential(bytes memory credential, uint8 v, bytes32 r, bytes32 s) public {
         require(isFromIssuer(credential, v,r,s, authority)); //for now, only use authority as issuer, later will allow any issuer
-        // require(first bytes is recipient)
+        require(isForSender(credential));
         // require()
         // require(zksnark that next bytes is issuer, encrypted, etc)
         // require()
