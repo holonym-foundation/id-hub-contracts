@@ -34,6 +34,14 @@ const init = (args = {
                     return hash(preimage);
                 }
                 `)
+
+                globals.leafgenCompiled = zokratesProvider.compile(`
+                import "hashes/blake2/blake2s" as leafHash;
+                def main(u32[5] address, u32[7] creds, u32[4] nullifier) -> u32[8] {
+                    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
+                    return leafHash(preimage);
+                }
+                `)
             })
         }
     })
@@ -52,6 +60,11 @@ function hash(args) {
     return output
 }
 
+function leafFromData(args) {
+    const { witness, output } = globals.zokratesProvider.computeWitness(globals.leafgenCompiled, args);
+    return output
+}
+
 // NOTE : assumes leaves are already hashed, does not take raw leaves as input. This is because leaves may be hashed with a different algorithm
 function createMerkleTree(leaves) {
     console.log(leaves)
@@ -64,10 +77,8 @@ function createMerkleTree(leaves) {
         tree.push([]);
         currentLevel = tree[tree.length-1];
         prevLevel = tree[tree.length-2];
-        console.log(depth, prevLevel.length, currentLevel.length)
         for(i = 0; i < prevLevel.length; i+=2){
             currentLevel.push(JSON.parse(hash([[...prevLevel[i], ...prevLevel[i+1]]])))
-            console.log(currentLevel.length)
         }
         depth--;
     }

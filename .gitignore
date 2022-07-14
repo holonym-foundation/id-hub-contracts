@@ -9,3 +9,7 @@ typechain-types
 cache
 artifacts
 
+zk/node_modules
+zk/out
+zk/out.r1cs
+
