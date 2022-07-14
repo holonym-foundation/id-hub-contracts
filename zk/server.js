@@ -57,9 +57,8 @@ function createMerkleTree(leaves) {
     console.log(leaves)
     let depth = 3;
     let tree = [[...leaves]];
-    let currentLevel;// = tree[tree.length-1];
+    let currentLevel;
     let prevLevel = tree[tree.length-1];
-    // console.log(tree, currentLevel, currentLevel.length, currentLevel.length % 2)
     while(depth > 0){
         assert(prevLevel.length % 2 == 0, `Invalid number of leaves ${leaves.length}, should be 2^n`);
         tree.push([]);
@@ -67,19 +66,11 @@ function createMerkleTree(leaves) {
         prevLevel = tree[tree.length-2];
         console.log(depth, prevLevel.length, currentLevel.length)
         for(i = 0; i < prevLevel.length; i+=2){
-            // console.log(prevLevel+tree[tree.length-2], 'abc')
-            // console.log([...currentLevel[i], ...currentLevel[i+1]])
-            // console.log(123 ,[...prevLevel])
-            // console.log(456, [...prevLevel[i], ...prevLevel[i+1]])
-            // console.log(prevLevel)
-            // console.log(prevLevel.length, depth, i)
-            // console.log(currentLevel)
             currentLevel.push(JSON.parse(hash([[...prevLevel[i], ...prevLevel[i+1]]])))
             console.log(currentLevel.length)
         }
         depth--;
     }
-    // console.log('tree', tree);
     return tree;
 }
 
