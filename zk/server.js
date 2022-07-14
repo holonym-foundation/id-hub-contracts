@@ -3,6 +3,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { assert } = require("console");
+const { randomBytes } = require("crypto");
 
 const app = express();
 const port = 8081;
@@ -67,7 +68,6 @@ function leafFromData(args) {
 
 // NOTE : assumes leaves are already hashed, does not take raw leaves as input. This is because leaves may be hashed with a different algorithm
 function createMerkleTree(leaves) {
-    console.log(leaves)
     let depth = 3;
     let tree = [[...leaves]];
     let currentLevel;
@@ -85,6 +85,37 @@ function createMerkleTree(leaves) {
     return tree;
 }
 
+function createLeaves(rawData, maxLeaves=256) {
+    var leaves = [];
+    for (const r of rawData) {
+        assert(r.address.length == 20);
+        assert(r.nullifier.length == 16);
+        // Pad creds to 28 bytes
+        const paddedCreds = Buffer.concat([r.creds], 28)
+        // console.log([r.address, paddedCreds, r.nullifier].map(x=>toU32StringArray(x)))
+        const leaf = leafFromData([r.address, paddedCreds, r.nullifier].map(x=>toU32StringArray(x)))
+        // console.log(leaf)
+        leaves.push(JSON.parse(leaf))
+        // const preimage = Buffer.concat([r.address, paddedCreds, r.nullifier])
+        // console.log(toU32StringArray(preimage))
+        // leaves.push(leafHash(toU32StringArray(preimage)))
+    }
+    // fill leaves with blank
+    const numEmptyLeaves = maxLeaves - leaves.length 
+    const emptyLeaf = [
+        "0x00000000",
+        "0x00000000",
+        "0x00000000",
+        "0x00000000",
+        "0x00000000",
+        "0x00000000",
+        "0x00000000",
+        "0x00000000"
+      ]
+    const zeroLeaves = Array.from({ length : numEmptyLeaves }, ()=>emptyLeaf)
+    return leaves.concat(zeroLeaves)
+}
+
 app.get("/prove/:args", (req, res) => {
     res.send(generateProof(JSON.parse(req.params.args)))
 })
@@ -94,6 +125,13 @@ app.get("/hash/:args", (req, res) => {
 })
 
 app.get("/createMerkleTree/:args", (req, res) => {
+    const leaves = createLeaves([
+        {address: Buffer.from("C8834C1FcF0Df6623Fc8C8eD25064A4148D99388", "hex"), creds: Buffer.from("Nanak Nihal Khalsa"), nullifier: randomBytes(16)},
+        {address: Buffer.from("C8834C1FcF0Df6623Fc8C8eD25064A4148D99388", "hex"), creds: Buffer.from("Nanak Nihal S. Khalsa"), nullifier: randomBytes(16)}
+        
+    ]);
+    console.log(leaves)
+    
     // res.send(createMerkleTree(JSON.parse(req.params.args)))
     res.send(
         createMerkleTree(
@@ -109,6 +147,18 @@ app.get("/createMerkleTree/:args", (req, res) => {
     )
 })
 
+function toU32StringArray(bytes) {
+    let u32s = chunk(bytes.toString("hex"), 8)
+    return u32s.map(x=>parseInt(x, 16).toString())
+}
+function chunk(arr, chunkSize) {
+    let out = []
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        out.push(chunk)
+    }
+    return out
+}
 app.listen(port, () => {
     init();
     console.log(`Listening: Port ${port}`);
