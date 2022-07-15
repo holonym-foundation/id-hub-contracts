@@ -1,7 +1,7 @@
 {
   "inputs": [
     {
-      "name": "rootCommitment",
+      "name": "leaf",
       "public": true,
       "type": "array",
       "components": {
@@ -10,48 +10,8 @@
       }
     },
     {
-      "name": "root",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "trapdoor",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "directionSelector",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "bool"
-      }
-    },
-    {
-      "name": "path",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "array",
-        "components": {
-          "size": 8,
-          "type": "u32"
-        }
-      }
-    },
-    {
-      "name": "issuerAddress",
-      "public": false,
+      "name": "address",
+      "public": true,
       "type": "array",
       "components": {
         "size": 5,
@@ -74,15 +34,6 @@
       "components": {
         "size": 4,
         "type": "u32"
-      }
-    },
-    {
-      "name": "myAddress",
-      "public": true,
-      "type": "array",
-      "components": {
-        "size": 20,
-        "type": "u8"
       }
     }
   ],
