@@ -67,8 +67,8 @@ function leafFromData(args) {
 }
 
 // NOTE : assumes leaves are already hashed, does not take raw leaves as input. This is because leaves may be hashed with a different algorithm
-function createMerkleTree(leaves) {
-    let depth = 3;
+function createMerkleTree(leaves, depth=3) {
+    assert(leaves.length == 2 ** depth, `Invalid number of leaves ${leaves.length}, should be 2^depth`);
     let tree = [[...leaves]];
     let currentLevel;
     let prevLevel = tree[tree.length-1];
@@ -125,24 +125,27 @@ app.get("/hash/:args", (req, res) => {
 })
 
 app.get("/createMerkleTree/:args", (req, res) => {
+    const depth = 6;
     const leaves = createLeaves([
         {address: Buffer.from("C8834C1FcF0Df6623Fc8C8eD25064A4148D99388", "hex"), creds: Buffer.from("Nanak Nihal Khalsa"), nullifier: randomBytes(16)},
         {address: Buffer.from("C8834C1FcF0Df6623Fc8C8eD25064A4148D99388", "hex"), creds: Buffer.from("Nanak Nihal S. Khalsa"), nullifier: randomBytes(16)}
         
-    ]);
+    ], 
+    2**depth);
     console.log(leaves)
     
     // res.send(createMerkleTree(JSON.parse(req.params.args)))
     res.send(
         createMerkleTree(
-        [["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
-        ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"]]
+        // [["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"],
+        // ["0xacb1b088", "0x259a3bd7", "0x28a95362", "0x61c8e035", "0x78654b9d", "0x5a7ba174", "0x302dd94b", "0x3feb81e1"]]
+        leaves, depth
     )
     )
 })
