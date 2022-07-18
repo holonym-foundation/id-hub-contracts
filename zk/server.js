@@ -37,7 +37,7 @@ const init = (args = {
                 `)
 
                 globals.leafgenCompiled = zokratesProvider.compile(`
-                import "hashes/blake2/blake2s" as leafHash;
+                // import "hashes/blake2/blake2s" as leafHash;
                 def main(u32[5] address, u32[7] creds, u32[4] nullifier) -> u32[8] {
                     u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
                     return leafHash(preimage);
@@ -166,3 +166,5 @@ app.listen(port, () => {
     init();
     console.log(`Listening: Port ${port}`);
 })
+[ '3364047903', '3473798754', '1070123245', '621169217', '1222218632' ], 
+[ '1239625718', '3654924101', '1553947053', '2469671160' ]
