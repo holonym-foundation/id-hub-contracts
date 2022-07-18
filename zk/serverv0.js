@@ -44,7 +44,7 @@ const init = (args = {
 
                 globals.leafgen = zokratesProvider.compile(`
                 import "hashes/blake2/blake2s" as leafHash;
-                def main(u32[5] address, u32[7] creds, u32[4] nullifier) -> u32[8] {
+                def main(u32[5] address, private u32[7] creds, private u32[4] nullifier) -> u32[8] {
                     u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
                     return leafHash(preimage);
                 }
@@ -62,9 +62,27 @@ function generateProof(args) {
     return proof;
 }
 
+function proveLeaveComesFrom(leaf, address, creds, nullifier) {
+    assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
+    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
+    // Pad creds to 28 bytes
+    const paddedCreds = Buffer.concat([creds], 28)
+    console.log("shit", leaf, address, paddedCreds, nullifier);
+    const { witness, output } = globals.zokratesProvider.computeWitness(
+        globals.assertLeafFromAddress, 
+        [leaf, address, paddedCreds, nullifier].map(x=>toU32StringArray(x))
+    );
+    console.log("Calculating proof...");
+    let time_ = Date.now();
+    const proof = globals.zokratesProvider.generateProof(globals.assertLeafFromAddress.program, witness, globals.assertLeafFromAddressKey);
+    console.log("Proof", proof, Date.now()-time_)
+    return proof;
+}
+
 function leafFromData(address, creds, nullifier) {
-    assert(address.length == 20, "address must be 20 bytes");
-    assert(nullifier.length == 16, "nullifier must be 16 bytes");
+    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
     // Pad creds to 28 bytes
     const paddedCreds = Buffer.concat([creds], 28)
     console.log([address, paddedCreds, nullifier].map(x=>toU32StringArray(x)))
@@ -76,6 +94,19 @@ function leafFromData(address, creds, nullifier) {
 }
 
 
+app.get("/proveLeafFrom/:leaf/:address/:creds/:nullifier/", (req, res) => {
+    const {leaf, address, creds, nullifier} = req.params;
+    const proof = proveLeaveComesFrom(
+        Buffer.from(leaf.replace("0x", ""), "hex"),
+        Buffer.from(address.replace("0x",""), "hex"), 
+        Buffer.from(creds), 
+        Buffer.from(nullifier.replace("0x",""), "hex")
+    );
+    res.send(
+        proof
+    );
+})
+
 app.get("/createLeaf/:address/:creds/:nullifier/", (req, res) => {
     const {address, creds, nullifier} = req.params;
     console.log(address, creds, nullifier, Buffer.from(address.replace("0x",""), "hex"))
@@ -84,7 +115,6 @@ app.get("/createLeaf/:address/:creds/:nullifier/", (req, res) => {
         Buffer.from(creds), 
         Buffer.from(nullifier.replace("0x",""), "hex")
     )
-    console.log(1, lfd)
     res.send(
         lfd
     );
