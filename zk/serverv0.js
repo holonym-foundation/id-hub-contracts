@@ -1,8 +1,10 @@
+// NOTE : include address to prevent frontrunning attax
 const { initialize } = require("zokrates-js");
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { assert } = require("console");
+const { exec } = require("child_process");
 const { randomBytes } = require("crypto");
 
 const app = express();
@@ -29,9 +31,10 @@ const init = (args = {
                 globals.provingKey = fs.readFileSync(args.provingKeyPath);
 
                 // Also, compilation of hash
+                // IS IT SAFE TO DO SHA256 UNPADDED ON 512 BIT INPUT
                 globals.assertLeafFromAddress = zokratesProvider.compile(`
+                // import "hashes/sha256/sha256" as leafHash;
                 import "hashes/blake2/blake2s" as leafHash;
-
                 // asserts that a leaf's preimage begins with a certain address
                 def main(u32[8] leaf, u32[5] address, private u32[7] creds, private u32[4] nullifier) {
                     u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
@@ -43,6 +46,7 @@ const init = (args = {
                 globals.assertLeafFromAddressKey = fs.readFileSync("./assertLeafFromAddress.proving.key");
 
                 globals.leafgen = zokratesProvider.compile(`
+                // import "hashes/sha256/sha256" as leafHash;
                 import "hashes/blake2/blake2s" as leafHash;
                 def main(u32[5] address, private u32[7] creds, private u32[4] nullifier) -> u32[8] {
                     u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
@@ -62,12 +66,12 @@ function generateProof(args) {
     return proof;
 }
 
-function proveLeaveComesFrom(leaf, address, creds, nullifier) {
+function proveLeafComesFrom(leaf, address, creds, nullifier) {
     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
     assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
     // Pad creds to 28 bytes
-    const paddedCreds = Buffer.concat([creds], 28)
+    const paddedCreds = Buffer.concat([creds], 28);
     console.log("shit", leaf, address, paddedCreds, nullifier);
     const { witness, output } = globals.zokratesProvider.computeWitness(
         globals.assertLeafFromAddress, 
@@ -90,13 +94,28 @@ function leafFromData(address, creds, nullifier) {
         globals.leafgen, 
         [address, paddedCreds, nullifier].map(x=>toU32StringArray(x))
     );
+
+    // console.log(
+    //     "aijcnlska", 
+    //     JSON.parse(output).map(x=>parseInt(x)),
+    //     toU32StringArray(Buffer.concat([address, paddedCreds, nullifier])).map(x=>parseInt(x)),
+    //     )
+    console.log("abc", argsToU32CLIArgs([address, paddedCreds, nullifier]))
+    
+        
     return output;
 }
 
 
 app.get("/proveLeafFrom/:leaf/:address/:creds/:nullifier/", (req, res) => {
     const {leaf, address, creds, nullifier} = req.params;
-    const proof = proveLeaveComesFrom(
+    // const proof = proveLeafComesFrom(
+    //     Buffer.from(leaf.replace("0x", ""), "hex"),
+    //     Buffer.from(address.replace("0x",""), "hex"), 
+    //     Buffer.from(creds), 
+    //     Buffer.from(nullifier.replace("0x",""), "hex")
+    // );
+    const proof = proveLeafFrom(
         Buffer.from(leaf.replace("0x", ""), "hex"),
         Buffer.from(address.replace("0x",""), "hex"), 
         Buffer.from(creds), 
@@ -121,11 +140,16 @@ app.get("/createLeaf/:address/:creds/:nullifier/", (req, res) => {
 })
 
 
+function toU32Array(bytes) {
+    let u32s = chunk(bytes.toString('hex'), 8)
+    return u32s.map(x=>parseInt(x, 16))
+}
 
 function toU32StringArray(bytes) {
     let u32s = chunk(bytes.toString("hex"), 8)
     return u32s.map(x=>parseInt(x, 16).toString())
 }
+
 function chunk(arr, chunkSize) {
     let out = []
     for (let i = 0; i < arr.length; i += chunkSize) {
@@ -134,6 +158,38 @@ function chunk(arr, chunkSize) {
     }
     return out
 }
+
+// Expects arguments of type bytes and returns an array of U32s -- all inputs concatenated/flattened, then split up into u32s 
+// This is how ZoKrates CLI expects arguments
+function argsToU32CLIArgs (args) {
+    return toU32Array(Buffer.concat(args)).map(x=>parseInt(x)).join(" ")
+}
+
+function proveLeafFrom(leaf, address, creds, nullifier) {
+    assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
+    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
+    // Pad creds to 28 bytes
+    const paddedCreds = Buffer.concat([creds], 28)
+
+    const tmpValue = randomBytes(16).toString("hex");
+    const inFile = "assertLeafFromAddress.out"
+    const tmpWitnessFile = tmpValue + ".assertLeafFromAddress.witness"
+    console.log(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; #zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -p assertLeafFromAddress.proving.key`)
+    exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; #zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -p assertLeafFromAddress.proving.key`, (error, stdout, stderr) => {
+    if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+    }
+    if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+    }
+    console.log(`stdout: ${stdout}`);
+});
+}
+
+
 app.listen(port, () => {
     init();
     console.log(`Listening: Port ${port}`);
