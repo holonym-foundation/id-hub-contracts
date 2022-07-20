@@ -66,7 +66,7 @@ function generateProof(args) {
     return proof;
 }
 
-function proveLeafComesFrom(leaf, address, creds, nullifier) {
+function proveLeafFrom(leaf, address, creds, nullifier) {
     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
     assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
@@ -107,22 +107,22 @@ function leafFromData(address, creds, nullifier) {
 }
 
 
-app.get("/proveLeafFrom/:leaf/:address/:creds/:nullifier/", (req, res) => {
+app.get("/proveLeafFrom/:leaf/:address/:creds/:nullifier/", async (req, res) => {
     const {leaf, address, creds, nullifier} = req.params;
-    // const proof = proveLeafComesFrom(
+    // const proof = proveLeafFrom(
     //     Buffer.from(leaf.replace("0x", ""), "hex"),
     //     Buffer.from(address.replace("0x",""), "hex"), 
     //     Buffer.from(creds), 
     //     Buffer.from(nullifier.replace("0x",""), "hex")
     // );
-    const proof = proveLeafFrom(
+    const proof = await proveLeafFromCLI(
         Buffer.from(leaf.replace("0x", ""), "hex"),
         Buffer.from(address.replace("0x",""), "hex"), 
         Buffer.from(creds), 
         Buffer.from(nullifier.replace("0x",""), "hex")
     );
     res.send(
-        proof
+        JSON.stringify(proof)
     );
 })
 
@@ -165,7 +165,8 @@ function argsToU32CLIArgs (args) {
     return toU32Array(Buffer.concat(args)).map(x=>parseInt(x)).join(" ")
 }
 
-function proveLeafFrom(leaf, address, creds, nullifier) {
+// proveLeafFrom sped up via CLI/compiled instead of js/interpereted 
+async function proveLeafFromCLI(leaf, address, creds, nullifier) {
     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
     assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
@@ -177,22 +178,21 @@ function proveLeafFrom(leaf, address, creds, nullifier) {
     const tmpWitnessFile = tmpValue + ".assertLeafFromAddress.witness"
     const tmpProofFile = tmpValue + ".assertLeafFromAddress.proof.json"
     console.log(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`)
-    exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`, (error, stdout, stderr) => {
-    if (error) {
-        console.log(`error: ${error.message}`);
-        return;
-    }
-    if (stderr) {
-        console.log(`stderr: ${stderr}`);
-        return;
-    }
-    console.log(`stdout: ${stdout}`);
+    await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`, (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+        });
     const retval = JSON.parse(fs.readFileSync(tmpProofFile));
     console.log("1269", retval)
     exec(`rm ${tmpProofFile}`, (a,b,c)=>null);
     return retval
-
-});
 }
 
 
