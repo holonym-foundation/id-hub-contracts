@@ -25,3 +25,7 @@ It proves knowledge of a Merkle leaf (and corresponding path + directionSelector
 
 ### Verifying the leaf is valid
 Proof with private inputs `creds`, `nullifier` and public inputs `leaf`, `address`. Essentially, it asserts `address` is msg.sender and the credential begins with `address`. msg.sender should be the issuer of the credential who wants to add it to the Tree.
+
+
+## Wallet
+A browser extension which stores the users' `address`, `creds`, and `nullifiers` for every `leaf` they have
