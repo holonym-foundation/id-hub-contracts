@@ -10,7 +10,7 @@ Leaves are hashes of preimages. These preimages have the following structure:
 `nullifier` **16 bytes**, random bytes that only the user knows
 
 ## Tree
-An on-chain Merkle tree constructed from all the leaves. It has a fixed depth (because snarks mandate fixed size input), so adding a leaf is really changing a 0-leaf.
+An on-chain Merkle tree constructed from all the leaves. It has a fixed depth (because snarks mandate fixed size input), so adding a leaf is really modifying a 0-leaf to a new value. The tree begins populated by 0-leaves.
 It can only be edited by a smart contract which checks a leaf is valid first before adding them.
 
 ## Verifier
