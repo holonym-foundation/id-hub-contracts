@@ -4,7 +4,8 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { assert } = require("console");
-const { exec } = require("child_process");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec); // wrapper for exec that allows async/await for its completion (https://stackoverflow.com/questions/30763496/how-to-promisify-nodes-child-process-exec-and-child-process-execfile-functions)
 const { randomBytes } = require("crypto");
 
 const app = express();
@@ -189,6 +190,7 @@ async function proveLeafFromCLI(leaf, address, creds, nullifier) {
         }
         console.log(`stdout: ${stdout}`);
         });
+    console.log("done waiting...")
     const retval = JSON.parse(fs.readFileSync(tmpProofFile));
     console.log("1269", retval)
     exec(`rm ${tmpProofFile}`, (a,b,c)=>null);
