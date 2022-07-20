@@ -175,8 +175,9 @@ function proveLeafFrom(leaf, address, creds, nullifier) {
     const tmpValue = randomBytes(16).toString("hex");
     const inFile = "assertLeafFromAddress.out"
     const tmpWitnessFile = tmpValue + ".assertLeafFromAddress.witness"
-    console.log(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; #zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -p assertLeafFromAddress.proving.key`)
-    exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; #zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -p assertLeafFromAddress.proving.key`, (error, stdout, stderr) => {
+    const tmpProofFile = tmpValue + ".assertLeafFromAddress.proof.json"
+    console.log(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`)
+    exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`, (error, stdout, stderr) => {
     if (error) {
         console.log(`error: ${error.message}`);
         return;
@@ -186,6 +187,11 @@ function proveLeafFrom(leaf, address, creds, nullifier) {
         return;
     }
     console.log(`stdout: ${stdout}`);
+    const retval = JSON.parse(fs.readFileSync(tmpProofFile));
+    console.log("1269", retval)
+    exec(`rm ${tmpProofFile}`, (a,b,c)=>null);
+    return retval
+
 });
 }
 
