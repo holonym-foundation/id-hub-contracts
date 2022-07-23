@@ -6,24 +6,24 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 // Adds a verified crendential to the user
 contract CredentialAdder {
     using ECDSA for bytes32;
-    mapping(address => bytes32) encryptedMerkleRoots;
-    address constant authority = 0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388;
+    mapping(address => bytes32) encryptedLeaves;
+    // address constant authority = 0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388;
 
     constructor(){
         
     }
 
-    function isForSender(bytes memory message) public view returns (bool forSender) {
-        // console.logBytes(sliceBytesMemory(message, 0, 20));
-        // console.logBytes(bytes(abi.encodePacked(msg.sender)));
-        // The only way to check bytes are equal is by checking their hashes at present (to my knowledge):
-        return keccak256(
-                    sliceBytesMemory(message, 0, 20)
-                ) == 
-                keccak256(
-                    abi.encodePacked(msg.sender)
-                );
-    }
+    // function isForSender(bytes memory message) public view returns (bool forSender) {
+    //     // console.logBytes(sliceBytesMemory(message, 0, 20));
+    //     // console.logBytes(bytes(abi.encodePacked(msg.sender)));
+    //     // The only way to check bytes are equal is by checking their hashes at present (to my knowledge):
+    //     return keccak256(
+    //                 sliceBytesMemory(message, 0, 20)
+    //             ) == 
+    //             keccak256(
+    //                 abi.encodePacked(msg.sender)
+    //             );
+    // }
     // address constant verifyContract = 
     // function isFromIssuer(bytes32 hashed, bytes memory signature, address issuer) public view returns (bool) {
     //     // bytes32 hashed = keccak256(msg);
@@ -95,33 +95,32 @@ contract CredentialAdder {
 
     // Copied from WTFUtils by me
     // This could be more efficient by not copying the whole thing, rather just the parts that matter
-    function sliceBytesMemory(bytes memory input_, uint256 start_, uint256 end_) public view returns (bytes memory r) {
-        uint256 len_ = input_.length;
-        r = new bytes(len_);
+    // function sliceBytesMemory(bytes memory input_, uint256 start_, uint256 end_) public view returns (bytes memory r) {
+    //     uint256 len_ = input_.length;
+    //     r = new bytes(len_);
         
-        assembly {
-            // Use identity to copy data
-            if iszero(staticcall(not(0), 0x04, add(input_, 0x20), len_, add(r, 0x20), len_)) {
-                revert(0, 0)
-            }
-        }
-        return destructivelySliceBytesMemory(r, start_, end_);
-    }
+    //     assembly {
+    //         // Use identity to copy data
+    //         if iszero(staticcall(not(0), 0x04, add(input_, 0x20), len_, add(r, 0x20), len_)) {
+    //             revert(0, 0)
+    //         }
+    //     }
+    //     return destructivelySliceBytesMemory(r, start_, end_);
+    // }
     
-    function destructivelySliceBytesMemory(bytes memory m, uint256 start, uint256 end) public pure returns (bytes memory r) {
-        require(start < end, "index start must be less than inded end");
-        assembly {
-            let offset := add(start, 0x20) //first 0x20 bytes of bytes type is length (no. of bytes)
-            r := add(m, start)
-            mstore(r, sub(end, start))
-        }
-    }
+    // function destructivelySliceBytesMemory(bytes memory m, uint256 start, uint256 end) public pure returns (bytes memory r) {
+    //     require(start < end, "index start must be less than inded end");
+    //     assembly {
+    //         let offset := add(start, 0x20) //first 0x20 bytes of bytes type is length (no. of bytes)
+    //         r := add(m, start)
+    //         mstore(r, sub(end, start))
+    //     }
+    // }
 
-    function addCredential(bytes memory credential, uint8 v, bytes32 r, bytes32 s) public {
-        require(isFromIssuer(credential, v,r,s, authority)); //for now, only use authority as issuer, later will allow any issuer
-        require(isForSender(credential));
-        // require()
-        // require(zksnark that next bytes is issuer, encrypted, etc)
-        // require()
+    function addCredential(bytes memory leaf, address authority, uint8 v, bytes32 r, bytes32 s) public {
+        require(isFromIssuer(leaf, v,r,s, authority)); //for now, only use authority as issuer, later will allow any issuer
+        // require(p.address == authority);
+        // require(verifier.verify(p));
+        
     }
 }
