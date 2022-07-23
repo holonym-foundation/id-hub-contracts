@@ -59,7 +59,7 @@ describe("CredentialAdder", function () {
   //   })
   // });
 
-  describe.only("Integration Test: Verification", function () {
+  describe("Integration Test: Verification", function () {
     before(async function() {
       this.verifier = await (await ethers.getContractFactory("AssertLeafFromAddressVerifier")).deploy();
       this.ca = await (await ethers.getContractFactory("CredentialAdder")).deploy(this.verifier.address);
@@ -75,7 +75,6 @@ describe("CredentialAdder", function () {
 
     })
     it("Does not revert when inputs are valid", async function (){
-      const [account] = await ethers.getSigners();
       let tx = await this.ca.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
       await tx.wait();
       expect(tx).to.not.be.reverted;
@@ -84,16 +83,52 @@ describe("CredentialAdder", function () {
 
     })
 
-    it("Reverts when inputs are invalid", async function (){
+    it("Reverts when leaf is invalid", async function (){
+      await expect(
+        this.ca.addLeaf(Buffer.from("69".repeat(32), "hex"), this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+      ).to.be.reverted;
+    })
 
+    it("Reverts when issuer address is invalid", async function (){
+      await expect(
+        this.ca.addLeaf(this.leaf, "0x483293fCB4C2EE29A02D74Ff98C976f9d85b1AAd", this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+      ).to.be.reverted;
+    })
+
+    it("Reverts when v is invalid", async function (){
+      await expect(
+        this.ca.addLeaf(this.leaf, this.issuerAddress, 69, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+      ).to.be.reverted;
+    })
+
+    it("Reverts when r is invalid", async function (){
+      await expect(
+        this.ca.addLeaf(this.leaf, this.issuerAddress, this.sig.v, Buffer.from("69".repeat(32), "hex"), this.sig.s, this.proofData.proof, this.proofData.inputs)
+      ).to.be.reverted;
+    })
+
+    it("Reverts when s is invalid", async function (){
+      await expect(
+        this.ca.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r,Buffer.from("69".repeat(32), "hex"), this.proofData.proof, this.proofData.inputs)
+      ).to.be.reverted;
+    })
+
+    it("Reverts when proof is invalid", async function (){
+      // Deepcopy proof and all of its arrays:
+      let badProof = JSON.parse(JSON.stringify(this.proofData.proof)); 
+      badProof.a[0] = "0x"+"69".repeat(32);
+      await expect(
+        this.ca.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, badProof, this.proofData.inputs)
+      ).to.be.reverted;
     })
 
   });
 
   describe("Signature", function () {
     before(async function() {
-      this.ca = await (await ethers.getContractFactory("CredentialAdder")).deploy()
-      this.tbs = "To Be Signed"
+      this.verifier = await (await ethers.getContractFactory("AssertLeafFromAddressVerifier")).deploy();
+      this.ca = await (await ethers.getContractFactory("CredentialAdder")).deploy(this.verifier.address);
+      this.tbs = "To Be Signed";
     })
       it("Should accept fom the right address", async function () {
         const [account] = await ethers.getSigners();
