@@ -1,17 +1,8 @@
-const {
-  time,
-  loadFixture,
-} = require("@nomicfoundation/hardhat-network-helpers");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { assertHardhatInvariant } = require("hardhat/internal/core/errors");
 
 describe("CredentialAdder", function () {
-  describe("Deployment", function () {
-    
-  });
-
   describe("Integration Test: Verification", function () {
     before(async function() {
       this.verifier = await (await ethers.getContractFactory("AssertLeafFromAddressVerifier")).deploy();
