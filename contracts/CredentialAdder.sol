@@ -3,8 +3,68 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+library Pairing {
+    struct G1Point {
+        uint X;
+        uint Y;
+    }
+    // Encoding of field elements is: X[0] * z + X[1]
+    struct G2Point {
+        uint[2] X;
+        uint[2] Y;
+    }
+    /// @return the generator of G1
+    function P1() pure internal returns (G1Point memory) {
+        return G1Point(1, 2);
+    }
+    /// @return the generator of G2
+    function P2() pure internal returns (G2Point memory) {
+        return G2Point(
+            [10857046999023057135944570762232829481370756359578518086990519993285655852781,
+             11559732032986387107991004021392285783925812861821192530917403151452391805634],
+            [8495653923123431417604973247489272438418190587263600148770280649306958101930,
+             4082367875863433681332203403145435568316851327593401208105741076214120093531]
+        );
+    }
+    /// @return the negation of p, i.e. p.addition(p.negate()) should be zero.
+    function negate(G1Point memory p) pure internal returns (G1Point memory) {
+        // The prime q in the base field F_q for G1
+        uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+        if (p.X == 0 && p.Y == 0)
+            return G1Point(0, 0);
+        return G1Point(p.X, q - (p.Y % q));
+    }
+    /// @return r the sum of two points of G1
+    function addition(G1Point memory p1, G1Point memory p2) internal view returns (G1Point memory r) {
+        uint[4] memory input;
+        input[0] = p1.X;
+        input[1] = p1.Y;
+        input[2] = p2.X;
+        input[3] = p2.Y;
+        bool success;
+        assembly {
+            success := staticcall(sub(gas(), 2000), 6, input, 0xc0, r, 0x60)
+            // Use "invalid" to make gas estimation work
+            switch success case 0 { invalid() }
+        }
+        require(success);
+    }
+}
 // Adds a verified crendential to the user
 contract CredentialAdder {
+    using Pairing for *;
+    struct VerifyingKey {
+        Pairing.G1Point alpha;
+        Pairing.G2Point beta;
+        Pairing.G2Point gamma;
+        Pairing.G2Point delta;
+        Pairing.G1Point[] gamma_abc;
+    }
+    struct Proof {
+        Pairing.G1Point a;
+        Pairing.G2Point b;
+        Pairing.G1Point c;
+    }
     using ECDSA for bytes32;
     mapping(address => bytes32) encryptedLeaves;
     // address constant authority = 0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388;
@@ -117,7 +177,8 @@ contract CredentialAdder {
     //     }
     // }
 
-    function addCredential(bytes memory leaf, address authority, uint8 v, bytes32 r, bytes32 s) public {
+    function addCredential(bytes memory leaf, address authority, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[13] memory input) public {
+        console.logBytes(bytes.concat(abi.encodePacked(input[8]), abi.encodePacked(input[9]), abi.encodePacked(input[10]), abi.encodePacked(input[11]), abi.encodePacked(input[12])));
         require(isFromIssuer(leaf, v,r,s, authority)); //for now, only use authority as issuer, later will allow any issuer
         // require(p.address == authority);
         // require(verifier.verify(p));
