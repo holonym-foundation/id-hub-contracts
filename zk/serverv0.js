@@ -4,9 +4,9 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { assert } = require("console");
-const { exec } = require("child_process");
-// const util = require("util");
-// const exec = util.promisify(require("child_process").exec); // wrapper for exec that allows async/await for its completion (https://stackoverflow.com/questions/30763496/how-to-promisify-nodes-child-process-exec-and-child-process-execfile-functions)
+// const { exec } = require("child_process");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec); // wrapper for exec that allows async/await for its completion (https://stackoverflow.com/questions/30763496/how-to-promisify-nodes-child-process-exec-and-child-process-execfile-functions)
 const { randomBytes } = require("crypto");
 
 const app = express();
@@ -179,23 +179,18 @@ async function proveLeafFromCLI(leaf, address, creds, nullifier) {
     const inFile = "assertLeafFromAddress.out"
     const tmpWitnessFile = tmpValue + ".assertLeafFromAddress.witness"
     const tmpProofFile = tmpValue + ".assertLeafFromAddress.proof.json"
-    let timesClosed = 0;
-    const childProcess = exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`);
-    // console.log(
-    //     "Children", childProcess
-    // )
-    childProcess.stderr.on("data", data => console.log(`error: ${data}`))
-    childProcess.stdout.on("data", data => console.log(`stdout: ${data}`))
-    childProcess.on("close", code => {console.log(`closing code: ${code}`); timesClosed += 1})
-    // console.log(`stdout: ${stdout}`);
-    // console.log(69, childProcess);
-    // const retval = JSON.parse(fs.readFileSync(tmpProofFile));
-    // console.log("1269", retval)
-    // exec(`rm ${tmpProofFile}`, (a,b,c)=>null);
-    // return retval
-    timesClosed
-    while(timesClosed ==)
-    return null
+    // Execute the command
+    try {
+        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`);
+        console.log("STDs", stdout, stderr);
+    } catch(e) {
+        console.error(e);
+    }
+    // Read the proof file, then delete it, then return it
+    const retval = JSON.parse(fs.readFileSync(tmpProofFile));
+    console.log("1269", retval);
+    exec(`rm ${tmpProofFile}`);
+    return retval
 }
 
 
