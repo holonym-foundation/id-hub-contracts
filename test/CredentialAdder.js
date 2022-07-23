@@ -74,14 +74,17 @@ describe("CredentialAdder", function () {
       this.sig = ethers.utils.splitSignature(sig_);
 
     })
-    it("Returns true when inputs are valid", async function (){
+    it("Does not revert when inputs are valid", async function (){
       const [account] = await ethers.getSigners();
-      expect(
-        await this.ca.addCredential(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
-      ).to.equal(true)
+      let tx = await this.ca.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+      await tx.wait();
+      expect(tx).to.not.be.reverted;
+      const leaves = await this.ca.getLeaves();
+      expect(leaves[leaves.length - 1]).to.equal("0x" + this.leaf.toString("hex"));
+
     })
 
-    it("Returns false when inputs are invalid", async function (){
+    it("Reverts when inputs are invalid", async function (){
 
     })
 
