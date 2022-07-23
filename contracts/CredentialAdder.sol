@@ -10,32 +10,9 @@ contract CredentialAdder {
     bytes32[] public leaves;
     AssertLeafFromAddressVerifier verifier;
     
-    // address constant issuer = 0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388;
-
     constructor(address verifierAddr){
         verifier = AssertLeafFromAddressVerifier(verifierAddr);
     }
-
-    // function isForSender(bytes memory message) public view returns (bool forSender) {
-    //     // console.logBytes(sliceBytesMemory(message, 0, 20));
-    //     // console.logBytes(bytes(abi.encodePacked(msg.sender)));
-    //     // The only way to check bytes are equal is by checking their hashes at present (to my knowledge):
-    //     return keccak256(
-    //                 sliceBytesMemory(message, 0, 20)
-    //             ) == 
-    //             keccak256(
-    //                 abi.encodePacked(msg.sender)
-    //             );
-    // }
-    // address constant verifyContract = 
-    // function isFromIssuer(bytes32 hashed, bytes memory signature, address issuer) public view returns (bool) {
-    //     // bytes32 hashed = keccak256(msg);
-    //     console.log("issuer");
-    //     console.log(hashed.toEthSignedMessageHash().recover(signature));
-    //     console.logBytes32(hashed);
-    //     return hashed.toEthSignedMessageHash().recover(signature) == issuer;
-    // }
-
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
     function isFromIssuer(bytes memory message, uint8 v, bytes32 r, bytes32 s, address issuer) public pure returns (bool fromIssuer) {
@@ -96,39 +73,6 @@ contract CredentialAdder {
         return ecrecover(check, v, r, s) == issuer;
     }
 
-    // Copied from WTFUtils by me
-    // This could be more efficient by not copying the whole thing, rather just the parts that matter
-    // function sliceBytesMemory(bytes memory input_, uint256 start_, uint256 end_) public view returns (bytes memory r) {
-    //     uint256 len_ = input_.length;
-    //     r = new bytes(len_);
-        
-    //     assembly {
-    //         // Use identity to copy data
-    //         if iszero(staticcall(not(0), 0x04, add(input_, 0x20), len_, add(r, 0x20), len_)) {
-    //             revert(0, 0)
-    //         }
-    //     }
-    //     return destructivelySliceBytesMemory(r, start_, end_);
-    // }
-    
-    // function destructivelySliceBytesMemory(bytes memory m, uint256 start, uint256 end) public pure returns (bytes memory r) {
-    //     require(start < end, "index start must be less than inded end");
-    //     assembly {
-    //         let offset := add(start, 0x20) //first 0x20 bytes of bytes type is length (no. of bytes)
-    //         r := add(m, start)
-    //         mstore(r, sub(end, start))
-    //     }
-    // }
-
-    // function lastFourBytes(bytes input) public pure returns (bytes[4] memory output){
-    //     uint32 inputStart;
-    //     assembly {
-    //         let len := mload(input_)
-    //         let outputOffset := add(add(len, 0x20), 0x1c) //1c is 20-4
-    //         let outputStart := add(input_, len)
-    //         b_ := mload(outputStart)
-    //     }
-    // }
 
     // https://ethereum.stackexchange.com/questions/8346/convert-address-to-string
     function bytesToAddress(bytes memory b_) private pure returns (address addr) {
