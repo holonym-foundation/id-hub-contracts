@@ -7,7 +7,7 @@ import "./AssertLeafFromAddressVerifier.sol";
 // Adds a verified crendential to the user
 contract CredentialAdder {    
     using ECDSA for bytes32;
-    mapping(address => bytes32) encryptedLeaves;
+    bytes32[] public leaves;
     AssertLeafFromAddressVerifier verifier;
     
     // address constant issuer = 0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388;
@@ -136,7 +136,8 @@ contract CredentialAdder {
             addr := mload(add(b_,20))
         } 
     }
-    function addCredential(bytes memory leaf, address issuer, uint8 v, bytes32 r, bytes32 s, AssertLeafFromAddressVerifier.Proof memory proof, uint[13] memory input) public {
+    // Adds a leaf after checking it contains a valid credential
+    function addLeaf(bytes calldata leaf, address issuer, uint8 v, bytes32 r, bytes32 s, AssertLeafFromAddressVerifier.Proof memory proof, uint[13] memory input) public {
         address addressFromProof = bytesToAddress(
             bytes.concat(
                 abi.encodePacked(uint32(input[8])), 
@@ -149,7 +150,11 @@ contract CredentialAdder {
         );
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(leaf, v,r,s, issuer), "credentials must be signed by the issuer"); 
-        require(verifier.verifyTx(proof, input));
-        
+        require(verifier.verifyTx(proof, input), "zkSNARK failed");   
+        _addLeaf(leaf);
+    }
+    // Blindly adds a leaf (should be private)
+    function _addLeaf(bytes calldata leaf) private {
+        leaves.push(bytes32(leaf));
     }
 }
