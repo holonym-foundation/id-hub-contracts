@@ -157,4 +157,7 @@ contract CredentialAdder {
     function _addLeaf(bytes calldata leaf) private {
         leaves.push(bytes32(leaf));
     }
+    function getLeaves() public view returns (bytes32[] memory) {
+        return leaves;
+    }
 }
