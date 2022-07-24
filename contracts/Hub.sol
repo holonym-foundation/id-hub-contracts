@@ -109,7 +109,7 @@ contract Hub {
             )
         );
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
-        require(isFromIssuer(leaf, v,r,s, issuer), "credentials must be signed by the issuer"); 
+        require(isFromIssuer(leaf, v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(alfaV.verifyTx(proof, input), "zkSNARK failed");   
         _addLeaf(leaf);
     }
