@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./AssertLeafFromAddressVerifier.sol";
-import "./AssertLeafContainsCredVerifier.sol";
+import "./AssertLeafContainsCredsVerifier.sol";
 
 // Adds a verified crendential to the user
 contract Hub {    
@@ -11,11 +11,11 @@ contract Hub {
     bytes32[] public leaves;
     mapping (bytes32 => bool) public leafExists;
     AssertLeafFromAddressVerifier alfaV; 
-    AssertLeafContainsCredVerifier alccV;
+    AssertLeafContainsCredsVerifier alccV;
     
     constructor(address alfaV_, address alccV_){
-        alfaV = AssertLeafFromAddressVerifier(verifierAddr);
-        alccV = AssertLeafContainsCredVerifier(alccV_);
+        alfaV = AssertLeafFromAddressVerifier(alfaV_);
+        alccV = AssertLeafContainsCredsVerifier(alccV_);
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
@@ -115,7 +115,7 @@ contract Hub {
     }
 
     // Adds a leaf after checking it contains a valid credential
-    function proveIHaveCredential(bytes calldata leaf, AssertLeafFromAddressVerifier.Proof memory proof, uint[13] memory input) public returns (bytes[28] credential) {
+    function proveIHaveCredential(bytes calldata leaf, AssertLeafContainsCredsVerifier.Proof memory proof, uint[25] memory input) public returns (bytes memory credential) {
         bytes32 leafFromProof = bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
@@ -128,25 +128,23 @@ contract Hub {
                 abi.encodePacked(uint32(input[7]))
                 )
         );
-        bytes[28] memory credsFromProof = bytes.concat(
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])),
-                abi.encodePacked(uint32(input[x])),
-                abi.encodePacked(uint32(input[x])),
+        bytes memory credsFromProof = bytes.concat(
+                abi.encodePacked(uint32(input[13])), 
+                abi.encodePacked(uint32(input[14])), 
+                abi.encodePacked(uint32(input[15])), 
+                abi.encodePacked(uint32(input[16])), 
+                abi.encodePacked(uint32(input[17])),
+                abi.encodePacked(uint32(input[18])),
+                abi.encodePacked(uint32(input[19]))
             );
 
         address antiFrontrunningAddressFromProof = bytesToAddress(
             bytes.concat(
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])), 
-                abi.encodePacked(uint32(input[x])),
-                abi.encodePacked(uint32(input[x])),
-                abi.encodePacked(uint32(input[x])),
+                abi.encodePacked(uint32(input[20])), 
+                abi.encodePacked(uint32(input[21])), 
+                abi.encodePacked(uint32(input[22])), 
+                abi.encodePacked(uint32(input[23])), 
+                abi.encodePacked(uint32(input[24]))
                 )
         );
 
