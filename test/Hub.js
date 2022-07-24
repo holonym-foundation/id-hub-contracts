@@ -129,50 +129,44 @@ describe("Hub", function () {
         let tx = await this.hub.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.addProofData.proof, this.addProofData.inputs)
         await tx.wait();
       })
+      
       it("Does not revert when inputs are valid", async function (){
-        let tx = await this.hub.proveIHaveCredential(this.leaf, this.proofData.proof, this.proofData.inputs)
+        let tx = await this.hub.proveIHaveCredential(this.proofData.proof, this.proofData.inputs)
         await tx.wait();
         expect(tx).to.not.be.reverted;
       })
   
       // it("Reverts when leaf is invalid", async function (){
       //   await expect(
-      //     this.hub.addLeaf(Buffer.from("69".repeat(32), "hex"), this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+      //     this.hub.proveIHaveCredential(Buffer.from("69".repeat(32), "hex"), this.proofData.proof, this.proofData.inputs)
       //   ).to.be.reverted;
       // })
   
-      // it("Reverts when issuer address is invalid", async function (){
-      //   await expect(
-      //     this.hub.addLeaf(this.leaf, "0x483293fCB4C2EE29A02D74Ff98C976f9d85b1AAd", this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
-      //   ).to.be.reverted;
-      // })
+      it("Reverts when msgSender does not match is invalid", async function (){
+        const [account, account2] = await ethers.getSigners();
+        await expect(
+          this.hub.connect(account2).proveIHaveCredential(this.proofData.proof, this.proofData.inputs)
+        ).to.be.revertedWith("msgSender is not antiFrontrunningAddress");
+      })
   
-      // it("Reverts when v is invalid", async function (){
-      //   await expect(
-      //     this.hub.addLeaf(this.leaf, this.issuerAddress, 69, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
-      //   ).to.be.reverted;
-      // })
-  
-      // it("Reverts when r is invalid", async function (){
-      //   await expect(
-      //     this.hub.addLeaf(this.leaf, this.issuerAddress, this.sig.v, Buffer.from("69".repeat(32), "hex"), this.sig.s, this.proofData.proof, this.proofData.inputs)
-      //   ).to.be.reverted;
-      // })
-  
-      // it("Reverts when s is invalid", async function (){
-      //   await expect(
-      //     this.hub.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r,Buffer.from("69".repeat(32), "hex"), this.proofData.proof, this.proofData.inputs)
-      //   ).to.be.reverted;
-      // })
-  
-      // it("Reverts when proof is invalid", async function (){
-      //   // Deepcopy proof and all of its arrays:
-      //   let badProof = JSON.parse(JSON.stringify(this.proofData.proof)); 
-      //   badProof.a[0] = "0x"+"69".repeat(32);
-      //   await expect(
-      //     this.hub.addLeaf(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, badProof, this.proofData.inputs)
-      //   ).to.be.reverted;
-      // })
-  
+      it("Reverts when proof is invalid", async function (){
+        // Deepcopy proof and all of its arrays:
+        let badProof = JSON.parse(JSON.stringify(this.proofData.proof)); 
+        badProof.a[0] = "0x"+"69".repeat(32);
+        await expect(
+          this.hub.proveIHaveCredential(badProof, this.proofData.inputs)
+        ).to.be.reverted;
+      })
+
+      // Modifying the inputs would make the proof fail. But it's important to test the solidity code also cares about the public inputs
+      it("Reverts when leaf in proof is invalid", async function (){
+        // Deepcopy inputs and all of its arrays:
+        let badInputs = JSON.parse(JSON.stringify(this.proofData.inputs)); 
+        badInputs[0] = "0x"+"69".repeat(32);
+        await expect(
+          this.hub.proveIHaveCredential(this.proofData.proof, badInputs)
+        ).to.be.revertedWith("Leaf was not found");
+      })
+
     });
 });
