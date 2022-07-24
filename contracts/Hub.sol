@@ -150,7 +150,7 @@ contract Hub {
         );
 
         require(_msgSender() == antiFrontrunningAddressFromProof, "msgSender is not antiFrontrunningAddress");
-        // require(leafExists[leafFromProof], "Leaf was not found");
+        require(leafExists[leafFromProof], "Leaf was not found");
         require(alccV.verifyTx(proof, input), "zkSNARK failed");   
         return credsFromProof;
     }
