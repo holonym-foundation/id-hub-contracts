@@ -128,6 +128,7 @@ contract Hub {
                 abi.encodePacked(uint32(input[7]))
                 )
         );
+
         bytes memory credsFromProof = bytes.concat(
                 abi.encodePacked(uint32(input[13])), 
                 abi.encodePacked(uint32(input[14])), 
@@ -148,8 +149,8 @@ contract Hub {
                 )
         );
 
-        require(_msgSender() == antiFrontrunningAddressFromProof);
-        require(leafExists[leafFromProof]);
+        require(_msgSender() == antiFrontrunningAddressFromProof, "msgSender is not antiFrontrunningAddress");
+        // require(leafExists[leafFromProof], "Leaf was not found");
         require(alccV.verifyTx(proof, input), "zkSNARK failed");   
         return credsFromProof;
     }
