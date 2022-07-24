@@ -3,15 +3,19 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./AssertLeafFromAddressVerifier.sol";
+import "./AssertLeafContainsCredVerifier.sol";
 
 // Adds a verified crendential to the user
-contract CredentialAdder {    
+contract Hub {    
     using ECDSA for bytes32;
     bytes32[] public leaves;
-    AssertLeafFromAddressVerifier verifier;
+    mapping (bytes32 => bool) public leafExists;
+    AssertLeafFromAddressVerifier alfaV; 
+    AssertLeafContainsCredVerifier alccV;
     
-    constructor(address verifierAddr){
-        verifier = AssertLeafFromAddressVerifier(verifierAddr);
+    constructor(address alfaV_, address alccV_){
+        alfaV = AssertLeafFromAddressVerifier(verifierAddr);
+        alccV = AssertLeafContainsCredVerifier(alccV_);
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
@@ -80,6 +84,18 @@ contract CredentialAdder {
             addr := mload(add(b_,20))
         } 
     }
+
+    function getLeaves() public view returns (bytes32[] memory) {
+        return leaves;
+    }
+
+    // Blindly adds a leaf (should be private)
+    function _addLeaf(bytes calldata leaf) private {
+        bytes32 l = bytes32(leaf);
+        leaves.push(l);
+        leafExists[l] = true;
+    }
+    
     // Adds a leaf after checking it contains a valid credential
     function addLeaf(bytes calldata leaf, address issuer, uint8 v, bytes32 r, bytes32 s, AssertLeafFromAddressVerifier.Proof memory proof, uint[13] memory input) public {
         address addressFromProof = bytesToAddress(
@@ -94,14 +110,53 @@ contract CredentialAdder {
         );
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(leaf, v,r,s, issuer), "credentials must be signed by the issuer"); 
-        require(verifier.verifyTx(proof, input), "zkSNARK failed");   
+        require(alfaV.verifyTx(proof, input), "zkSNARK failed");   
         _addLeaf(leaf);
     }
-    // Blindly adds a leaf (should be private)
-    function _addLeaf(bytes calldata leaf) private {
-        leaves.push(bytes32(leaf));
+
+    // Adds a leaf after checking it contains a valid credential
+    function proveIHaveCredential(bytes calldata leaf, AssertLeafFromAddressVerifier.Proof memory proof, uint[13] memory input) public returns (bytes[28] credential) {
+        bytes32 leafFromProof = bytes32(
+            bytes.concat(
+                abi.encodePacked(uint32(input[0])), 
+                abi.encodePacked(uint32(input[1])), 
+                abi.encodePacked(uint32(input[2])), 
+                abi.encodePacked(uint32(input[3])), 
+                abi.encodePacked(uint32(input[4])),
+                abi.encodePacked(uint32(input[5])),
+                abi.encodePacked(uint32(input[6])),
+                abi.encodePacked(uint32(input[7]))
+                )
+        );
+        bytes[28] memory credsFromProof = bytes.concat(
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])),
+                abi.encodePacked(uint32(input[x])),
+                abi.encodePacked(uint32(input[x])),
+            );
+
+        address antiFrontrunningAddressFromProof = bytesToAddress(
+            bytes.concat(
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])), 
+                abi.encodePacked(uint32(input[x])),
+                abi.encodePacked(uint32(input[x])),
+                abi.encodePacked(uint32(input[x])),
+                )
+        );
+
+        require(_msgSender() == antiFrontrunningAddressFromProof);
+        require(leafExists[leafFromProof]);
+        require(alccV.verifyTx(proof, input), "zkSNARK failed");   
+        return credsFromProof;
     }
-    function getLeaves() public view returns (bytes32[] memory) {
-        return leaves;
+
+    function _msgSender() internal returns (address) {
+        return msg.sender;
     }
 }
