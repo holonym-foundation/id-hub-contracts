@@ -115,7 +115,7 @@ contract Hub {
     }
 
     // Adds a leaf after checking it contains a valid credential
-    function proveIHaveCredential(bytes calldata leaf, AssertLeafContainsCredsVerifier.Proof memory proof, uint[25] memory input) public returns (bytes memory credential) {
+    function proveIHaveCredential(AssertLeafContainsCredsVerifier.Proof memory proof, uint[25] memory input) public returns (bytes memory credential) {
         bytes32 leafFromProof = bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
