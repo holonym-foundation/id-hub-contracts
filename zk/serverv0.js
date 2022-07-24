@@ -9,6 +9,8 @@ const util = require("util");
 const exec = util.promisify(require("child_process").exec); // wrapper for exec that allows async/await for its completion (https://stackoverflow.com/questions/30763496/how-to-promisify-nodes-child-process-exec-and-child-process-execfile-functions)
 const { randomBytes } = require("crypto");
 
+const importHash = `import "hashes/blake2/blake2s" as leafHash;`; // import "hashes/sha256/sha256" as leafHash;
+
 const app = express();
 const port = 8081;
 
@@ -34,9 +36,9 @@ const init = (args = {
 
                 // Also, compilation of hash
                 // IS IT SAFE TO DO SHA256 UNPADDED ON 512 BIT INPUT
-                globals.assertLeafFromAddress = zokratesProvider.compile(`
-                // import "hashes/sha256/sha256" as leafHash;
-                import "hashes/blake2/blake2s" as leafHash;
+                globals.alfa = zokratesProvider.compile(`
+                ${importHash}
+                // Assert Leaf From Address (ALFA)
                 // asserts that a leaf's preimage begins with a certain address
                 def main(u32[8] leaf, u32[5] address, private u32[7] creds, private u32[4] nullifier) {
                     u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
@@ -45,11 +47,23 @@ const init = (args = {
                 }
                                 
                 `);
-                globals.assertLeafFromAddressKey = fs.readFileSync("./assertLeafFromAddress.proving.key");
+                globals.alfaKey = fs.readFileSync("./alfa.proving.key");
+
+                globals.alcc = zokratesProvider.compile(`
+                ${importHash}
+                // Assert Leaf Contains Credential (ALCC)
+                // asserts that a leaf's preimage begins with a certain address. Takes unused input msgSender to prevent frontrunning
+                def main(u32[8] leaf, u32[5] address, u32[7] creds, u32[5] msgSender, private u32[4] nullifier) {
+                    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
+                    assert(leafHash(preimage) == leaf);
+                    return;
+                }
+               
+                `);
+                globals.alccKey = fs.readFileSync("./alcc.proving.key");
 
                 globals.leafgen = zokratesProvider.compile(`
-                // import "hashes/sha256/sha256" as leafHash;
-                import "hashes/blake2/blake2s" as leafHash;
+                ${importHash}
                 def main(u32[5] address, private u32[7] creds, private u32[4] nullifier) -> u32[8] {
                     u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
                     return leafHash(preimage);
@@ -68,7 +82,7 @@ function generateProof(args) {
     return proof;
 }
 
-function proveLeafFrom(leaf, address, creds, nullifier) {
+function alfa(leaf, address, creds, nullifier) {
     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
     assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
@@ -76,12 +90,12 @@ function proveLeafFrom(leaf, address, creds, nullifier) {
     const paddedCreds = Buffer.concat([creds], 28);
     console.log("shit", leaf, address, paddedCreds, nullifier);
     const { witness, output } = globals.zokratesProvider.computeWitness(
-        globals.assertLeafFromAddress, 
+        globals.alfa, 
         [leaf, address, paddedCreds, nullifier].map(x=>toU32StringArray(x))
     );
     console.log("Calculating proof...");
     let time_ = Date.now();
-    const proof = globals.zokratesProvider.generateProof(globals.assertLeafFromAddress.program, witness, globals.assertLeafFromAddressKey);
+    const proof = globals.zokratesProvider.generateProof(globals.alfa.program, witness, globals.alfaKey);
     console.log("Proof", proof, Date.now()-time_)
     return proof;
 }
@@ -109,18 +123,38 @@ function leafFromData(address, creds, nullifier) {
 }
 
 
-app.get("/proveLeafFrom/:leaf/:address/:creds/:nullifier/", async (req, res) => {
+app.get("/alfa/:leaf/:address/:creds/:nullifier/", async (req, res) => {
     const {leaf, address, creds, nullifier} = req.params;
-    // const proof = proveLeafFrom(
+    // const proof = alfa(
     //     Buffer.from(leaf.replace("0x", ""), "hex"),
     //     Buffer.from(address.replace("0x",""), "hex"), 
     //     Buffer.from(creds), 
     //     Buffer.from(nullifier.replace("0x",""), "hex")
     // );
-    const proof = await proveLeafFromCLI(
+    const proof = await alfaCLI(
         Buffer.from(leaf.replace("0x", ""), "hex"),
         Buffer.from(address.replace("0x",""), "hex"), 
         Buffer.from(creds), 
+        Buffer.from(nullifier.replace("0x",""), "hex")
+    );
+    res.send(
+        JSON.stringify(proof)
+    );
+})
+
+app.get("/alcc/:leaf/:address/:creds/:msgSender/:nullifier/", async (req, res) => {
+    const {leaf, address, creds, msgSender, nullifier} = req.params;
+    // const proof = alcc(
+    //     Buffer.from(leaf.replace("0x", ""), "hex"),
+    //     Buffer.from(address.replace("0x",""), "hex"), 
+    //     Buffer.from(creds), 
+    //     Buffer.from(nullifier.replace("0x",""), "hex")
+    // );
+    const proof = await alccCLI(
+        Buffer.from(leaf.replace("0x", ""), "hex"),
+        Buffer.from(address.replace("0x",""), "hex"), 
+        Buffer.from(creds), 
+        Buffer.from(msgSender.replace("0x", ""), "hex"),
         Buffer.from(nullifier.replace("0x",""), "hex")
     );
     res.send(
@@ -167,8 +201,8 @@ function argsToU32CLIArgs (args) {
     return toU32Array(Buffer.concat(args)).map(x=>parseInt(x)).join(" ")
 }
 
-// proveLeafFrom sped up via CLI/compiled instead of js/interpereted 
-async function proveLeafFromCLI(leaf, address, creds, nullifier) {
+// alfa sped up via CLI/compiled instead of js/interpereted 
+async function alfaCLI(leaf, address, creds, nullifier) {
     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
     assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
@@ -176,12 +210,38 @@ async function proveLeafFromCLI(leaf, address, creds, nullifier) {
     const paddedCreds = Buffer.concat([creds], 28)
 
     const tmpValue = randomBytes(16).toString("hex");
-    const inFile = "assertLeafFromAddress.out"
-    const tmpWitnessFile = tmpValue + ".assertLeafFromAddress.witness"
-    const tmpProofFile = tmpValue + ".assertLeafFromAddress.proof.json"
+    const inFile = "alfa.out"
+    const tmpWitnessFile = tmpValue + ".alfa.witness"
+    const tmpProofFile = tmpValue + ".alfa.proof.json"
     // Execute the command
     try {
-        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p assertLeafFromAddress.proving.key; rm ${tmpWitnessFile}`);
+        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p alfa.proving.key; rm ${tmpWitnessFile}`);
+        console.log("STDs", stdout, stderr);
+    } catch(e) {
+        console.error(e);
+    }
+    // Read the proof file, then delete it, then return it
+    const retval = JSON.parse(fs.readFileSync(tmpProofFile));
+    console.log("1269", retval);
+    exec(`rm ${tmpProofFile}`);
+    return retval
+}
+
+async function alccCLI(leaf, address, creds, msgSender, nullifier) {
+    assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
+    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+    assert(msgSender.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
+    // Pad creds to 28 bytes
+    const paddedCreds = Buffer.concat([creds], 28)
+
+    const tmpValue = randomBytes(16).toString("hex");
+    const inFile = "alcc.out"
+    const tmpWitnessFile = tmpValue + ".alcc.witness"
+    const tmpProofFile = tmpValue + ".alcc.proof.json"
+    // Execute the command
+    try {
+        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, msgSender, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p alcc.proving.key; rm ${tmpWitnessFile}`);
         console.log("STDs", stdout, stderr);
     } catch(e) {
         console.error(e);

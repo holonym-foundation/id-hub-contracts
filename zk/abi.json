@@ -20,10 +20,19 @@
     },
     {
       "name": "creds",
-      "public": false,
+      "public": true,
       "type": "array",
       "components": {
         "size": 7,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "msgSender",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 5,
         "type": "u32"
       }
     },
