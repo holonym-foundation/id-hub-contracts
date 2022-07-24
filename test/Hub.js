@@ -39,7 +39,7 @@ describe("Hub", function () {
       });
     });
 
-    describe("Integration Test: addCredential", function () {
+    describe("addCredential", function () {
       before(async function() {
         this.alfa = await (await ethers.getContractFactory("AssertLeafFromAddressVerifier")).deploy();
         this.alcc = await (await ethers.getContractFactory("AssertLeafContainsCredsVerifier")).deploy();
@@ -105,7 +105,7 @@ describe("Hub", function () {
   
     });
 
-    describe.only("Integration Test: proveIHaveCredential", function () {
+    describe.only("proveIHaveCredential", function () {
       before(async function() {
         this.alfa = await (await ethers.getContractFactory("AssertLeafFromAddressVerifier")).deploy();
         this.alcc = await (await ethers.getContractFactory("AssertLeafContainsCredsVerifier")).deploy();
@@ -135,12 +135,6 @@ describe("Hub", function () {
         await tx.wait();
         expect(tx).to.not.be.reverted;
       })
-  
-      // it("Reverts when leaf is invalid", async function (){
-      //   await expect(
-      //     this.hub.proveIHaveCredential(Buffer.from("69".repeat(32), "hex"), this.proofData.proof, this.proofData.inputs)
-      //   ).to.be.reverted;
-      // })
   
       it("Reverts when msgSender does not match is invalid", async function (){
         const [account, account2] = await ethers.getSigners();
