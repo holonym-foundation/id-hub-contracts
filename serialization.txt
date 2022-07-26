@@ -1,5 +1,5 @@
 #persona-field, bytes
-completed-at: 4 #can be stored as uint32
+# completed-at: 4 #can be stored as uint32 # don't need
 country-code: 3 
 name-first: 14
 # name-middle: 16 #delete for more space
