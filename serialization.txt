@@ -1,0 +1,17 @@
+#persona-field, bytes
+completed-at: 4 #can be stored as uint32
+country-code: 3 
+name-first: 14
+# name-middle: 16 #delete for more space
+initial-middle: 1 #instead of name-middle to save space
+name-last: 14
+address-street-1: 16
+address-street-2: 12
+address-city: 16
+# address-subdivision: 16? #delete for more space
+address-postal-code: 8
+birthday: 4 #can be stored as uint32
+
+#UUID could be hash(first, last, birthday). However, this UUID should not be given away -- it's quite easy to dictionary attack
+#If user is tricked into revealing it, it could doxx them. However, this may not be a big deal as it will only doxx the address they prove from
+#Advantage of this is interoperability between different ID services; same person would have same UUID
