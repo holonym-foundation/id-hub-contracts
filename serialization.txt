@@ -10,7 +10,7 @@ address-street-2: 12
 address-city: 16
 # address-subdivision: 16? #delete for more space
 address-postal-code: 8
-birthday: 4 #can be stored as uint32 # Convert to UNIX timestamp
+birthday: 4 #can be stored as uint32 # Convert to UNIX timestamp (rounded to nearest day)
 
 #UUID could be hash(first, last, birthday). However, this UUID should not be given away -- it's quite easy to dictionary attack
 #If user is tricked into revealing it, it could doxx them. However, this may not be a big deal as it will only doxx the address they prove from
