@@ -1,7 +1,16 @@
 {
   "inputs": [
     {
-      "name": "leaf",
+      "name": "oldLeaf",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "newLeaf",
       "public": true,
       "type": "array",
       "components": {
@@ -19,8 +28,26 @@
       }
     },
     {
-      "name": "creds",
-      "public": true,
+      "name": "oldNullifier",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 4,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "newNullifier",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 4,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "credsPart1",
+      "public": false,
       "type": "array",
       "components": {
         "size": 7,
@@ -28,20 +55,11 @@
       }
     },
     {
-      "name": "msgSender",
-      "public": true,
-      "type": "array",
-      "components": {
-        "size": 5,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "nullifier",
+      "name": "credsPart2",
       "public": false,
       "type": "array",
       "components": {
-        "size": 4,
+        "size": 16,
         "type": "u32"
       }
     }

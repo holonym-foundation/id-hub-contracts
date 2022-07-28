@@ -2,20 +2,21 @@
 pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./AssertLeafFromAddressVerifier.sol";
-import "./AssertLeafContainsCredsVerifier.sol";
+import "./AddLeafBig.sol";
+import "./AddLeafSmall.sol";
 
 // Adds a verified crendential to the user
 contract Hub {    
     using ECDSA for bytes32;
     bytes32[] public leaves;
     mapping (bytes32 => bool) public leafExists;
-    AssertLeafFromAddressVerifier alfaV; 
-    AssertLeafContainsCredsVerifier alccV;
+    mapping (address => bool) public verified;
+    AddLeafBig alb;
+    AddLeafSmall als;
     
-    constructor(address alfaV_, address alccV_){
-        alfaV = AssertLeafFromAddressVerifier(alfaV_);
-        alccV = AssertLeafContainsCredsVerifier(alccV_);
+    constructor(address alb_, address als){
+        alb = AddLeafBig(alb_);
+        als = AddLeafSmall(albs_);
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
@@ -97,26 +98,8 @@ contract Hub {
     }
     
     // Adds a leaf after checking it contains a valid credential
-    function addLeaf(bytes calldata leaf, address issuer, uint8 v, bytes32 r, bytes32 s, AssertLeafFromAddressVerifier.Proof memory proof, uint[13] memory input) public {
-        address addressFromProof = bytesToAddress(
-            bytes.concat(
-                abi.encodePacked(uint32(input[8])), 
-                abi.encodePacked(uint32(input[9])), 
-                abi.encodePacked(uint32(input[10])), 
-                abi.encodePacked(uint32(input[11])), 
-                abi.encodePacked(uint32(input[12])
-                )
-            )
-        );
-        require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
-        require(isFromIssuer(leaf, v,r,s, issuer), "leaf must be signed by the issuer"); 
-        require(alfaV.verifyTx(proof, input), "zkSNARK failed");   
-        _addLeaf(leaf);
-    }
-
-    // Adds a leaf after checking it contains a valid credential
-    function proveIHaveCredential(AssertLeafContainsCredsVerifier.Proof memory proof, uint[25] memory input) public returns (bytes memory credential) {
-        bytes32 leafFromProof = bytes32(
+    function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafSmall.Proof memory proof, uint[13] memory input) public {
+        bytes32 oldLeafFromProof = bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
                 abi.encodePacked(uint32(input[1])), 
@@ -128,32 +111,129 @@ contract Hub {
                 abi.encodePacked(uint32(input[7]))
                 )
         );
-
-        bytes memory credsFromProof = bytes.concat(
-                abi.encodePacked(uint32(input[13])), 
-                abi.encodePacked(uint32(input[14])), 
-                abi.encodePacked(uint32(input[15])), 
-                abi.encodePacked(uint32(input[16])), 
-                abi.encodePacked(uint32(input[17])),
-                abi.encodePacked(uint32(input[18])),
-                abi.encodePacked(uint32(input[19]))
-            );
-
-        address antiFrontrunningAddressFromProof = bytesToAddress(
+        bytes32 newLeafFromProof = bytes32(
             bytes.concat(
-                abi.encodePacked(uint32(input[20])), 
-                abi.encodePacked(uint32(input[21])), 
-                abi.encodePacked(uint32(input[22])), 
-                abi.encodePacked(uint32(input[23])), 
-                abi.encodePacked(uint32(input[24]))
+                abi.encodePacked(uint32(input[8])), 
+                abi.encodePacked(uint32(input[9])), 
+                abi.encodePacked(uint32(input[10])), 
+                abi.encodePacked(uint32(input[11])), 
+                abi.encodePacked(uint32(input[12])),
+                abi.encodePacked(uint32(input[13])),
+                abi.encodePacked(uint32(input[14])),
+                abi.encodePacked(uint32(input[15]))
                 )
         );
-
-        require(_msgSender() == antiFrontrunningAddressFromProof, "msgSender is not antiFrontrunningAddress");
-        require(leafExists[leafFromProof], "Leaf was not found");
-        require(alccV.verifyTx(proof, input), "zkSNARK failed");   
-        return credsFromProof;
+        address addressFromProof = bytesToAddress(
+            bytes.concat(
+                abi.encodePacked(uint32(input[16])), 
+                abi.encodePacked(uint32(input[17])), 
+                abi.encodePacked(uint32(input[18])), 
+                abi.encodePacked(uint32(input[19])), 
+                abi.encodePacked(uint32(input[20])
+                )
+            )
+        );
+        require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
+        require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
+        require(als.verifyTx(proof, input), "zkSNARK failed");   
+        _addLeaf(newLeaf);
+        // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
+        // Note this authority is just for a short-term solution for Lobby3
+        if(addressFromProof == authority){
+            verified[_msgSender()] = true;
+        }
+        
     }
+
+    // Adds a leaf after checking it contains a valid credential
+    function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafBig.Proof memory proof, uint[13] memory input) public {
+        bytes32 oldLeafFromProof = bytes32(
+            bytes.concat(
+                abi.encodePacked(uint32(input[0])), 
+                abi.encodePacked(uint32(input[1])), 
+                abi.encodePacked(uint32(input[2])), 
+                abi.encodePacked(uint32(input[3])), 
+                abi.encodePacked(uint32(input[4])),
+                abi.encodePacked(uint32(input[5])),
+                abi.encodePacked(uint32(input[6])),
+                abi.encodePacked(uint32(input[7]))
+                )
+        );
+        bytes32 newLeafFromProof = bytes32(
+            bytes.concat(
+                abi.encodePacked(uint32(input[0])), 
+                abi.encodePacked(uint32(input[1])), 
+                abi.encodePacked(uint32(input[2])), 
+                abi.encodePacked(uint32(input[3])), 
+                abi.encodePacked(uint32(input[4])),
+                abi.encodePacked(uint32(input[5])),
+                abi.encodePacked(uint32(input[6])),
+                abi.encodePacked(uint32(input[7]))
+                )
+        );
+        address addressFromProof = bytesToAddress(
+            bytes.concat(
+                abi.encodePacked(uint32(input[8])), 
+                abi.encodePacked(uint32(input[9])), 
+                abi.encodePacked(uint32(input[10])), 
+                abi.encodePacked(uint32(input[11])), 
+                abi.encodePacked(uint32(input[12])
+                )
+            )
+        );
+        require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
+        require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
+        require(alb.verifyTx(proof, input), "zkSNARK failed");   
+        _addLeaf(newLeaf);
+        // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
+        // Note this authority is just for a short-term solution for Lobby3
+        if(addressFromProof == authority){
+            verified[_msgSender()] = true;
+        }
+    }
+
+    /* This function was tested and works, but it will be moved to another contract. This should be one of many supported proof types. 
+     * Since there will be many proof types, it makes sense to have this in a separate contract for proving, where this contract is for adding. */
+    // // Adds a leaf after checking it contains a valid credential
+    // function proveIHaveCredential(AssertLeafContainsCredsVerifier.Proof memory proof, uint[25] memory input) public returns (bytes memory credential) {
+    //     bytes32 leafFromProof = bytes32(
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[0])), 
+    //             abi.encodePacked(uint32(input[1])), 
+    //             abi.encodePacked(uint32(input[2])), 
+    //             abi.encodePacked(uint32(input[3])), 
+    //             abi.encodePacked(uint32(input[4])),
+    //             abi.encodePacked(uint32(input[5])),
+    //             abi.encodePacked(uint32(input[6])),
+    //             abi.encodePacked(uint32(input[7]))
+    //             )
+    //     );
+
+    //     bytes memory credsFromProof = bytes.concat(
+    //             abi.encodePacked(uint32(input[13])), 
+    //             abi.encodePacked(uint32(input[14])), 
+    //             abi.encodePacked(uint32(input[15])), 
+    //             abi.encodePacked(uint32(input[16])), 
+    //             abi.encodePacked(uint32(input[17])),
+    //             abi.encodePacked(uint32(input[18])),
+    //             abi.encodePacked(uint32(input[19]))
+    //         );
+
+    //     address antiFrontrunningAddressFromProof = bytesToAddress(
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[20])), 
+    //             abi.encodePacked(uint32(input[21])), 
+    //             abi.encodePacked(uint32(input[22])), 
+    //             abi.encodePacked(uint32(input[23])), 
+    //             abi.encodePacked(uint32(input[24]))
+    //             )
+    //     );
+
+    //     require(_msgSender() == antiFrontrunningAddressFromProof, "msgSender is not antiFrontrunningAddress");
+    //     require(leafExists[leafFromProof], "Leaf was not found");
+    //     require(alccV.verifyTx(proof, input), "zkSNARK failed");   
+    //     return credsFromProof;
+    // }
 
     function _msgSender() internal returns (address) {
         return msg.sender;
