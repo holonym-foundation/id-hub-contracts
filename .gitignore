@@ -1,4 +1,3 @@
-.DS_Store
 node_modules
 .env
 coverage
@@ -16,4 +15,3 @@ zk/out
 zk/out.r1cs
 
 zl/*.out
-.DS_Store
