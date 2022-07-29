@@ -103,7 +103,7 @@ contract Hub {
     }
     
     // Adds a leaf after checking it contains a valid credential
-    function addLeafSmall(bytes32 leaf, address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafSmall.Proof memory proof, uint[21] memory input) public {
+    function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafSmall.Proof memory proof, uint[21] memory input) public {
         bytes memory oldLeafFromProof = 
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
@@ -184,15 +184,6 @@ contract Hub {
         require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(alb.verifyTx(proof, input), "zkSNARK failed");   
         _addLeaf(newLeafFromProof);
-    }
-
-    // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
-    // Note this authority is just for a short-term solution for Lobby3
-    // message is of format: 20-bytes address followed by 32-byte leaf
-    function lobby3Authorized(bytes calldata message, uint8 v, bytes32 r, bytes32 s) public {
-        if(isFromIssuer(message, v, r, s, authority)){
-            verified[bytesToAddress(message[0:20])] = bytes32(message[20:52]);
-        }
     }
 
     /* This function was tested and works, but it will be moved to another contract. This should be one of many supported proof types. 
