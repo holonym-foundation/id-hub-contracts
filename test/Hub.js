@@ -65,34 +65,28 @@ describe("Hub", function () {
   
       })
   
-      it("Reverts when leaf is invalid", async function (){
-        await expect(
-          this.hub.addLeafSmall(Buffer.from("69".repeat(32), "hex"), this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
-        ).to.be.revertedWith("leaf must be signed by the issuer");
-      })
-  
       it("Reverts when issuer address is invalid", async function (){
         await expect(
-          this.hub.addLeafSmall(this.leaf, "0x483293fCB4C2EE29A02D74Ff98C976f9d85b1AAd", this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+          this.hub.addLeafSmall("0x483293fCB4C2EE29A02D74Ff98C976f9d85b1AAd", this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
         ).to.be.revertedWith("credentials must be proven to start with the issuer's address");
       })
   
       it("Reverts when v is invalid", async function (){
         await expect(
-          this.hub.addLeafSmall(this.leaf, this.issuerAddress, 69, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
-        ).to.be.revertedWith("credentials must be signed by the issuer");
+          this.hub.addLeafSmall(this.issuerAddress, 69, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+        ).to.be.revertedWith("leaf must be signed by the issuer");
       })
   
       it("Reverts when r is invalid", async function (){
         await expect(
-          this.hub.addLeafSmall(this.leaf, this.issuerAddress, this.sig.v, Buffer.from("69".repeat(32), "hex"), this.sig.s, this.proofData.proof, this.proofData.inputs)
-        ).to.be.revertedWith("credentials must be signed by the issuer");
+          this.hub.addLeafSmall(this.issuerAddress, this.sig.v, Buffer.from("69".repeat(32), "hex"), this.sig.s, this.proofData.proof, this.proofData.inputs)
+        ).to.be.revertedWith("leaf must be signed by the issuer");
       })
   
       it("Reverts when s is invalid", async function (){
         await expect(
-          this.hub.addLeafSmall(this.leaf, this.issuerAddress, this.sig.v, this.sig.r,Buffer.from("69".repeat(32), "hex"), this.proofData.proof, this.proofData.inputs)
-        ).to.be.revertedWith("credentials must be signed by the issuer");
+          this.hub.addLeafSmall(this.issuerAddress, this.sig.v, this.sig.r,Buffer.from("69".repeat(32), "hex"), this.proofData.proof, this.proofData.inputs)
+        ).to.be.revertedWith("leaf must be signed by the issuer");
       })
   
       it("Reverts when proof is invalid", async function (){
@@ -100,7 +94,7 @@ describe("Hub", function () {
         let badProof = JSON.parse(JSON.stringify(this.proofData.proof)); 
         badProof.a[0] = "0x"+"69".repeat(32);
         await expect(
-          this.hub.addLeafSmall(this.leaf, this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, badProof, this.proofData.inputs)
+          this.hub.addLeafSmall(this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, badProof, this.proofData.inputs)
         ).to.be.reverted;
       })
   
