@@ -10,7 +10,7 @@ contract Hub {
     using ECDSA for bytes32;
     bytes32[] public leaves;
     mapping (bytes32 => bool) public leafExists;
-    mapping (address => bool) public verified;
+    mapping (address => bytes32) public verified;
     AddLeafBig alb;
     AddLeafSmall als;
     address public authority; 
@@ -184,10 +184,14 @@ contract Hub {
         require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(alb.verifyTx(proof, input), "zkSNARK failed");   
         _addLeaf(newLeafFromProof);
-        // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
-        // Note this authority is just for a short-term solution for Lobby3
-        if(addressFromProof == authority){
-            verified[_msgSender()] = true;
+    }
+
+    // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
+    // Note this authority is just for a short-term solution for Lobby3
+    // message is of format: 20-bytes address followed by 32-byte leaf
+    function lobby3Authorized(bytes calldata message, uint8 v, bytes32 r, bytes32 s) public {
+        if(isFromIssuer(message, v, r, s, authority)){
+            verified[bytesToAddress(message[0:20])] = bytes32(message[20:52]);
         }
     }
 
