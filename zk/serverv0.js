@@ -35,100 +35,93 @@ const init = () =>
     })
 }
 // Takes arguments to main function, then generates witness + proof, and returns proof
-function generateProof(args) {
-    const { witness, output } = globals.zokratesProvider.computeWitness(globals.mainCompiled, args);
-    console.log(output)
-    const proof = globals.zokratesProvider.generateProof(globals.mainCompiled.program, witness, globals.provingKey);
-    return proof;
-}
+// function generateProof(args) {
+//     const { witness, output } = globals.zokratesProvider.computeWitness(globals.mainCompiled, args);
+//     console.log(output)
+//     const proof = globals.zokratesProvider.generateProof(globals.mainCompiled.program, witness, globals.provingKey);
+//     return proof;
+// }
 
-function alfa(leaf, address, creds, nullifier) {
-    assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
-    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
-    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
-    // Pad creds to 28 bytes
-    const paddedCreds = Buffer.concat([creds], 28);
-    console.log("shit", leaf, address, paddedCreds, nullifier);
-    const { witness, output } = globals.zokratesProvider.computeWitness(
-        globals.alfa, 
-        [leaf, address, paddedCreds, nullifier].map(x=>toU32StringArray(x))
-    );
-    console.log("Calculating proof...");
-    let time_ = Date.now();
-    const proof = globals.zokratesProvider.generateProof(globals.alfa.program, witness, globals.alfaKey);
-    console.log("Proof", proof, Date.now()-time_)
-    return proof;
-}
+// function alfa(leaf, address, creds, secret) {
+//     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
+//     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+//     assert(secret.length == 16, `secret must be 16 bytes but is ${secret.length} bytes `);
+//     // Pad creds to 28 bytes
+//     const paddedCreds = Buffer.concat([creds], 28);
+//     const { witness, output } = globals.zokratesProvider.computeWitness(
+//         globals.alfa, 
+//         [leaf, address, paddedCreds, secret].map(x=>toU32StringArray(x))
+//     );
+//     console.log("Calculating proof...");
+//     let time_ = Date.now();
+//     const proof = globals.zokratesProvider.generateProof(globals.alfa.program, witness, globals.alfaKey);
+//     console.log("Proof", proof, Date.now()-time_)
+//     return proof;
+// }
 
-function leafFromData(address, creds, nullifier) {
+function leafFromData(address, creds, secret) {
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
-    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
+    assert(secret.length == 16, `secret must be 16 bytes but is ${secret.length} bytes `);
     // Pad creds to 28 bytes
     const paddedCreds = Buffer.concat([creds], 28)
-    console.log([address, paddedCreds, nullifier].map(x=>toU32StringArray(x)))
+    console.log([address, paddedCreds, secret].map(x=>toU32StringArray(x)))
     const { witness, output } = globals.zokratesProvider.computeWitness(
         globals.leafgen, 
-        [address, paddedCreds, nullifier].map(x=>toU32StringArray(x))
+        [address, paddedCreds, secret].map(x=>toU32StringArray(x))
     );
 
     // console.log(
     //     "aijcnlska", 
     //     JSON.parse(output).map(x=>parseInt(x)),
-    //     toU32StringArray(Buffer.concat([address, paddedCreds, nullifier])).map(x=>parseInt(x)),
+    //     toU32StringArray(Buffer.concat([address, paddedCreds, secret])).map(x=>parseInt(x)),
     //     )
-    console.log("abc", argsToU32CLIArgs([address, paddedCreds, nullifier]))
+    console.log("abc", argsToU32CLIArgs([address, paddedCreds, secret]))
     
         
     return output;
 }
 
 
-app.get("/alfa/:leaf/:address/:creds/:nullifier/", async (req, res) => {
-    const {leaf, address, creds, nullifier} = req.params;
-    // const proof = alfa(
-    //     Buffer.from(leaf.replace("0x", ""), "hex"),
-    //     Buffer.from(address.replace("0x",""), "hex"), 
-    //     Buffer.from(creds), 
-    //     Buffer.from(nullifier.replace("0x",""), "hex")
-    // );
+app.get("/onAddCredentialSmall/:leaf/:address/:creds/:secret/", async (req, res) => {
+    const {leaf, address, creds, secret} = req.params;
     const proof = await alfaCLI(
         Buffer.from(leaf.replace("0x", ""), "hex"),
         Buffer.from(address.replace("0x",""), "hex"), 
         Buffer.from(creds), 
-        Buffer.from(nullifier.replace("0x",""), "hex")
+        Buffer.from(secret.replace("0x",""), "hex")
     );
     res.send(
         JSON.stringify(proof)
     );
 })
 
-app.get("/alcc/:leaf/:address/:creds/:msgSender/:nullifier/", async (req, res) => {
-    const {leaf, address, creds, msgSender, nullifier} = req.params;
+app.get("/alcc/:leaf/:address/:creds/:msgSender/:secret/", async (req, res) => {
+    const {leaf, address, creds, msgSender, secret} = req.params;
     // const proof = alcc(
     //     Buffer.from(leaf.replace("0x", ""), "hex"),
     //     Buffer.from(address.replace("0x",""), "hex"), 
     //     Buffer.from(creds), 
-    //     Buffer.from(nullifier.replace("0x",""), "hex")
+    //     Buffer.from(secret.replace("0x",""), "hex")
     // );
     const proof = await alccCLI(
         Buffer.from(leaf.replace("0x", ""), "hex"),
         Buffer.from(address.replace("0x",""), "hex"), 
         Buffer.from(creds), 
         Buffer.from(msgSender.replace("0x", ""), "hex"),
-        Buffer.from(nullifier.replace("0x",""), "hex")
+        Buffer.from(secret.replace("0x",""), "hex")
     );
     res.send(
         JSON.stringify(proof)
     );
 })
 
-app.get("/createLeaf/:address/:creds/:nullifier/", (req, res) => {
-    const {address, creds, nullifier} = req.params;
-    console.log(address, creds, nullifier, Buffer.from(address.replace("0x",""), "hex"))
+app.get("/createLeaf/:address/:creds/:secret/", (req, res) => {
+    const {address, creds, secret} = req.params;
+    console.log(address, creds, secret, Buffer.from(address.replace("0x",""), "hex"))
     lfd = leafFromData(
         Buffer.from(address.replace("0x",""), "hex"), 
         Buffer.from(creds), 
-        Buffer.from(nullifier.replace("0x",""), "hex")
+        Buffer.from(secret.replace("0x",""), "hex")
     )
     res.send(
         lfd
@@ -161,57 +154,57 @@ function argsToU32CLIArgs (args) {
     return toU32Array(Buffer.concat(args)).map(x=>parseInt(x)).join(" ")
 }
 
-// alfa sped up via CLI/compiled instead of js/interpereted 
-async function alfaCLI(leaf, address, creds, nullifier) {
-    assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
-    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
-    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
-    // Pad creds to 28 bytes
-    const paddedCreds = Buffer.concat([creds], 28)
+// // alfa sped up via CLI/compiled instead of js/interpereted 
+// async function alfaCLI(leaf, address, creds, secret) {
+//     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
+//     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+//     assert(secret.length == 16, `secret must be 16 bytes but is ${secret.length} bytes `);
+//     // Pad creds to 28 bytes
+//     const paddedCreds = Buffer.concat([creds], 28)
 
-    const tmpValue = randomBytes(16).toString("hex");
-    const inFile = "alfa.out"
-    const tmpWitnessFile = tmpValue + ".alfa.witness"
-    const tmpProofFile = tmpValue + ".alfa.proof.json"
-    // Execute the command
-    try {
-        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p alfa.proving.key; rm ${tmpWitnessFile}`);
-        console.log("STDs", stdout, stderr);
-    } catch(e) {
-        console.error(e);
-    }
-    // Read the proof file, then delete it, then return it
-    const retval = JSON.parse(fs.readFileSync(tmpProofFile));
-    console.log("1269", retval);
-    exec(`rm ${tmpProofFile}`);
-    return retval
-}
+//     const tmpValue = randomBytes(16).toString("hex");
+//     const inFile = "alfa.out"
+//     const tmpWitnessFile = tmpValue + ".alfa.witness"
+//     const tmpProofFile = tmpValue + ".alfa.proof.json"
+//     // Execute the command
+//     try {
+//         const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, secret])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p alfa.proving.key; rm ${tmpWitnessFile}`);
+//         console.log("STDs", stdout, stderr);
+//     } catch(e) {
+//         console.error(e);
+//     }
+//     // Read the proof file, then delete it, then return it
+//     const retval = JSON.parse(fs.readFileSync(tmpProofFile));
+//     console.log("1269", retval);
+//     exec(`rm ${tmpProofFile}`);
+//     return retval
+// }
 
-async function alccCLI(leaf, address, creds, msgSender, nullifier) {
-    assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
-    assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
-    assert(msgSender.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
-    assert(nullifier.length == 16, `nullifier must be 16 bytes but is ${nullifier.length} bytes `);
-    // Pad creds to 28 bytes
-    const paddedCreds = Buffer.concat([creds], 28)
+// async function alccCLI(leaf, address, creds, msgSender, secret) {
+//     assert(leaf.length == 32, `leaf must be 32 bytes but is ${address.length} bytes`);
+//     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+//     assert(msgSender.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
+//     assert(secret.length == 16, `secret must be 16 bytes but is ${secret.length} bytes `);
+//     // Pad creds to 28 bytes
+//     const paddedCreds = Buffer.concat([creds], 28)
 
-    const tmpValue = randomBytes(16).toString("hex");
-    const inFile = "alcc.out"
-    const tmpWitnessFile = tmpValue + ".alcc.witness"
-    const tmpProofFile = tmpValue + ".alcc.proof.json"
-    // Execute the command
-    try {
-        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, msgSender, nullifier])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p alcc.proving.key; rm ${tmpWitnessFile}`);
-        console.log("STDs", stdout, stderr);
-    } catch(e) {
-        console.error(e);
-    }
-    // Read the proof file, then delete it, then return it
-    const retval = JSON.parse(fs.readFileSync(tmpProofFile));
-    console.log("1269", retval);
-    exec(`rm ${tmpProofFile}`);
-    return retval
-}
+//     const tmpValue = randomBytes(16).toString("hex");
+//     const inFile = "alcc.out"
+//     const tmpWitnessFile = tmpValue + ".alcc.witness"
+//     const tmpProofFile = tmpValue + ".alcc.proof.json"
+//     // Execute the command
+//     try {
+//         const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([leaf, address, paddedCreds, msgSender, secret])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p alcc.proving.key; rm ${tmpWitnessFile}`);
+//         console.log("STDs", stdout, stderr);
+//     } catch(e) {
+//         console.error(e);
+//     }
+//     // Read the proof file, then delete it, then return it
+//     const retval = JSON.parse(fs.readFileSync(tmpProofFile));
+//     console.log("1269", retval);
+//     exec(`rm ${tmpProofFile}`);
+//     return retval
+// }
 
 
 app.listen(port, () => {
