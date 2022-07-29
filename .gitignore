@@ -16,3 +16,4 @@ zk/out
 zk/out.r1cs
 
 zl/*.out
+.DS_Store
