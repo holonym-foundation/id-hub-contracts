@@ -117,6 +117,7 @@ async function addLeafSmallCLI(signedLeaf, address, creds, secret, newSecret) {
     return retval
 }
 
+
 app.listen(port, () => {
     init();
     console.log(`Listening: Port ${port}`);

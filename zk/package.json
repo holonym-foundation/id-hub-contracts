@@ -3,6 +3,7 @@
     "bitwise-buffer": "^1.0.2",
     "buffer-xor": "^2.0.2",
     "ethers": "^5.6.8",
+    "hardhat-abi-exporter": "^2.10.0",
     "wtfprotocol-helpers": "^1.2.3",
     "zokrates-js": "^1.1.1"
   },
