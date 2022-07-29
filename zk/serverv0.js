@@ -21,7 +21,7 @@ const init = () =>
     // Initialize ZoKrates:
     initialize().then((zokratesProvider) => {
         globals.zokratesProvider = zokratesProvider;
-        
+
         globals.leafgen = zokratesProvider.compile(`${fs.readFileSync("createLeaf.zok")}`);
 
        
@@ -89,8 +89,11 @@ async function addLeafSmallCLI(signedLeaf, address, creds, secret, newSecret) {
     // assert(newLeaf.length == 32, `newLeaf must be 32 bytes but is ${address.length} bytes`);
     assert(address.length == 20, `address must be 20 bytes but is ${address.length} bytes`);
     assert(secret.length == 16, `secret must be 16 bytes but is ${secret.length} bytes `);
-
-    const newLeaf = JSON.parse(leafFromData(address, creds, newSecret).join("").replaceAll("0x",""));
+    const lfd = JSON.parse(leafFromData(address, creds, newSecret));
+    const newLeaf = Buffer.from(
+                        lfd.join("").replaceAll("0x",""),
+                        "hex");
+    assert(newLeaf.length == 32, `signedLeaf must be 32 bytes but is ${newLeaf.length} bytes`);
 
     // Pad creds to 28 bytes
     const paddedCreds = Buffer.concat([creds], 28);
@@ -103,7 +106,7 @@ async function addLeafSmallCLI(signedLeaf, address, creds, secret, newSecret) {
 
     // Execute the command
     try {
-        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([signedLeaf, newLeaf, address, creds, secret, newSecret])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p als.proving.key; rm ${tmpWitnessFile}`);
+        const {stdout, stderr} = await exec(`zokrates compute-witness -i ${inFile} -o ${tmpWitnessFile} -a ${argsToU32CLIArgs([signedLeaf, newLeaf, address, paddedCreds, secret, newSecret])}; zokrates generate-proof -i ${inFile} -w ${tmpWitnessFile} -j ${tmpProofFile} -p als.proving.key; rm ${tmpWitnessFile}`);
     } catch(e) {
         console.error(e);
     }
