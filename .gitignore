@@ -14,3 +14,4 @@ zk/node_modules
 zk/out
 zk/out.r1cs
 
+zl/*.out
