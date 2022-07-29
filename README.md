@@ -1,5 +1,8 @@
 # Anonymous, Interoperable, & Extensible ID
 Broken into a few components
+
+## Docs
+Not officially published -- Temporary link: https://opsci.gitbook.io/untitled/4alwUHFeMIUzhQ8BnUBD/
 ## Leaves 
 Leaves are hashes of preimages. These preimages have the following structure:
 
