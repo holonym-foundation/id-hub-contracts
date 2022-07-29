@@ -16,64 +16,24 @@ const port = 8081;
 
 // Initialize global variables
 var globals = {}
-const init = (args = {
-    mainPath : "./v0.zok",
-    provingKeyPath : "./v0.proving.key",
-    }) => 
+const init = () => 
 {
-    fs.readFile(args.mainPath, (err, data) => {
-        if(err) {
-            console.error(`Error: could not find file at path ${args.mainPath}`);
-        } else {
-            let source = data.toString();
-            // Initialize ZoKrates:
-            initialize().then((zokratesProvider) => {
-                globals.zokratesProvider = zokratesProvider;
-                // Compilation
-                globals.main = zokratesProvider.compile(source);//, options);
-                // Setup
-                globals.provingKey = fs.readFileSync(args.provingKeyPath);
 
-                // Also, compilation of hash
-                // IS IT SAFE TO DO SHA256 UNPADDED ON 512 BIT INPUT
-                globals.alfa = zokratesProvider.compile(`
-                ${importHash}
-                // Assert Leaf From Address (ALFA)
-                // asserts that a leaf's preimage begins with a certain address
-                def main(u32[8] leaf, u32[5] address, private u32[7] creds, private u32[4] nullifier) {
-                    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
-                    assert(leafHash(preimage) == leaf);
-                    return;
-                }
-                                
-                `);
-                globals.alfaKey = fs.readFileSync("./alfa.proving.key");
+    // Initialize ZoKrates:
+    initialize().then((zokratesProvider) => {
+        globals.zokratesProvider = zokratesProvider;
+       
+        globals.addLeafBig = zokratesProvider.compile(`${fs.readFileSync("./onAddCredentialBig.zok")}`);
+        globals.addLeafBigKey = fs.readFileSync("./addLeafBig.proving.key");
 
-                globals.alcc = zokratesProvider.compile(`
-                ${importHash}
-                // Assert Leaf Contains Credential (ALCC)
-                // asserts that a leaf's preimage begins with a certain address. Takes unused input msgSender to prevent frontrunning
-                def main(u32[8] leaf, u32[5] address, u32[7] creds, u32[5] msgSender, private u32[4] nullifier) {
-                    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
-                    assert(leafHash(preimage) == leaf);
-                    return;
-                }
-               
-                `);
-                globals.alccKey = fs.readFileSync("./alcc.proving.key");
+        globals.alcc = zokratesProvider.compile(`${fs.readFileSync("./onAddCredentialBig.zok")}`);
+        globals.alccKey = fs.readFileSync("./addLeafSmall.proving.key");
 
-                globals.leafgen = zokratesProvider.compile(`
-                ${importHash}
-                def main(u32[5] address, private u32[7] creds, private u32[4] nullifier) -> u32[8] {
-                    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
-                    return leafHash(preimage);
-                }
-                `)
-            })
-        }
+        globals.leafgen = zokratesProvider.compile(`${fs.readFileSync(createLeaf.zok)}`);
+        globals.leafgenKey = fs.readFileSync("./createLeaf.proving.key");
+
     })
 }
-
 // Takes arguments to main function, then generates witness + proof, and returns proof
 function generateProof(args) {
     const { witness, output } = globals.zokratesProvider.computeWitness(globals.mainCompiled, args);
