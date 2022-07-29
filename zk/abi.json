@@ -28,6 +28,15 @@
       }
     },
     {
+      "name": "creds",
+      "public": false,
+      "type": "array",
+      "components": {
+        "size": 7,
+        "type": "u32"
+      }
+    },
+    {
       "name": "oldNullifier",
       "public": false,
       "type": "array",
@@ -42,24 +51,6 @@
       "type": "array",
       "components": {
         "size": 4,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "credsPart1",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 7,
-        "type": "u32"
-      }
-    },
-    {
-      "name": "credsPart2",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 16,
         "type": "u32"
       }
     }

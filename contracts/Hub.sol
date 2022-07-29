@@ -13,10 +13,11 @@ contract Hub {
     mapping (address => bool) public verified;
     AddLeafBig alb;
     AddLeafSmall als;
+    address public authority; 
     
-    constructor(address alb_, address als){
+    constructor(address alb_, address als_){
         alb = AddLeafBig(alb_);
-        als = AddLeafSmall(albs_);
+        als = AddLeafSmall(als_);
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
@@ -96,10 +97,14 @@ contract Hub {
         leaves.push(l);
         leafExists[l] = true;
     }
+    function _addLeaf(bytes32 l) private {
+        leaves.push(l);
+        leafExists[l] = true;
+    }
     
     // Adds a leaf after checking it contains a valid credential
-    function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafSmall.Proof memory proof, uint[13] memory input) public {
-        bytes32 oldLeafFromProof = bytes32(
+    function addLeafSmall(bytes32 leaf, address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafSmall.Proof memory proof, uint[21] memory input) public {
+        bytes memory oldLeafFromProof = 
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
                 abi.encodePacked(uint32(input[1])), 
@@ -109,8 +114,8 @@ contract Hub {
                 abi.encodePacked(uint32(input[5])),
                 abi.encodePacked(uint32(input[6])),
                 abi.encodePacked(uint32(input[7]))
-                )
-        );
+                );
+
         bytes32 newLeafFromProof = bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[8])), 
@@ -121,7 +126,7 @@ contract Hub {
                 abi.encodePacked(uint32(input[13])),
                 abi.encodePacked(uint32(input[14])),
                 abi.encodePacked(uint32(input[15]))
-                )
+            )
         );
         address addressFromProof = bytesToAddress(
             bytes.concat(
@@ -136,18 +141,12 @@ contract Hub {
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(als.verifyTx(proof, input), "zkSNARK failed");   
-        _addLeaf(newLeaf);
-        // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
-        // Note this authority is just for a short-term solution for Lobby3
-        if(addressFromProof == authority){
-            verified[_msgSender()] = true;
-        }
-        
+        _addLeaf(newLeafFromProof);        
     }
 
     // Adds a leaf after checking it contains a valid credential
-    function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafBig.Proof memory proof, uint[13] memory input) public {
-        bytes32 oldLeafFromProof = bytes32(
+    function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafBig.Proof memory proof, uint[21] memory input) public {
+        bytes memory oldLeafFromProof = 
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
                 abi.encodePacked(uint32(input[1])), 
@@ -157,8 +156,8 @@ contract Hub {
                 abi.encodePacked(uint32(input[5])),
                 abi.encodePacked(uint32(input[6])),
                 abi.encodePacked(uint32(input[7]))
-                )
-        );
+                
+            );
         bytes32 newLeafFromProof = bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
@@ -184,7 +183,7 @@ contract Hub {
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(alb.verifyTx(proof, input), "zkSNARK failed");   
-        _addLeaf(newLeaf);
+        _addLeaf(newLeafFromProof);
         // Short-term hack: just record boolean representing whether they're verified for early use cases, before ZK needed. The fact that we issued them a valid credential means they can vote
         // Note this authority is just for a short-term solution for Lobby3
         if(addressFromProof == authority){
