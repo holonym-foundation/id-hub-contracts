@@ -10,7 +10,7 @@ contract Hub {
     using ECDSA for bytes32;
     bytes32[] public leaves;
     mapping (bytes32 => bool) public leafExists;
-    mapping (address => bytes32) public verified;
+    mapping (bytes32 => bool) public oldLeafUsed;
     AddLeafBig alb;
     AddLeafSmall als;
     address public authority; 
@@ -140,7 +140,12 @@ contract Hub {
         );
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
-        require(als.verifyTx(proof, input), "zkSNARK failed");   
+        require(als.verifyTx(proof, input), "zkSNARK failed");
+
+        bytes32 olfp = bytes32(oldLeafFromProof);
+        require(!oldLeafUsed[olfp], "cannot create more than one leaf from a signed leaf");
+        oldLeafUsed[olfp] = true;   
+
         _addLeaf(newLeafFromProof);        
     }
 
@@ -183,6 +188,11 @@ contract Hub {
         require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(alb.verifyTx(proof, input), "zkSNARK failed");   
+
+        bytes32 olfp = bytes32(oldLeafFromProof);
+        require(!oldLeafUsed[olfp], "cannot create more than one leaf from a signed leaf");
+        oldLeafUsed[olfp] = true;
+
         _addLeaf(newLeafFromProof);
     }
 

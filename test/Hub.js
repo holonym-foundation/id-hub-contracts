@@ -98,6 +98,10 @@ describe("Hub", function () {
         ).to.be.reverted;
       })
   
+      it("Does not allow one signed leaf to create more than one leaf", async function (){
+        let tx = this.hub.addLeafSmall(this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
+        await expect(tx).to.be.revertedWith("cannot create more than one leaf from a signed leaf");
+      });
     });
 
 
