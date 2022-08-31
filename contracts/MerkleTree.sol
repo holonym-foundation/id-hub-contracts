@@ -39,7 +39,7 @@ contract MerkleTree is Ownable {
     function insertLeaf(uint256 _leaf) public onlyHub {
         tree.insert(_leaf);
         leaves.push(_leaf);
-        emit LeafInserted( _leaf, tree.root);
+        emit LeafInserted(_leaf, tree.root);
     }
 
     /// @dev Only the Hub contract should be able to call this function because

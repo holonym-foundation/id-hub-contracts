@@ -15,3 +15,5 @@ zk/node_modules
 zk/out
 zk/out.r1cs
 zk/*.out
+
+notes.txt
