@@ -42,11 +42,6 @@ contract MerkleTree is Ownable {
         emit LeafInserted(_leaf, tree.root);
     }
 
-    /// @dev Only the Hub contract should be able to call this function because
-    ///      it verifies proofs about the leaf's preimage.
-    // TODO: Implement this
-    // function verify(Proof inclusionProof) public onlyHub {}
-
     // function updateLeaf(
     //     uint256 _leaf,
     //     uint256[] calldata _proofSiblings,
@@ -64,4 +59,8 @@ contract MerkleTree is Ownable {
     //     tree.remove(_leaf, _proofSiblings, _proofPathIndices);
     //     emit LeafRemoved(_leaf, tree.root);
     // }
+
+    function getLeaves() public view returns(uint256[] memory) {
+        return leaves;
+    }
 }
