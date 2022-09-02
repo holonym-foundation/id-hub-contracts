@@ -26,7 +26,7 @@ contract MerkleTree is Ownable {
     }
 
     modifier onlyHub() {
-        require(msg.sender == hubAddress);
+        require(msg.sender == hubAddress, "Only the Hub contract can call this function.");
         _;
     }
 
