@@ -1,0 +1,39 @@
+import "hashes/blake2/blake2s" as leafHash;
+import "hashes/poseidon/poseidon" as hash;
+
+const u32 DEPTH = 32;
+
+// Forked from https://github.com/Zokrates/ZoKrates/blob/deploy/zokrates_cli/examples/merkleTree/pedersenPathProof3.zok
+def merkleProof(field root, field leaf, bool[DEPTH] directionSelector, field[DEPTH] path) -> bool {
+    // Start from the leaf
+    field mut digest = leaf;
+
+    // Loop up the tree
+    for u32 i in 0..DEPTH {
+        field[2] preimage = directionSelector[i] ? [path[i], digest] : [digest, path[i]];
+        digest = hash(preimage);
+    }
+
+    return digest == root;
+}
+
+// def credsProof(u32[7] publicCreds)
+
+def main(u32[8] leaf, u32[5] address, u32[7] creds, u32[5] msgSender, private u32[4] nullifier) {
+    u32[1][16] preimage = [[...address, ...creds, ...nullifier]]; // == ['805306368', '0', '0', '0', '0', '1431502848', '0', '0', '0', '0', '0', '0', '1431502848', '0', '0', '0']
+    assert(leafHash(preimage) == leaf);
+    return;
+}
+
+
+// TODO: Using separate variables for the merkle proof and for the other proofs is 
+// problematic. It allows the user to prove that they know (a) the preimage of some
+// leaf in the tree and (b) a preimage with the desired properties. (a) and (b) could
+// be different preimages, and the proof would still succeed.
+
+// @Schaeff Apr 21 2021 14:00 in ZoKrates Gitter: "the field type cannot hold more 
+// than 253 bits, hence the usage of two 128 bit values to represent 256 bits."
+
+// If a single field cannot represent 256 bits, and if we need 256 bits to represent 
+// a blake2s hash (for representing a leaf), then we cannot use a field to represent
+// a leaf. And we cannot use ZoKrates' implementation of poseidon.
