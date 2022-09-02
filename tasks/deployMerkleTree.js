@@ -2,18 +2,20 @@ const { poseidonContract } = require("circomlibjs");
 const { Contract } = require("ethers");
 const { task, types } = require("hardhat/config");
 
-task("deploy:merkle-tree", "Deploy an example MerkleTree contract")
+task("deploy:MerkleTree", "Deploy the MerkleTree contract to local hardhat node")
   .addOptionalParam("logs", "Print the logs", true, types.boolean)
   .setAction(async ({ logs }, { ethers }) => {
+    const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+    const privateKey = process.env.PRIVATE_KEY;
+    const wallet = new ethers.Wallet(privateKey, provider);
+
     const poseidonT3ABI = poseidonContract.generateABI(2);
     const poseidonT3Bytecode = poseidonContract.createCode(2);
-
-    const [signer] = await ethers.getSigners();
 
     const PoseidonLibT3Factory = new ethers.ContractFactory(
       poseidonT3ABI,
       poseidonT3Bytecode,
-      signer
+      wallet
     );
     const poseidonT3Lib = await PoseidonLibT3Factory.deploy();
 
@@ -25,6 +27,7 @@ task("deploy:merkle-tree", "Deploy an example MerkleTree contract")
     const IncrementalBinaryTreeLibFactory = await ethers.getContractFactory(
       "IncrementalBinaryTree",
       {
+        signer: wallet,
         libraries: {
           PoseidonT3: poseidonT3Lib.address,
         },
@@ -40,19 +43,25 @@ task("deploy:merkle-tree", "Deploy an example MerkleTree contract")
       );
 
     const ContractFactory = await ethers.getContractFactory("MerkleTree", {
+      signer: wallet,
       libraries: {
         IncrementalBinaryTree: incrementalBinaryTreeLib.address,
       },
     });
 
-    const contract = await ContractFactory.deploy(
-      "0x0000000000000000000000000000000000000000"
-    );
+    const merkleTreeContract = await ContractFactory.deploy(wallet.address);
 
-    await contract.deployed();
+    await merkleTreeContract.deployed();
 
     logs &&
-      console.log(`MerkleTree contract has been deployed to: ${contract.address}`);
+      console.log(
+        `MerkleTree contract has been deployed to: ${merkleTreeContract.address}`
+      );
 
-    return contract;
+    // For tests
+    // await merkleTreeContract.insertLeaf(1);
+    // const leaves = await merkleTreeContract.getLeaves();
+    // console.log(leaves);
+
+    return merkleTreeContract;
   });
