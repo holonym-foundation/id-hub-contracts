@@ -15,6 +15,13 @@ import "hashes/poseidon/poseidon" as hash;
 
 const u32 DEPTH = 32;
 
+// Proves that user knows preimage and that preimage includes publicly known address and creds
+def assertValidPreimage(u32[8] leaf, u32[5] address, u32[7] creds, u32[4] nullifier) {
+    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
+    assert(leafHash(preimage) == leaf);
+}
+
+// Proves that user's leaf is in set of leaves signed by Holonym
 // Forked from https://github.com/Zokrates/ZoKrates/blob/deploy/zokrates_cli/examples/merkleTree/pedersenPathProof3.zok
 def merkleProof(field root, field leaf, bool[DEPTH] directionSelector, field[DEPTH] path) -> bool {
     // Start from the leaf
@@ -26,14 +33,26 @@ def merkleProof(field root, field leaf, bool[DEPTH] directionSelector, field[DEP
         digest = hash(preimage);
     }
 
-    return digest == root;
+    assert(digest == root);
 }
 
-// def credsProof(u32[7] publicCreds)
+// Proves that user_nullifier+verifier_message is indeed the preimage of publicly provided nullifierHash
+// This allows verifier to prevent sybil attacks
+def assertValidNullifier(u32[8] nullifierHash, u32[4] nullifier, u32[12] message) {
+    u32[1][16] preimage = [[...nullifier, ...message]];
+    assert(leafHash(preimage) == nullifierHash);
+}
 
-def main(u32[8] leaf, u32[5] address, u32[7] creds, u32[5] msgSender, private u32[4] nullifier) {
-    u32[1][16] preimage = [[...address, ...creds, ...nullifier]]; // == ['805306368', '0', '0', '0', '0', '1431502848', '0', '0', '0', '0', '0', '0', '1431502848', '0', '0', '0']
-    assert(leafHash(preimage) == leaf);
+// import "hashes/blake2/blake2s" as blake2s;
+// import "utils/pack/u32/pack128" as pack128;
+
+// u32[8] h = blake2s(input);
+// field[2] r = [pack128(h[0..4]), pack128(h[4..8])];
+
+def main(u32[5] address, u32[7] creds, u32[8] nullifierHash, u32[12] message, private u32[8] leaf, private u32[4] nullifier) {
+    assertValidPreimage(leaf, address, creds, nullifier);
+    // merkleProof
+    assertValidNullifier(nullifierHash, nullifier, message);
     return;
 }
 
@@ -49,3 +68,12 @@ def main(u32[8] leaf, u32[5] address, u32[7] creds, u32[5] msgSender, private u3
 // If a single field cannot represent 256 bits, and if we need 256 bits to represent 
 // a blake2s hash (for representing a leaf), then we cannot use a field to represent
 // a leaf. And we cannot use ZoKrates' implementation of poseidon.
+
+// Maybe it can work...
+// @dark64 Sept 2 2022 06:15 in ZoKrates Gitter: If you are using bn128 then u32[8] won't 
+// fit in a single field (max 254 bits). You can pack the output to field[2] like this:
+// // import "hashes/blake2/blake2s" as blake2s;
+// // import "utils/pack/u32/pack128" as pack128;
+// u32[8] h = blake2s(input);
+// field[2] r = [pack128(h[0..4]), pack128(h[4..8])];
+// We do this for sha256 here https://github.com/Zokrates/ZoKrates/blob/develop/zokrates_stdlib/stdlib/hashes/sha256/512bitPacked.zok#L19
