@@ -1,3 +1,15 @@
+// This is intended to be the complete proof used for Lobby3. It is slightly more 
+// abstract than Lobby3's use case requires. This more abstract version simply
+// allows for more use cases to be built with i.
+// The general proof scheme here should do the following:
+// 1. Prove, via a Merkle proof, that the user's credentials have been signed by Holonym
+// 2. Prove that the creds field in the user's preimage equals some verifier-determined 
+//    value (e.g., "US")
+// 3. Return hash(nullifier+message_chosen_by_verifier) to verifier. This allows
+//    verifier to check that the user is not double spending their credentials wtihin
+//    the context determined by the verifier (e.g., a certain election)
+
+
 import "hashes/blake2/blake2s" as leafHash;
 import "hashes/poseidon/poseidon" as hash;
 
