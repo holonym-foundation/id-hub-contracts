@@ -11,7 +11,7 @@
 
 
 import "hashes/blake2/blake2s" as blake2s;
-import "hashes/poseidon/poseidon" as hash;
+import "hashes/poseidon/poseidon" as poseidon;
 import "utils/pack/u32/pack128" as pack128;
 
 const u32 DEPTH = 32;
