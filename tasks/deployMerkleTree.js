@@ -58,10 +58,13 @@ task("deploy:MerkleTree", "Deploy the MerkleTree contract to local hardhat node"
         `MerkleTree contract has been deployed to: ${merkleTreeContract.address}`
       );
 
-    // For tests
-    // await merkleTreeContract.insertLeaf(1);
-    // const leaves = await merkleTreeContract.getLeaves();
-    // console.log(leaves);
+    // Simple test
+    await merkleTreeContract.insertLeaf(0);
+    await merkleTreeContract.insertLeaf(1);
+    const leaves = await merkleTreeContract.getLeaves();
+    console.log(leaves);
+    const tree = await merkleTreeContract.tree();
+    console.log(tree.root);
 
     return merkleTreeContract;
   });
