@@ -60,10 +60,10 @@ module.exports = {
           balance: "15100000000000000000000",
         },
       ], // Private key for the above address
-      forking: {
-        url: "https://xdai-archive.blockscout.com/",
-        blockNumber: 21908151,
-      },
+      // forking: {
+      //   url: "https://xdai-archive.blockscout.com/",
+      //   blockNumber: 21908151,
+      // },
     },
     mumbai: {
       url: "https://speedy-nodes-nyc.moralis.io/a1167200f0a0e81dd757304e/polygon/mumbai",
