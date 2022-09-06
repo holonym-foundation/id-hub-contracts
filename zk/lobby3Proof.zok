@@ -64,12 +64,6 @@ def main(u32[5] address, u32[7] creds, field root, u32[8] nullifierHash, u32[12]
     return;
 }
 
-// NOTE: The scalar field used by zk-kit's poseidon hash is
-// 21888242871839275222246405745257275088548364400416034343698204186575808495617
-// while the field used by ZoKrates is 
-// 21888242871839275222246405745257275088696311157297823662689037894645226208583.
-// Will this cause problems?
-
 // TODO: Using separate variables for the merkle proof and for the other proofs is 
 // problematic. It allows the user to prove that they know (a) the preimage of some
 // leaf in the tree and (b) a preimage with the desired properties. (a) and (b) could
@@ -90,10 +84,3 @@ def main(u32[5] address, u32[7] creds, field root, u32[8] nullifierHash, u32[12]
 // u32[8] h = blake2s(input);
 // field[2] r = [pack128(h[0..4]), pack128(h[4..8])];
 // We do this for sha256 here https://github.com/Zokrates/ZoKrates/blob/develop/zokrates_stdlib/stdlib/hashes/sha256/512bitPacked.zok#L19
-
-
-
-// NOTE: Looks like you are going to have to hash the blake2s hash with poseidon.
-// So... poseidon(blake2s([...address, ...creds, ...nullifier]))
-// This is because the blake2s output requires 256 bits, but poseidon can only
-// accept values less than 254 bits.
