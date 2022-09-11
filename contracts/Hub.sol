@@ -241,8 +241,8 @@ contract Hub {
     // }
 
     // TODO: test this returns false when proof fails
-    function prove(string calldata proofType, bytes calldata proofAsBytes) public view returns (bool) {
-        router.prove(proofType, proofAsBytes);
+    function verifyProof(string calldata proofType, bytes calldata proofAsBytes) public view returns (bool) {
+        return router.verifyProof(proofType, proofAsBytes);
     }
 
     function _msgSender() internal view returns (address) {

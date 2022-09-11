@@ -1,0 +1,14 @@
+Currently, verifiers take a struct as input. The router likes that the input is serialized. Therefore, abi.encode and 
+abi.decode are used to translate them.
+
+A new verifier exported by Zokrates should have the following changes done before adding it to the proof router:
+     *import ./Pairing.sol instead of using the in-file Pairing struct Zokrates generates (otherwise there will 
+      be conflicts between Pairing structs in different files)
+     *verifyFromBytes function that converts bytes to struct or otherwise serialized inputs. An example from 
+AssertLeafContainsCredsVerifier.sol is:
+
+function verifyFromBytes(bytes memory b) public view returns (bool r) {
+        (Proof memory proof, uint[25] memory input) = abi.decode(b, (Proof, uint[25]));
+        return verifyTx(proof, input);
+    }
+

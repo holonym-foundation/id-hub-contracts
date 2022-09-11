@@ -85,4 +85,9 @@ contract AssertLeafContainsCredsVerifier {
             return false;
         }
     }
+
+    function verifyFromBytes(bytes memory b) public view returns (bool r) {
+        (Proof memory proof, uint[25] memory input) = abi.decode(b, (Proof, uint[25]));
+        return verifyTx(proof, input);
+    }
 }
