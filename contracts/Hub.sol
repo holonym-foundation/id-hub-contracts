@@ -241,9 +241,9 @@ contract Hub {
     //     return credsFromProof;
     // }
 
-    // TODO: test this returns false when proof fails
-    function verifyProof(string calldata proofType, bytes calldata proofAsBytes) public view returns (bool) {
-        return router.verifyProof(proofType, proofAsBytes);
+    // Encode input using abi.encode to convert fixed-length uint[n] array to bytes
+    function verifyProof(string calldata proofType, Proof calldata proof, bytes calldata encodedInput) public view returns (bool) {
+        return router.verifyProof(proofType, proof, encodedInput);
     }
 
     function _msgSender() internal view returns (address) {
