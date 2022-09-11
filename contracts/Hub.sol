@@ -105,7 +105,7 @@ contract Hub {
     }
     
     // Adds a leaf after checking it contains a valid credential
-    function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafSmall.Proof memory proof, uint[21] memory input) public {
+    function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[21] memory input) public {
         bytes memory oldLeafFromProof = 
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
@@ -152,7 +152,7 @@ contract Hub {
     }
 
     // Adds a leaf after checking it contains a valid credential
-    function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, AddLeafBig.Proof memory proof, uint[21] memory input) public {
+    function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[21] memory input) public {
         bytes memory oldLeafFromProof = 
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 

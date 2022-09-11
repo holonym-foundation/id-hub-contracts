@@ -5,7 +5,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pragma solidity ^0.8.0;
-import "./Pairing.sol";
+import "./PairingAndProof.sol";
 contract AddLeafBig {
     using Pairing for *;
     struct VerifyingKey {
@@ -14,11 +14,6 @@ contract AddLeafBig {
         Pairing.G2Point gamma;
         Pairing.G2Point delta;
         Pairing.G1Point[] gamma_abc;
-    }
-    struct Proof {
-        Pairing.G1Point a;
-        Pairing.G2Point b;
-        Pairing.G1Point c;
     }
     function verifyingKey() pure internal returns (VerifyingKey memory vk) {
         vk.alpha = Pairing.G1Point(uint256(0x07cfa603bd6141fe26cc32c60a2526305ee1316902806ddffd1bc3f80e4c841a), uint256(0x2116003ed77cfa8a89c157542dce881990096102a1a31d024edcfaa0af4f26fe));

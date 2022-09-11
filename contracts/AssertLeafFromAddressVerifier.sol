@@ -5,7 +5,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pragma solidity ^0.8.0;
-import "./Pairing.sol";
+import "./PairingAndProof.sol";
 contract AssertLeafFromAddressVerifier {
     using Pairing for *;
     struct VerifyingKey {
@@ -14,11 +14,6 @@ contract AssertLeafFromAddressVerifier {
         Pairing.G2Point gamma;
         Pairing.G2Point delta;
         Pairing.G1Point[] gamma_abc;
-    }
-    struct Proof {
-        Pairing.G1Point a;
-        Pairing.G2Point b;
-        Pairing.G1Point c;
     }
     function verifyingKey() pure internal returns (VerifyingKey memory vk) {
         vk.alpha = Pairing.G1Point(uint256(0x1fb074a1771bad132dc377ddecd7e4368b3dd96f2f289b581e9f3c163ef2ff40), uint256(0x25d924ee857888587a07efcad70e1c19186e3c58f29363b058606920d3b0a990));
