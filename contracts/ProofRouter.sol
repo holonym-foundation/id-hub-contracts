@@ -7,8 +7,8 @@ import "./IVerifier.sol";
 contract ProofRouter is Ownable{    
     mapping (string => address) public routes;
 
-    constructor(){
-
+    constructor(address admin){
+        _transferOwnership(admin);
     }
 
     function addRoute(string memory name, address destination) public onlyOwner {
