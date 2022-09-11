@@ -6,6 +6,8 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pragma solidity ^0.8.0;
 import "./PairingAndProof.sol";
+import "hardhat/console.sol";
+
 contract AssertLeafContainsCredsVerifier {
     using Pairing for *;
     struct VerifyingKey {
@@ -82,8 +84,12 @@ contract AssertLeafContainsCredsVerifier {
         }
     }
 
-    function verifyFromBytes(bytes memory b) public view returns (bool r) {
-        (Proof memory proof, uint[25] memory input) = abi.decode(b, (Proof, uint[25]));
+    function verifyEncoded(Proof calldata proof, uint[] calldata input_) public view returns (bool r) {
+        // (Proof memory proof, uint[25] memory input) = abi.decode(b, (Proof, uint[25]));
+        uint[25] memory input;
+        for (uint i = 0; i < 25; i++) {
+            input[i] = input_[i];
+        }
         return verifyTx(proof, input);
     }
 }

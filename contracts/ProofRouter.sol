@@ -20,9 +20,9 @@ contract ProofRouter is Ownable{
     }
 
     // How to get input struct to encodedInput: abi.encode. Verifier contract can decode it using abi.decode https://medium.com/coinmonks/abi-encode-and-decode-using-solidity-2d372a03e110
-    function verifyProof(string calldata name, Proof calldata proof, bytes calldata encodedInput) public view returns (bool) {
+    function verifyProof(string calldata name, Proof calldata proof, uint[] calldata input) public view returns (bool) {
         require(routes[name] != address(0x0));
         IVerifier v = IVerifier(routes[name]);
-        return v.verifyEncoded(proof, encodedInput);
+        return v.verifyEncoded(proof, input);
     }    
 }

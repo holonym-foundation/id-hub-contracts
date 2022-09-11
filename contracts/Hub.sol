@@ -242,8 +242,8 @@ contract Hub {
     // }
 
     // Encode input using abi.encode to convert fixed-length uint[n] array to bytes
-    function verifyProof(string calldata proofType, Proof calldata proof, bytes calldata encodedInput) public view returns (bool) {
-        return router.verifyProof(proofType, proof, encodedInput);
+    function verifyProof(string calldata proofType, Proof calldata proof, uint[] calldata input) public view returns (bool) {
+        return router.verifyProof(proofType, proof, input);
     }
 
     function _msgSender() internal view returns (address) {

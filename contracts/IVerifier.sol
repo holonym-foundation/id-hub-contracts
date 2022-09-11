@@ -2,5 +2,5 @@
 pragma solidity ^0.8.9;
 import "./PairingAndProof.sol";
 interface IVerifier {
-   function verifyEncoded(Proof memory proof, bytes memory input) external view returns (bool);
+   function verifyEncoded(Proof calldata proof, uint[] calldata input_) external view returns (bool);
 }
