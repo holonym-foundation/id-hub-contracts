@@ -4,7 +4,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./AddLeafBig.sol";
 import "./AddLeafSmall.sol";
-
+import "./ProofRouter.sol";
 // Adds a verified crendential to the user
 contract Hub {    
     using ECDSA for bytes32;
@@ -13,7 +13,8 @@ contract Hub {
     mapping (bytes32 => bool) public oldLeafUsed;
     AddLeafBig alb;
     AddLeafSmall als;
-    address public authority; 
+
+    ProofRouter router;
     
     constructor(address alb_, address als_){
         alb = AddLeafBig(alb_);
@@ -239,7 +240,12 @@ contract Hub {
     //     return credsFromProof;
     // }
 
-    function _msgSender() internal returns (address) {
+    // TODO: test this returns false when proof fails
+    function prove(string calldata proofType, bytes calldata proofAsBytes) public view returns (bool) {
+        router.prove(proofType, proofAsBytes);
+    }
+
+    function _msgSender() internal view returns (address) {
         return msg.sender;
     }
 }
