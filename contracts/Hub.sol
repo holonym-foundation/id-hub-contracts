@@ -14,12 +14,12 @@ contract Hub {
     AddLeafBig alb;
     AddLeafSmall als;
 
-    ProofRouter router;
+    ProofRouter public router;
     
     constructor(address alb_, address als_, address routerAdmin){
         alb = AddLeafBig(alb_);
         als = AddLeafSmall(als_);
-        router = ProofRouter(routerAdmin);
+        router = new ProofRouter(routerAdmin);
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca

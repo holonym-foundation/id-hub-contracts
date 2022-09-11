@@ -13,7 +13,7 @@ contract ProofRouter is Ownable{
 
     function addRoute(string memory name, address destination) public onlyOwner {
         // Check that it is uninitialized (for security so centralized owner cannot overwrite old routes, only add new ones)
-        require(routes[name] == address(0x0));
+        require(routes[name] == address(0x0), "cannot override existing route");
         routes[name] = destination;
     }
 
