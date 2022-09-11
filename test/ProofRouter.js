@@ -2,7 +2,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
     
-describe.only("ProofRouter", function () {
+describe("ProofRouter", function () {
     before(async function() {
         [this.account, this.ownershipTestAccount, this.someAccount] = await ethers.getSigners();
 
