@@ -3,7 +3,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const abi = ethers.utils.defaultAbiCoder;
 
-describe.only("proveIHaveCredential", function () {
+describe("proveIHaveCredential", function () {
     before(async function() {
         // Set up the credentials
         [this.account, this.admin] = await ethers.getSigners();
