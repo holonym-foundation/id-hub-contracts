@@ -5,21 +5,22 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./AddLeafBig.sol";
 import "./AddLeafSmall.sol";
 import "./ProofRouter.sol";
+import "./MerkleTree.sol";
 // Adds a verified crendential to the user
 contract Hub {    
     using ECDSA for bytes32;
-    bytes32[] public leaves;
-    mapping (bytes32 => bool) public leafExists;
     mapping (bytes32 => bool) public oldLeafUsed;
     AddLeafBig alb;
     AddLeafSmall als;
 
     ProofRouter public router;
-    
-    constructor(address alb_, address als_, address routerAdmin){
+    MerkleTree public tree;
+
+    constructor(address alb_, address als_, address routerAdmin_){
         alb = AddLeafBig(alb_);
         als = AddLeafSmall(als_);
-        router = new ProofRouter(routerAdmin);
+        router = new ProofRouter(routerAdmin_);
+        tree = new MerkleTree(address(this));
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
@@ -89,19 +90,13 @@ contract Hub {
         } 
     }
 
-    function getLeaves() public view returns (bytes32[] memory) {
-        return leaves;
+    function getLeaves() public view returns (uint256[] memory) {
+        return tree.getLeaves();
     }
 
     // Blindly adds a leaf (should be private)
-    function _addLeaf(bytes calldata leaf) private {
-        bytes32 l = bytes32(leaf);
-        leaves.push(l);
-        leafExists[l] = true;
-    }
-    function _addLeaf(bytes32 l) private {
-        leaves.push(l);
-        leafExists[l] = true;
+    function _addLeaf(uint256 leaf) private {
+        tree.insertLeaf(leaf);
     }
     
     // Adds a leaf after checking it contains a valid credential
@@ -118,7 +113,7 @@ contract Hub {
                 abi.encodePacked(uint32(input[7]))
                 );
 
-        bytes32 newLeafFromProof = bytes32(
+        uint256 newLeafFromProof = uint256(bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[8])), 
                 abi.encodePacked(uint32(input[9])), 
@@ -129,7 +124,7 @@ contract Hub {
                 abi.encodePacked(uint32(input[14])),
                 abi.encodePacked(uint32(input[15]))
             )
-        );
+        ));
         address addressFromProof = bytesToAddress(
             bytes.concat(
                 abi.encodePacked(uint32(input[16])), 
@@ -145,7 +140,7 @@ contract Hub {
         require(als.verifyTx(proof, input), "zkSNARK failed");
 
         bytes32 olfp = bytes32(oldLeafFromProof);
-        require(!oldLeafUsed[olfp], "cannot create more than one leaf from a signed leaf");
+        require(!oldLeafUsed[olfp], "cannot create more than one new leaf from a signed leaf");
         oldLeafUsed[olfp] = true;   
 
         _addLeaf(newLeafFromProof);        
@@ -165,7 +160,7 @@ contract Hub {
                 abi.encodePacked(uint32(input[7]))
                 
             );
-        bytes32 newLeafFromProof = bytes32(
+        uint256 newLeafFromProof = uint256(bytes32(
             bytes.concat(
                 abi.encodePacked(uint32(input[0])), 
                 abi.encodePacked(uint32(input[1])), 
@@ -176,7 +171,7 @@ contract Hub {
                 abi.encodePacked(uint32(input[6])),
                 abi.encodePacked(uint32(input[7]))
                 )
-        );
+        ));
         address addressFromProof = bytesToAddress(
             bytes.concat(
                 abi.encodePacked(uint32(input[8])), 
@@ -236,7 +231,7 @@ contract Hub {
     //     );
 
     //     require(_msgSender() == antiFrontrunningAddressFromProof, "msgSender is not antiFrontrunningAddress");
-    //     require(leafExists[leafFromProof], "Leaf was not found");
+    //     require(tree.leafExists[leafFromProof], "Leaf was not found");
     //     require(alccV.verifyTx(proof, input), "zkSNARK failed");   
     //     return credsFromProof;
     // }
