@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
+    "@zk-kit/incremental-merkle-tree": "^1.0.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.2.0",
     "circomlibjs": "^0.1.7",
     "dotenv": "^16.0.1"
