@@ -6,8 +6,8 @@ import "@zk-kit/incremental-merkle-tree.sol/IncrementalQuinTree.sol";
 
 contract MerkleTree is Ownable {
     using IncrementalQuinTree for IncrementalTreeData;
-    uint8 constant DEPTH = 14;
-    uint8 constant ROOT_HISTORY_SIZE = 100;
+    uint8 public constant DEPTH = 14;
+    uint8 public constant ROOT_HISTORY_SIZE = 10;
     uint256[ROOT_HISTORY_SIZE] public recentRoots;
     mapping(uint256 => bool) public rootIsRecent;
 
@@ -24,6 +24,8 @@ contract MerkleTree is Ownable {
 
     /// @param _hubAddress Address of the Hub contract
     constructor(address _hubAddress) {
+        console.log("WARNING: INCRASE ROOT_HISTORY_SIZE TO AT LEAST 30 BEFORE PRODUCTION, AND REMOVE HARDHAT/CONSOLE.SOL");
+
         // Create tree with depth DEPTH and use 0 as the value for null leaves
         tree.init(DEPTH, 0);
         
