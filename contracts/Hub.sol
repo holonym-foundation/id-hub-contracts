@@ -14,13 +14,13 @@ contract Hub {
     AddLeafSmall als;
 
     ProofRouter public router;
-    MerkleTree public tree;
+    MerkleTree public mt;
 
     constructor(address alb_, address als_, address routerAdmin_){
         alb = AddLeafBig(alb_);
         als = AddLeafSmall(als_);
         router = new ProofRouter(routerAdmin_);
-        tree = new MerkleTree(address(this));
+        mt = new MerkleTree(address(this));
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
@@ -91,12 +91,12 @@ contract Hub {
     }
 
     function getLeaves() public view returns (uint256[] memory) {
-        return tree.getLeaves();
+        return mt.getLeaves();
     }
 
     // Blindly adds a leaf (should be private)
     function _addLeaf(uint256 leaf) private {
-        tree.insertLeaf(leaf);
+        mt.insertLeaf(leaf);
     }
     
     // Adds a leaf after checking it contains a valid credential
@@ -231,7 +231,7 @@ contract Hub {
     //     );
 
     //     require(_msgSender() == antiFrontrunningAddressFromProof, "msgSender is not antiFrontrunningAddress");
-    //     require(tree.leafExists[leafFromProof], "Leaf was not found");
+    //     require(mt.leafExists[leafFromProof], "Leaf was not found");
     //     require(alccV.verifyTx(proof, input), "zkSNARK failed");   
     //     return credsFromProof;
     // }
