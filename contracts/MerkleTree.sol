@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
-
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@zk-kit/incremental-merkle-tree.sol/IncrementalQuinTree.sol";
 
@@ -8,9 +8,8 @@ contract MerkleTree is Ownable {
     using IncrementalQuinTree for IncrementalTreeData;
     uint8 constant DEPTH = 14;
     uint8 constant ROOT_HISTORY_SIZE = 100;
-    uint256 rootCounter;
-    uint256[ROOT_HISTORY_SIZE] recentRoots;
-    mapping(uint256 => bool) rootIsRecent;
+    uint256[ROOT_HISTORY_SIZE] public recentRoots;
+    mapping(uint256 => bool) public rootIsRecent;
 
     event LeafInserted(uint256 leaf, uint256 root);
 
@@ -27,7 +26,7 @@ contract MerkleTree is Ownable {
     constructor(address _hubAddress) {
         // Create tree with depth DEPTH and use 0 as the value for null leaves
         tree.init(DEPTH, 0);
-        rootCounter = 0;
+        
         hubAddress = _hubAddress;
     }
 
@@ -47,10 +46,8 @@ contract MerkleTree is Ownable {
         tree.insert(_leaf);
         leaves.push(_leaf);
         leafExists[_leaf] = true;
-
         // Replace an element of recentRoots to make room for new root:
-        rootCounter += 1;
-        uint256 insertAt = rootCounter % ROOT_HISTORY_SIZE;
+        uint256 insertAt = tree.numberOfLeaves % ROOT_HISTORY_SIZE; //number of leaves is a the same as number of roots ever made
         rootIsRecent[recentRoots[insertAt]] = false;
         rootIsRecent[tree.root] = true;
         recentRoots[insertAt] = tree.root;
@@ -59,7 +56,7 @@ contract MerkleTree is Ownable {
     }
 
     function mostRecentRoot() public view returns(uint256) {
-        return recentRoots[rootCounter % ROOT_HISTORY_SIZE];
+        return tree.root;
     }
     function getLeaves() public view returns(uint256[] memory) {
         return leaves;
