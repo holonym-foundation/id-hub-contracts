@@ -47,7 +47,7 @@ contract MerkleTree is Ownable {
         leaves.push(_leaf);
         leafExists[_leaf] = true;
         // Replace an element of recentRoots to make room for new root:
-        uint256 insertAt = tree.numberOfLeaves % ROOT_HISTORY_SIZE; //number of leaves is a the same as number of roots ever made
+        uint256 insertAt = (tree.numberOfLeaves-1) % ROOT_HISTORY_SIZE; //number of leaves is a the same as number of roots ever made
         rootIsRecent[recentRoots[insertAt]] = false;
         rootIsRecent[tree.root] = true;
         recentRoots[insertAt] = tree.root;

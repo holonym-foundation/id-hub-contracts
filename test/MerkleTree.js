@@ -46,10 +46,18 @@ describe.only("Merkle Tree", function () {
         let tx = await this.mt.insertLeaf(69);
         expect(await this.mt.mostRecentRoot()).to.equal(ethers.BigNumber.from("0x99C5BB728492914F9EBE1688A7F1B390B4D48A5EF2FAFE770F4946A2EDCC12E"));
     });
-    // it("Root updates cycle over history", async function (){
-    //     expect(await this.mt.recentRoots(0)).to.equal(0);
-    //     let tx = await this.mt.insertLeaf(69);
-    //     expect(await this.mt.recentRoots(0)).to.equal(ethers.BigNumber.from("0x99C5BB728492914F9EBE1688A7F1B390B4D48A5EF2FAFE770F4946A2EDCC12E"));
-    // });
+    it("Recent roots update correctly for first few", async function (){
+        expect(await this.mt.recentRoots(0)).to.equal(0);
+        expect(await this.mt.recentRoots(1)).to.equal(0);
+        expect(await this.mt.recentRoots(2)).to.equal(0);
+        let tx = await this.mt.insertLeaf(69);
+        expect(await this.mt.recentRoots(0)).to.equal(ethers.BigNumber.from("0x99C5BB728492914F9EBE1688A7F1B390B4D48A5EF2FAFE770F4946A2EDCC12E"));
+        expect(await this.mt.recentRoots(1)).to.equal(0);
+        expect(await this.mt.recentRoots(2)).to.equal(0);
+        tx = await this.mt.insertLeaf(69690);
+        expect(await this.mt.recentRoots(0)).to.equal(ethers.BigNumber.from("0x99C5BB728492914F9EBE1688A7F1B390B4D48A5EF2FAFE770F4946A2EDCC12E"));
+        expect(await this.mt.recentRoots(1)).to.equal(ethers.BigNumber.from("0x1F3DCDF98EEDEE3E671C0C9A490D83E418D20CB1DEEB8B6AC6085A8A89755BAF"));
+        expect(await this.mt.recentRoots(2)).to.equal(0);
+    });
   });
 });
