@@ -51,6 +51,7 @@ task("deploy:MerkleTree", "Deploy the MerkleTree contract to local hardhat node"
       signer: signer,
       libraries: {
         IncrementalBinaryTree: incrementalBinaryTreeLib.address,
+        PoseidonT3: poseidonT3Lib.address,
       },
     });
 
@@ -68,7 +69,7 @@ task("deploy:MerkleTree", "Deploy the MerkleTree contract to local hardhat node"
     // const leaf = ethers.BigNumber.from(
     //   "136105276540294020436052206300466854914237731297649945605086317200254030834"
     // );
-    // // await merkleTreeContract.insertLeaf(0);
+    // await merkleTreeContract.insertLeaf(1);
     // await merkleTreeContract.insertLeaf(leaf);
     // await merkleTreeContract.insertLeaf(leaf);
     // const leaves = await merkleTreeContract.getLeaves();
