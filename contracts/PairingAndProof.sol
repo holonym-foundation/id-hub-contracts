@@ -142,3 +142,10 @@ library Pairing {
         return pairing(p1, p2);
     }
 }
+
+// Groth16 Proof struct
+struct Proof {
+        Pairing.G1Point a;
+        Pairing.G2Point b;
+        Pairing.G1Point c;
+}

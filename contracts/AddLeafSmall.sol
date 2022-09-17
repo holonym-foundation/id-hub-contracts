@@ -5,7 +5,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pragma solidity ^0.8.0;
-import "./Pairing.sol";
+import "./PairingAndProof.sol";
 contract AddLeafSmall {
     using Pairing for *;
     struct VerifyingKey {
@@ -15,11 +15,7 @@ contract AddLeafSmall {
         Pairing.G2Point delta;
         Pairing.G1Point[] gamma_abc;
     }
-    struct Proof {
-        Pairing.G1Point a;
-        Pairing.G2Point b;
-        Pairing.G1Point c;
-    }
+    
     function verifyingKey() pure internal returns (VerifyingKey memory vk) {
         vk.alpha = Pairing.G1Point(uint256(0x29e437c419a9349100fc1ac6373aa30e3c492b849d3c40373b432b2a7ca19384), uint256(0x2fdffb50baffbaad018687e5bf6476a1d5c840942979b54ecc1b3b6bd05bd71b));
         vk.beta = Pairing.G2Point([uint256(0x05f11817eefbeac48cc67413604e1947f37e80ef2943a1ac0dc68a4b8889b225), uint256(0x2232ea7809604f1b2630cdd49d8c24db9ee2e947845159f9fefc55216b69b884)], [uint256(0x23effb9d67ba9ae10e5265be6c88b5ced9ac835c3adc0ca1bd8f89dc25ebb2f2), uint256(0x240a5e5842c37b5c076f51001db44f67ae3e152914931acc9e48fd9db1add7d7)]);

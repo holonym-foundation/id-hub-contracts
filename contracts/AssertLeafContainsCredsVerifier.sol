@@ -5,7 +5,9 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pragma solidity ^0.8.0;
-import "./Pairing.sol";
+import "./PairingAndProof.sol";
+import "hardhat/console.sol";
+
 contract AssertLeafContainsCredsVerifier {
     using Pairing for *;
     struct VerifyingKey {
@@ -15,11 +17,7 @@ contract AssertLeafContainsCredsVerifier {
         Pairing.G2Point delta;
         Pairing.G1Point[] gamma_abc;
     }
-    struct Proof {
-        Pairing.G1Point a;
-        Pairing.G2Point b;
-        Pairing.G1Point c;
-    }
+    
     function verifyingKey() pure internal returns (VerifyingKey memory vk) {
         vk.alpha = Pairing.G1Point(uint256(0x24bca780ec43f1b827eaf5728ee446bb3105141687586b5bbf6f4d391c475b3e), uint256(0x130b8a4af50a00fb87696ebfa4d1a2c9efb72adc524fb6bc06a67956413e5ae0));
         vk.beta = Pairing.G2Point([uint256(0x0dd1384427db72433ac571e89dc2416ed10af758b16415a8315704c0ad724e62), uint256(0x0e1ffee34a5ff3a9b9ec501fc2d3e5f7a41b92e9fc65c8ce4fbf8156d3f89dec)], [uint256(0x0705f0fd0b3ec5c087d09fec972f24ae2b793affa747612dd2512a5e11c1aac4), uint256(0x0a932e33b2d4eb92cfa023d23bf334309be5f5e93e3edd158242be577bf31282)]);
@@ -84,5 +82,14 @@ contract AssertLeafContainsCredsVerifier {
         } else {
             return false;
         }
+    }
+
+    function verifyEncoded(Proof calldata proof, uint[] calldata input_) public view returns (bool r) {
+        // (Proof memory proof, uint[25] memory input) = abi.decode(b, (Proof, uint[25]));
+        uint[25] memory input;
+        for (uint i = 0; i < 25; i++) {
+            input[i] = input_[i];
+        }
+        return verifyTx(proof, input);
     }
 }
