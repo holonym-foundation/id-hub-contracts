@@ -34,6 +34,8 @@
     "@zk-kit/incremental-merkle-tree": "^1.0.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.2.0",
     "circomlibjs": "^0.1.7",
+    "circomlibjs-new": "npm:circomlibjs@^0.1.7",
+    "circomlibjs-old": "npm:circomlibjs@^0.0.8",
     "dotenv": "^16.0.1"
   }
 }
