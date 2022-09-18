@@ -1,5 +1,6 @@
 const { IncrementalMerkleTree } = require("@zk-kit/incremental-merkle-tree");
-const { buildPoseidon, poseidonContract } = require("circomlibjs");
+const { poseidonContract } = require("circomlibjs-new");
+const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
 const { expect, assert } = require("chai");
 const { ethers } = require("hardhat");
 const { BigNumber } = require("ethers");
@@ -18,6 +19,9 @@ const DEPTH = 14; // Merkle tree depth
  * */
 
 class MerkleTreeAdapter extends IncrementalMerkleTree {
+    /**
+     * @param {int} index index of element to create a proof for
+     */
     createProof(index) {
         const proof = super.createProof(index);
         // Insert the digest of the leaf at every level:
@@ -31,7 +35,10 @@ class MerkleTreeAdapter extends IncrementalMerkleTree {
         // assert(digest == proof.root)
         return proof
     }
-    // Serializes createProof outputs to ZoKrates format
+
+    /** Serializes createProof outputs to ZoKrates format
+     * @param {int} index index of element to create a proof for
+     */
     createSerializedProof(index) {
         const proof = this.createProof(index);
         const argify = x=>ethers.BigNumber.from(x).toString();//ethers.BigNumber.from
@@ -47,11 +54,19 @@ class MerkleTreeAdapter extends IncrementalMerkleTree {
 
     }
 
+    /** Serializes createProof outputs to ZoKrates CLI input format
+     * @param {int} index index of element to create a proof for
+     */
+    createCLISerializedProof(index) {
+        const proof = this.createSerializedProof(index);
+        return proof.flat(2).join(" ");
+    }
+
 }
 
 async function treeFrom (depth, leaves) {
     // console.log(poseidon, depth, "0", 5)
-    let tree = new MerkleTreeAdapter(await buildPoseidon(), depth, "0", 5);
+    let tree = new MerkleTreeAdapter(poseidon, depth, "0", 5);
     leaves.forEach(l=>tree.insert(l));
     return tree;
 }
@@ -93,7 +108,7 @@ describe.only("n", function(){
     it("a", async function (){
         const leaves = ["6","9","69"];
         const tree = await treeFrom(DEPTH, leaves);
-        const proof = tree.createSerializedProof(2); // create proof of the third element
+        const proof = tree.createCLISerializedProof(2); // create proof of the third element
     });
 });
 describe("proveIHaveCredential", function () {
