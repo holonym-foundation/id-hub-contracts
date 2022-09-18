@@ -83,7 +83,7 @@ const deployPoseidon = async () => {
     return await PoseidonContractFactory.deploy();
 }
 
-describe.only("Merkle Tree Implementation Parity", function(){
+describe("Merkle Tree Implementation Parity", function(){
     before(async function() {
         [this.account, this.someRando] = await ethers.getSigners();
 
