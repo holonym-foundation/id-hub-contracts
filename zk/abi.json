@@ -1,22 +1,6 @@
 {
   "inputs": [
     {
-<<<<<<< HEAD
-      "name": "oldLeaf",
-=======
-      "name": "leaf",
->>>>>>> c616c8002a057ee5c070a2e2855ec94d349c1bea
-      "public": true,
-      "type": "array",
-      "components": {
-        "size": 8,
-        "type": "u32"
-      }
-    },
-    {
-<<<<<<< HEAD
-      "name": "newLeaf",
-=======
       "name": "address",
       "public": true,
       "type": "array",
@@ -27,30 +11,6 @@
     },
     {
       "name": "creds",
->>>>>>> c616c8002a057ee5c070a2e2855ec94d349c1bea
-      "public": true,
-      "type": "array",
-      "components": {
-        "size": 7,
-        "type": "u32"
-      }
-    },
-    {
-<<<<<<< HEAD
-      "name": "address",
-=======
-      "name": "msgSender",
->>>>>>> c616c8002a057ee5c070a2e2855ec94d349c1bea
-      "public": true,
-      "type": "array",
-      "components": {
-        "size": 5,
-        "type": "u32"
-      }
-    },
-    {
-<<<<<<< HEAD
-      "name": "creds",
       "public": false,
       "type": "array",
       "components": {
@@ -59,34 +19,16 @@
       }
     },
     {
-      "name": "oldNullifier",
-=======
-      "name": "nullifier",
->>>>>>> c616c8002a057ee5c070a2e2855ec94d349c1bea
+      "name": "secret",
       "public": false,
       "type": "array",
       "components": {
         "size": 4,
         "type": "u32"
       }
-<<<<<<< HEAD
-    },
-    {
-      "name": "newNullifier",
-      "public": false,
-      "type": "array",
-      "components": {
-        "size": 4,
-        "type": "u32"
-      }
-=======
->>>>>>> c616c8002a057ee5c070a2e2855ec94d349c1bea
     }
   ],
   "output": {
-    "type": "tuple",
-    "components": {
-      "elements": []
-    }
+    "type": "field"
   }
 }
