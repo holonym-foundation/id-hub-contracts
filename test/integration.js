@@ -105,10 +105,14 @@ describe.only("n", function(){
         )).deploy(this.account.address);
     });
 
-    it("a", async function (){
+    it("Parity of on-chain and off-chain Merkle Trees", async function (){
         const leaves = ["6","9","69"];
-        const tree = await treeFrom(DEPTH, leaves);
-        const proof = tree.createCLISerializedProof(2); // create proof of the third element
+        const offChain = await treeFrom(DEPTH, leaves);
+        for(const l of leaves){
+            await this.mt.insertLeaf(l);
+        }
+        const proof = offChain.createProof(2); // create proof of the third element
+        expect(proof.root).to.equal(await this.mt.mostRecentRoot())
     });
 });
 describe("proveIHaveCredential", function () {
