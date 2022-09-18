@@ -19,7 +19,7 @@ const deployPoseidon = async () => {
 
 
 
-describe.only("Merkle Tree", function () {
+describe("Merkle Tree", function () {
   describe("Insert", function () {
     beforeEach(async function() {
         [this.account, this.someRando] = await ethers.getSigners();
