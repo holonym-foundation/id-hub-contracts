@@ -3,7 +3,8 @@ const { poseidonContract } = require("circomlibjs-new");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
 const { expect, assert } = require("chai");
 const { ethers } = require("hardhat");
-const { BigNumber } = require("ethers");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
 const abi = ethers.utils.defaultAbiCoder;
 const abiPoseidon = poseidonContract.generateABI(5);
 const bytecodePoseidon = poseidonContract.createCode(5);
@@ -48,9 +49,7 @@ class MerkleTreeAdapter extends IncrementalMerkleTree {
             proof.siblings.map(x=>x.map(y=>argify(y))),
             proof.pathIndices.map(x=>argify(x))
         ]
-        console.log("args", args)
-        console.log("root", proof.root, argify(proof.root))
-        console.log(this._hash([0,0,0]), argify(this._hash([0,0,0])))
+        return args;
 
     }
 
@@ -84,7 +83,7 @@ const deployPoseidon = async () => {
     return await PoseidonContractFactory.deploy();
 }
 
-describe.only("n", function(){
+describe.only("Merkle Tree Implementation Parity", function(){
     before(async function() {
         [this.account, this.someRando] = await ethers.getSigners();
 
@@ -114,6 +113,22 @@ describe.only("n", function(){
         const proof = offChain.createProof(2); // create proof of the third element
         expect(proof.root).to.equal(await this.mt.mostRecentRoot())
     });
+
+
+    describe("This one needs the ZoKrates CLI installed:", function() {
+        before(async function() {
+            const tree = await treeFrom(DEPTH, ["6","9","69","6","9","69","6969696969696969","6","9","69"]);
+            const proof = tree.createCLISerializedProof(7);
+            this.error = null;
+            await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out; zokrates setup -i tmp.out -p tmp.proving.key -v tmp.verifying.key;")
+            this.res = await exec(`zokrates compute-witness -a ${proof} -i tmp.out -o tmp.witness`);
+        })
+        it("Parity of JS and circuit merkle proofs", async function (){
+            expect(this.res.stderr).to.equal("");
+                // expect(this.res.stdout).to.equal("Witness file written to 'tmp.witness'");
+        });
+    });
+    
 });
 describe("proveIHaveCredential", function () {
     before(async function() {
