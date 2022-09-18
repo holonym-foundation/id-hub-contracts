@@ -8,8 +8,8 @@ contract MerkleTree is Ownable {
     using IncrementalQuinTree for IncrementalTreeData;
     uint8 public constant DEPTH = 14;
     uint8 public constant ROOT_HISTORY_SIZE = 10;
-    uint256[ROOT_HISTORY_SIZE] public recentRoots;
-    mapping(uint256 => bool) public rootIsRecent;
+    uint256[ROOT_HISTORY_SIZE] public recentRootsList;
+    mapping(uint256 => bool) public recentRootsMap;
 
     event LeafInserted(uint256 leaf, uint256 root);
 
@@ -48,17 +48,20 @@ contract MerkleTree is Ownable {
         tree.insert(_leaf);
         leaves.push(_leaf);
         leafExists[_leaf] = true;
-        // Replace an element of recentRoots to make room for new root:
+        // Replace an element of recentRootsList to make room for new root:
         uint256 insertAt = (tree.numberOfLeaves-1) % ROOT_HISTORY_SIZE; //number of leaves is a the same as number of roots ever made
-        rootIsRecent[recentRoots[insertAt]] = false;
-        rootIsRecent[tree.root] = true;
-        recentRoots[insertAt] = tree.root;
+        recentRootsMap[recentRootsList[insertAt]] = false;
+        recentRootsMap[tree.root] = true;
+        recentRootsList[insertAt] = tree.root;
 
         emit LeafInserted(_leaf, tree.root);
     }
 
-    function mostRecentRoot() public view returns(uint256) {
+    function mostRecentRoot() public view returns (uint256) {
         return tree.root;
+    }
+    function rootIsRecent(uint256 r) public view returns (bool) {
+        return recentRootsMap[r];
     }
     function getLeaves() public view returns(uint256[] memory) {
         return leaves;

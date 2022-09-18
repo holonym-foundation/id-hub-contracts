@@ -238,6 +238,7 @@ contract Hub {
 
     // Encode input using abi.encode to convert fixed-length uint[n] array to bytes
     function verifyProof(string calldata proofType, Proof calldata proof, uint[] calldata input) public view returns (bool) {
+        require(mt.rootIsRecent(input[0]), "First public argument of proof must be a recent Merkle Root");
         return router.verifyProof(proofType, proof, input);
     }
 
