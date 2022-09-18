@@ -3,20 +3,20 @@ import "hashes/poseidon/poseidon" as hash;
 // import "hashes/blake2/blake2s" as leafHash;
 // import "hashes/utils/256bitsDirectionHelper" as multiplex;
 
-const u32 DEPTH = 10;
-const u32 LEAVES_PER_DEPTH=5;
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
 
 // Prove that root is arrived at by a valid path. 
 // indices is an array of indices in range [0,LEAVES_PER_DEPTH), showing which position the desired node is in:
 // e.g., at first the leaf is third in path[0], then the digest of that level is first in path[1], then the digest of that level is fourth in path[2], etc.
-def main(field root, private field leaf, private field[DEPTH][LEAVES_PER_DEPTH] proposedPath, private u32[DEPTH] indices, private field[DEPTH] path) -> bool {
+def main(field root, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) -> bool {
     // Start from the leaf
     field mut digest = leaf;
 
     for u32 i in 0..DEPTH {
         // At each step, check for the digest in the next level of path, then calculate the new digest
-        assert(proposedPath[i][indices[i]] == digest);
-        digest = hash(proposedPath[i]);
+        assert(path[i][indices[i]] == digest);
+        digest = hash(path[i]);
     }
     return (digest == root);
 
