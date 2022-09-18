@@ -1,5 +1,5 @@
-const { poseidonContract } = require("circomlibjs-new");
-const { treeFrom }  = require("../utils/CustomMerkleAdapter");
+const { poseidonContract } = require("circomlibjs");
+const { Tree }  = require("holo-merkle-utils");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const util = require("util");
@@ -21,7 +21,7 @@ const deployPoseidon = async () => {
     return await PoseidonContractFactory.deploy();
 }
 
-describe("Merkle Tree Implementation Parity", function(){
+describe.only("Merkle Tree Implementation Parity", function(){
     before(async function() {
         [this.account, this.someRando] = await ethers.getSigners();
 
@@ -44,7 +44,7 @@ describe("Merkle Tree Implementation Parity", function(){
 
     it("Parity of on-chain and off-chain Merkle Trees", async function (){
         const leaves = ["6","9","69"];
-        const offChain = treeFrom(DEPTH, leaves);
+        const offChain = Tree(DEPTH, leaves);
         for(const l of leaves){
             await this.mt.insertLeaf(l);
         }
@@ -55,7 +55,7 @@ describe("Merkle Tree Implementation Parity", function(){
 
     describe("This one needs the ZoKrates CLI installed:", function() {
         before(async function() {
-            const tree = treeFrom(DEPTH, ["6","9","69","6","9","69","6969696969696969","6","9","69"]);
+            const tree = Tree(DEPTH, ["6","9","69","6","9","69","6969696969696969","6","9","69"]);
             const proof = tree.createCLISerializedProof(7);
             this.error = null;
             await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out; zokrates setup -i tmp.out -p tmp.proving.key -v tmp.verifying.key;")
