@@ -2,24 +2,21 @@
 pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./AddLeafBig.sol";
-import "./AddLeafSmall.sol";
+import "./onAddLeaf.verifier.sol";
 import "./ProofRouter.sol";
 import "./MerkleTree.sol";
 // Adds a verified crendential to the user
 contract Hub {    
     using ECDSA for bytes32;
-    mapping (bytes32 => bool) public oldLeafUsed;
-    AddLeafBig alb;
-    AddLeafSmall als;
+    mapping (uint256 => bool) public oldLeafUsed;
+    OnAddLeaf oal;
 
     ProofRouter public router;
     MerkleTree public mt;
 
-    constructor(address alb_, address als_, address routerAdmin_){
-        alb = AddLeafBig(alb_);
-        als = AddLeafSmall(als_);
+    constructor(address routerAdmin_){
         router = new ProofRouter(routerAdmin_);
+        oal = new OnAddLeaf(); 
         mt = new MerkleTree(address(this));
     }
 
@@ -83,10 +80,16 @@ contract Hub {
     }
 
 
-    // https://ethereum.stackexchange.com/questions/8346/convert-address-to-string
-    function bytesToAddress(bytes memory b_) private pure returns (address addr) {
+    // // https://ethereum.stackexchange.com/questions/8346/convert-address-to-string
+    // function bytesToAddress(bytes memory b_) private pure returns (address addr) {
+    //     assembly {
+    //         addr := mload(add(b_,20))
+    //     } 
+    // }
+
+    function uncheckedUIntToAddress(uint256 u_) private pure returns (address addr) {
         assembly {
-            addr := mload(add(b_,20))
+            addr := mload(add(u_,20))
         } 
     }
 
@@ -99,99 +102,111 @@ contract Hub {
         mt.insertLeaf(leaf);
     }
     
-    // Adds a leaf after checking it contains a valid credential
-    function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[21] memory input) public {
-        bytes memory oldLeafFromProof = 
-            bytes.concat(
-                abi.encodePacked(uint32(input[0])), 
-                abi.encodePacked(uint32(input[1])), 
-                abi.encodePacked(uint32(input[2])), 
-                abi.encodePacked(uint32(input[3])), 
-                abi.encodePacked(uint32(input[4])),
-                abi.encodePacked(uint32(input[5])),
-                abi.encodePacked(uint32(input[6])),
-                abi.encodePacked(uint32(input[7]))
-                );
+    
+    function addLeaf(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[3] memory input) public {
+        require(uncheckedUIntToAddress(input[0]) == issuer, "credentials must be proven to start with the issuer's address");
+        require(isFromIssuer(abi.encodePacked(input[1]), v,r,s, issuer), "leaf must be signed by the issuer"); 
+        require(oal.verifyTx(proof, input), "zkSNARK failed");
 
-        uint256 newLeafFromProof = uint256(bytes32(
-            bytes.concat(
-                abi.encodePacked(uint32(input[8])), 
-                abi.encodePacked(uint32(input[9])), 
-                abi.encodePacked(uint32(input[10])), 
-                abi.encodePacked(uint32(input[11])), 
-                abi.encodePacked(uint32(input[12])),
-                abi.encodePacked(uint32(input[13])),
-                abi.encodePacked(uint32(input[14])),
-                abi.encodePacked(uint32(input[15]))
-            )
-        ));
-        address addressFromProof = bytesToAddress(
-            bytes.concat(
-                abi.encodePacked(uint32(input[16])), 
-                abi.encodePacked(uint32(input[17])), 
-                abi.encodePacked(uint32(input[18])), 
-                abi.encodePacked(uint32(input[19])), 
-                abi.encodePacked(uint32(input[20])
-                )
-            )
-        );
-        require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
-        require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
-        require(als.verifyTx(proof, input), "zkSNARK failed");
+        require(!oldLeafUsed[input[1]], "cannot create more than one new leaf from a signed leaf");
+        oldLeafUsed[input[1]] = true;   
 
-        bytes32 olfp = bytes32(oldLeafFromProof);
-        require(!oldLeafUsed[olfp], "cannot create more than one new leaf from a signed leaf");
-        oldLeafUsed[olfp] = true;   
-
-        _addLeaf(newLeafFromProof);        
+        _addLeaf(input[2]);        
     }
 
     // Adds a leaf after checking it contains a valid credential
-    function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[21] memory input) public {
-        bytes memory oldLeafFromProof = 
-            bytes.concat(
-                abi.encodePacked(uint32(input[0])), 
-                abi.encodePacked(uint32(input[1])), 
-                abi.encodePacked(uint32(input[2])), 
-                abi.encodePacked(uint32(input[3])), 
-                abi.encodePacked(uint32(input[4])),
-                abi.encodePacked(uint32(input[5])),
-                abi.encodePacked(uint32(input[6])),
-                abi.encodePacked(uint32(input[7]))
+    // function addLeafSmall(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[21] memory input) public {
+    //     bytes memory oldLeafFromProof = 
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[0])), 
+    //             abi.encodePacked(uint32(input[1])), 
+    //             abi.encodePacked(uint32(input[2])), 
+    //             abi.encodePacked(uint32(input[3])), 
+    //             abi.encodePacked(uint32(input[4])),
+    //             abi.encodePacked(uint32(input[5])),
+    //             abi.encodePacked(uint32(input[6])),
+    //             abi.encodePacked(uint32(input[7]))
+    //             );
+
+    //     uint256 newLeafFromProof = uint256(bytes32(
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[8])), 
+    //             abi.encodePacked(uint32(input[9])), 
+    //             abi.encodePacked(uint32(input[10])), 
+    //             abi.encodePacked(uint32(input[11])), 
+    //             abi.encodePacked(uint32(input[12])),
+    //             abi.encodePacked(uint32(input[13])),
+    //             abi.encodePacked(uint32(input[14])),
+    //             abi.encodePacked(uint32(input[15]))
+    //         )
+    //     ));
+    //     address addressFromProof = bytesToAddress(
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[16])), 
+    //             abi.encodePacked(uint32(input[17])), 
+    //             abi.encodePacked(uint32(input[18])), 
+    //             abi.encodePacked(uint32(input[19])), 
+    //             abi.encodePacked(uint32(input[20])
+    //             )
+    //         )
+    //     );
+    //     require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
+    //     require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
+    //     require(als.verifyTx(proof, input), "zkSNARK failed");
+
+    //     bytes32 olfp = bytes32(oldLeafFromProof);
+    //     require(!oldLeafUsed[olfp], "cannot create more than one new leaf from a signed leaf");
+    //     oldLeafUsed[olfp] = true;   
+
+    //     _addLeaf(newLeafFromProof);        
+    // }
+
+    // // Adds a leaf after checking it contains a valid credential
+    // function addLeafBig(address issuer, uint8 v, bytes32 r, bytes32 s, Proof memory proof, uint[21] memory input) public {
+    //     bytes memory oldLeafFromProof = 
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[0])), 
+    //             abi.encodePacked(uint32(input[1])), 
+    //             abi.encodePacked(uint32(input[2])), 
+    //             abi.encodePacked(uint32(input[3])), 
+    //             abi.encodePacked(uint32(input[4])),
+    //             abi.encodePacked(uint32(input[5])),
+    //             abi.encodePacked(uint32(input[6])),
+    //             abi.encodePacked(uint32(input[7]))
                 
-            );
-        uint256 newLeafFromProof = uint256(bytes32(
-            bytes.concat(
-                abi.encodePacked(uint32(input[0])), 
-                abi.encodePacked(uint32(input[1])), 
-                abi.encodePacked(uint32(input[2])), 
-                abi.encodePacked(uint32(input[3])), 
-                abi.encodePacked(uint32(input[4])),
-                abi.encodePacked(uint32(input[5])),
-                abi.encodePacked(uint32(input[6])),
-                abi.encodePacked(uint32(input[7]))
-                )
-        ));
-        address addressFromProof = bytesToAddress(
-            bytes.concat(
-                abi.encodePacked(uint32(input[8])), 
-                abi.encodePacked(uint32(input[9])), 
-                abi.encodePacked(uint32(input[10])), 
-                abi.encodePacked(uint32(input[11])), 
-                abi.encodePacked(uint32(input[12])
-                )
-            )
-        );
-        require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
-        require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
-        require(alb.verifyTx(proof, input), "zkSNARK failed");   
+    //         );
+    //     uint256 newLeafFromProof = uint256(bytes32(
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[0])), 
+    //             abi.encodePacked(uint32(input[1])), 
+    //             abi.encodePacked(uint32(input[2])), 
+    //             abi.encodePacked(uint32(input[3])), 
+    //             abi.encodePacked(uint32(input[4])),
+    //             abi.encodePacked(uint32(input[5])),
+    //             abi.encodePacked(uint32(input[6])),
+    //             abi.encodePacked(uint32(input[7]))
+    //             )
+    //     ));
+    //     address addressFromProof = bytesToAddress(
+    //         bytes.concat(
+    //             abi.encodePacked(uint32(input[8])), 
+    //             abi.encodePacked(uint32(input[9])), 
+    //             abi.encodePacked(uint32(input[10])), 
+    //             abi.encodePacked(uint32(input[11])), 
+    //             abi.encodePacked(uint32(input[12])
+    //             )
+    //         )
+    //     );
+    //     require(addressFromProof == issuer, "credentials must be proven to start with the issuer's address");
+    //     require(isFromIssuer(oldLeafFromProof, v,r,s, issuer), "leaf must be signed by the issuer"); 
+    //     require(alb.verifyTx(proof, input), "zkSNARK failed");   
 
-        bytes32 olfp = bytes32(oldLeafFromProof);
-        require(!oldLeafUsed[olfp], "cannot create more than one leaf from a signed leaf");
-        oldLeafUsed[olfp] = true;
+    //     bytes32 olfp = bytes32(oldLeafFromProof);
+    //     require(!oldLeafUsed[olfp], "cannot create more than one leaf from a signed leaf");
+    //     oldLeafUsed[olfp] = true;
 
-        _addLeaf(newLeafFromProof);
-    }
+    //     _addLeaf(newLeafFromProof);
+    // }
 
     /* This function was tested and works, but it will be moved to another contract. This should be one of many supported proof types. 
      * Since there will be many proof types, it makes sense to have this in a separate contract for proving, where this contract is for adding. */
