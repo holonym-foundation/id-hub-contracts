@@ -1,25 +1,12 @@
-const { poseidonContract } = require("circomlibjs");
+const { deployPoseidon } = require("../utils/utils");
 const { Tree }  = require("holo-merkle-utils");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
-const abi = ethers.utils.defaultAbiCoder;
-const abiPoseidon = poseidonContract.generateABI(5);
-const bytecodePoseidon = poseidonContract.createCode(5);
+
 const DEPTH = 14; // Merkle tree depth
 
-
-
-const deployPoseidon = async () => {
-    const [account] = await ethers.getSigners();
-    const PoseidonContractFactory = new ethers.ContractFactory(
-        abiPoseidon,
-        bytecodePoseidon,
-        account
-    );
-    return await PoseidonContractFactory.deploy();
-}
 
 describe.only("Merkle Tree Implementation Parity", function(){
     before(async function() {
@@ -57,7 +44,6 @@ describe.only("Merkle Tree Implementation Parity", function(){
         before(async function() {
             const tree = Tree(DEPTH, ["6","9","69","6","9","69","6969696969696969","6","9","69"]);
             const proof = tree.createCLISerializedProof(7);
-            this.error = null;
             await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out; zokrates setup -i tmp.out -p tmp.proving.key -v tmp.verifying.key;")
             this.res = await exec(`zokrates compute-witness -a ${proof} -i tmp.out -o tmp.witness`);
         })
