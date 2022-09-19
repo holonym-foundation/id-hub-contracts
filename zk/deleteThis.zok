@@ -1,4 +1,0 @@
-def main(field a) -> field {
-    assert(a == 2);
-    return a * a * a;
-}

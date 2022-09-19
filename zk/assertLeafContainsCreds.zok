@@ -1,8 +1,0 @@
-import "hashes/blake2/blake2s" as leafHash;
-// asserts that a leaf's preimage begins with a certain address. Takes unused input msgSender to prevent frontrunning
-def main(u32[8] leaf, u32[5] address, u32[7] creds, u32[5] msgSender, private u32[4] nullifier) {
-    u32[1][16] preimage = [[...address, ...creds, ...nullifier]];
-    assert(leafHash(preimage) == leaf);
-    return;
-}
-

@@ -1,0 +1,14 @@
+import "hashes/poseidon/poseidon" as poseidon;
+
+/* Asserts that a leaf's preimage begins with a certain address and it was constructed from a previous leaf by modifying the secret
+ * This is useful because the signed leaf can be signed by the authority, but the authority must know the secret and all of its contents to sign off on it
+ * With this function, the user can take that old leaf and generate a new leaf and prove everything is the same except the secret
+ * This function is called whenever adding a leaf to the merkle tree
+ */
+def main(field signedLeaf, field newLeaf, field address, private field countryCode, private field subdivision, private field completedAt, private field birthdate, private field oldSecret, private field newSecret) {
+    field[6] oldPreimage = [address, oldSecret, countryCode, subdivision, completedAt, birthdate];
+    field[6] newPreimage = [address, newSecret, countryCode, subdivision, completedAt, birthdate];
+    assert(poseidon(oldPreimage) == signedLeaf);
+    assert(poseidon(newPreimage) == newLeaf);
+    return;
+}
