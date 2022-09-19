@@ -8,7 +8,7 @@ const exec = util.promisify(require("child_process").exec);
 const DEPTH = 14; // Merkle tree depth
 
 
-describe.only("Merkle Tree Implementation Parity", function(){
+describe("Merkle Tree Implementation Parity", function(){
     before(async function() {
         [this.account, this.someRando] = await ethers.getSigners();
 
