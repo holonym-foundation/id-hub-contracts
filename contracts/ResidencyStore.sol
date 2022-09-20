@@ -3,21 +3,26 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-
+import "./Hub.sol";
+import "./PairingAndProof.sol";
 
 contract ResidencyStore is Ownable  {
+    
+    mapping(address => bool) public usResidency; // e.g., 0x123... => true
+    Hub hub;
+    event USResidency(address userAddr, bool usResidency);
 
-    mapping(address => bool) public residesInUS; // e.g., 0x123... => true
-
-    // address[] public recordedAddresses;
-
-    event SetUserResidesInUS(address userAddr, bool userResidesInUS);
-
-    /// @param userAddr The user's blockchain address.
-    /// @param userResidesInUS Whether the user is a US resident.
-    function setResidesInUS(address userAddr, bool userResidesInUS) public onlyOwner {
-        residesInUS[userAddr] = userResidesInUS;
-        emit SetUserResidesInUS(userAddr, userResidesInUS);
+    constructor(address hub_) {
+        hub = Hub(hub_);
+    }
+    /// @param proof PairingAndProof.sol Proof struct
+    /// @param input The public inputs to the proof, in ZoKrates' format
+    function setResidesInUS(Proof calldata proof, uint[] calldata input) public onlyOwner {
+        console.log(input[0], input[1], input[2]);
+        require(input[2] == 2, "Credentials do not have US as country code"); // 2 is prime that represents USA because USA is #2
+        usResidency[msg.sender] = true;
+        emit USResidency(msg.sender, true);
+        require(hub.verifyProof("USResident", proof, input));
     }
 
 }
