@@ -52,7 +52,7 @@ describe("ProofRouter", function () {
     });
 
 
-    describe.only("ProofRouter Integration tests", function() {
+    describe("ProofRouter Integration tests", function() {
         before("Add new proof route and verify the proof ", async function() {
             const QuinVerifier = await (await ethers.getContractFactory("QuinaryMerkleProof")).deploy();
             await this.router.connect(this.admin).addRoute("MerkleProof", QuinVerifier.address);
