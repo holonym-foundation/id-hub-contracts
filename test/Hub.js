@@ -3,7 +3,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { createLeaf, createLeafAdditionProof, deployPoseidon } = require("../utils/utils");
 
-describe.only("Hub", function () {
+describe("Hub", function () {
   describe("Signature", function () {
     before(async function() {
       [this.account, this.admin] = await ethers.getSigners();
@@ -95,15 +95,12 @@ describe.only("Hub", function () {
 
         )
         
-       console.log("old leaf?!", ethers.utils.solidityPack(["uint256"], [this.oldLeaf]),
-       this.oldLeaf)
        const tbs = Buffer.from(
         ethers.BigNumber.from(this.oldLeaf).toHexString().replace("0x",""),
         "hex"
        );
        const sig_ = await this.account.signMessage(tbs);
        this.sig = ethers.utils.splitSignature(sig_);
-       console.log(sig_, this.sig)
 
         const _pt6 = await deployPoseidon();
         const _tree = await (await ethers.getContractFactory("IncrementalQuinTree", 
@@ -123,9 +120,6 @@ describe.only("Hub", function () {
   
       })
       it("Does not revert when inputs are valid", async function (){
-        console.log("this.account: ", this.account.address)
-        console.log(this.oldLeaf, this.newLeaf);
-        console.log(this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
         let tx = await this.hub.addLeaf(this.issuerAddress, this.sig.v, this.sig.r, this.sig.s, this.proofData.proof, this.proofData.inputs)
         await tx.wait();
         expect(tx).to.not.be.reverted;

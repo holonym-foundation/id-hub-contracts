@@ -21,7 +21,7 @@ contract Hub {
     }
 
     // Copied and slightly modified from from https://blog.ricmoo.com/verifying-messages-in-solidity-50a94f82b2ca
-    function isFromIssuer(bytes memory message, uint8 v, bytes32 r, bytes32 s, address issuer) public view returns (bool fromIssuer) {
+    function isFromIssuer(bytes memory message, uint8 v, bytes32 r, bytes32 s, address issuer) public pure returns (bool fromIssuer) {
         // The message header; we will fill in the length next
         bytes memory header = bytes("\x19Ethereum Signed Message:\n000000");
         uint256 lengthOffset;
@@ -76,9 +76,6 @@ contract Hub {
         }
         // Perform the elliptic curve recover operation
         bytes32 check = keccak256(bytes.concat(header, message));
-        console.log("message");
-        console.logBytes(message);
-        console.log(ecrecover(check, v, r, s));
         return ecrecover(check, v, r, s) == issuer;
 
     }
@@ -87,10 +84,6 @@ contract Hub {
         assembly {
             addr := u_
         } 
-    }
-
-    function getLeaves() public view returns (uint256[] memory) {
-        return mt.getLeaves();
     }
 
     // Blindly adds a leaf (should be private)
@@ -103,7 +96,6 @@ contract Hub {
         address addr = uncheckedUIntToAddress(input[2]);
         uint256 newLeaf = input[1];
         uint256 oldLeaf = input[0];
-        console.log("old leaf", oldLeaf);
         require(addr == issuer, "credentials must be proven to start with the issuer's address");
         require(isFromIssuer(abi.encodePacked(oldLeaf), v,r,s, issuer), "leaf must be signed by the issuer"); 
         require(oal.verifyTx(proof, input), "zkSNARK failed");
@@ -120,7 +112,11 @@ contract Hub {
         return router.verifyProof(proofType, proof, input);
     }
 
-    function _msgSender() internal view returns (address) {
-        return msg.sender;
+    function mostRecentRoot() public view returns (uint256) {
+        return mt.mostRecentRoot();
+    }
+
+    function getLeaves() public view returns (uint256[] memory) {
+        return mt.getLeaves();
     }
 }

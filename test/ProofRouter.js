@@ -112,7 +112,7 @@ describe("ProofRouter", function () {
             // Now, make proof of the new leaf
             const t = Tree(14, [this.newLeaf]);
             const proofArgs = t.createCLISerializedProof(0);
-            await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out; zokrates setup -i tmp.out -p tmp.proving.key -v tmp.verifying.key;")
+            await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out;")
             await exec(`zokrates compute-witness -a ${proofArgs} -i tmp.out -o tmp.witness`);
             await exec(`zokrates generate-proof -i tmp.out -w tmp.witness -p zk/pvkeys/quinaryMerkleProof.proving.key -j tmp.proof.json`);
             const proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
@@ -122,7 +122,7 @@ describe("ProofRouter", function () {
         it("Proving the new leaf with wrong root doesn't work", async function() {
             const t = Tree(14, [this.newLeaf, 69]);
             const proofArgs = t.createCLISerializedProof(0);
-            await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out; zokrates setup -i tmp.out -p tmp.proving.key -v tmp.verifying.key;")
+            await exec("zokrates compile -i zk/quinaryMerkleProof.zok -o tmp.out;")
             await exec(`zokrates compute-witness -a ${proofArgs} -i tmp.out -o tmp.witness`);
             await exec(`zokrates generate-proof -i tmp.out -w tmp.witness -p zk/pvkeys/quinaryMerkleProof.proving.key -j tmp.proof.json`);
             const proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());

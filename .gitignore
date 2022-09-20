@@ -16,5 +16,11 @@ zk/node_modules
 zk/out
 zk/out.r1cs
 zk/*.out
+zk/tmp/
+tmp.proving.key
+tmp.verifying.key
+tmp.out
+tmp.witness
+out.wtns
 
 notes.txt
