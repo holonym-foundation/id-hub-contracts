@@ -1,3 +1,8 @@
+/* NOTE: this is an old version, before we used poseidon hash. The new version hasn't been written yet */
+
+
+
+
 // This is intended to be the complete proof used for Lobby3. It is slightly more 
 // abstract than Lobby3's use case requires. This more abstract version simply
 // allows for more use cases to be built with i.

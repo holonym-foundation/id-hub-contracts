@@ -1,5 +1,0 @@
-import "hashes/poseidon/poseidon" as hash;
-def main(field[6] input) -> field {
-    return hash(input);
-}
-
