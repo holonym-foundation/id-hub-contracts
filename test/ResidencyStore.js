@@ -35,7 +35,7 @@ describe("ResidencyStore", function () {
         
     });
 
-    describe.only("Verifier works:", function() {
+    describe("Verifier works:", function() {
         before("Add new proof route and verify the proof ", async function() {
             
             

@@ -17,12 +17,13 @@ contract ResidencyStore is Ownable  {
     }
     /// @param proof PairingAndProof.sol Proof struct
     /// @param input The public inputs to the proof, in ZoKrates' format
-    function setResidesInUS(Proof calldata proof, uint[] calldata input) public onlyOwner {
+    function prove(Proof calldata proof, uint[] calldata input) public onlyOwner {
         console.log(input[0], input[1], input[2]);
+        require(input[1] == 1144726183143482297049508718223886886488380117896, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
         require(input[2] == 2, "Credentials do not have US as country code"); // 2 is prime that represents USA because USA is #2
+        require(hub.verifyProof("USResident", proof, input), "Failed to verify proof");
         usResidency[msg.sender] = true;
         emit USResidency(msg.sender, true);
-        require(hub.verifyProof("USResident", proof, input));
     }
 
 }
