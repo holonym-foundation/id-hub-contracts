@@ -5,9 +5,10 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 pragma solidity ^0.8.0;
+import "hardhat/console.sol";
 import "./PairingAndProof.sol";
 
-contract Verifier {
+contract ProofOfCountry {
     using Pairing for *;
     struct VerifyingKey {
         Pairing.G1Point alpha;
@@ -16,21 +17,16 @@ contract Verifier {
         Pairing.G2Point delta;
         Pairing.G1Point[] gamma_abc;
     }
-    struct Proof {
-        Pairing.G1Point a;
-        Pairing.G2Point b;
-        Pairing.G1Point c;
-    }
     function verifyingKey() pure internal returns (VerifyingKey memory vk) {
-        vk.alpha = Pairing.G1Point(uint256(0x288810179e5c0b5f6d3434267dd6c902569bae34efef6cf6906d28cd135f8f94), uint256(0x2ce220883ae650a7decbd8a5d0a30cb6578e046e8c5694783b26b5b8e0c4d6a8));
-        vk.beta = Pairing.G2Point([uint256(0x0006130fd022fd5f14fc310b6a73f8561bd41280c820a54cb02ddde162721239), uint256(0x2969ff4d2244eb19b43346f361d109a8b3b6579c29159f82240f00eb797ca7d5)], [uint256(0x0f0ac52851a302299c2177e609728c7275c020423512e13e63b91232d8fa9370), uint256(0x2b6406303abdee7f601adcb1f6c5316404818a627715180d9eb4200b4cde90db)]);
-        vk.gamma = Pairing.G2Point([uint256(0x1c7b68c933ff69a2a9688b261ac3db4d18420ddf44fac4fd27da8398f1125e60), uint256(0x298569c4970f5dc222147746e1ce4657d2a854d476d58948cf10c26ddf63db20)], [uint256(0x11ad1d09058e47111fdfb9bbd2019f0c6b80881c6915b8abfcf27a90d83b3d12), uint256(0x134b2805b5852c2d145aeaaaea694927087b45a708a468a02c9e59b06b832ec5)]);
-        vk.delta = Pairing.G2Point([uint256(0x10e66c82556f90357a929b00bc99f05c1946667ebbcf2e84ca5fe50ec776e79c), uint256(0x2b71d14af2ecd0b2485af209a794eb9d1119ecee400b9b0a60b4b352eabf951d)], [uint256(0x20e03bb0ea811c9737cba3b48db91fae5a9d00f321bd893483ee330ac1af3e26), uint256(0x153299980ea3eb0fda11e754bab8883f814d3be2781fa539e806d7361f0921f0)]);
+        vk.alpha = Pairing.G1Point(uint256(0x174bbef7a23f37033b03dd3f4ae762f07d0b098a9b067067aaadc0a604cfb5ff), uint256(0x0162f481475471c5c161c1a11355554aece1593418b89faa7b2285bbdda57b4b));
+        vk.beta = Pairing.G2Point([uint256(0x049e76b223e4739970413e583019d27bdbddd6107cbdc047e8003b62e8762cfa), uint256(0x2c93a9e1ce241c81669620f5afb633ba40e63e3b56697f6f8cd2843354900509)], [uint256(0x067d5c22cb5b31d42aabba329b4a13a09a12663c5d7da3587d5e5b07e5f93fc9), uint256(0x0a671272c65e2a2f2b064879f5f39492edf1aa1fc0b4e74c462bd0a4c34afbe5)]);
+        vk.gamma = Pairing.G2Point([uint256(0x1c77d6572af3b243542f6b8302e1fd00d2809f0d3a3bf80f9fbb07e2acfa133d), uint256(0x28202cdcc510078ea074dfc9acbb984d69030f0153eda0f4a46b55328bfae329)], [uint256(0x007fc0ae65c0e4ca31d812ff347d3854907483fca7b0a896dbf25106a6349259), uint256(0x0debf4dd190f58ee9685806b7afdb5b31a2f3a33523c45e171f4e1ec546df50b)]);
+        vk.delta = Pairing.G2Point([uint256(0x0737fb7c980ce8edd62089916ee09d818b1a4bbf84722105b0880b801e372ff8), uint256(0x109731794a0126fe298860f027ccf0ff550f695666adc1091ad065c4eb2aac7f)], [uint256(0x2b92484cdb38617b0361f0e515e976a4038f3c4053ba1e6d3105b66fc9e834aa), uint256(0x28464fcb34ad4df4db4dcdb5f5b0b1cbb15b1fef4ad9f04fd8872d1117ce446f)]);
         vk.gamma_abc = new Pairing.G1Point[](4);
-        vk.gamma_abc[0] = Pairing.G1Point(uint256(0x20831093feddfee3abc9a72757762e8fd59493fde24951e1c214721c355a5103), uint256(0x1c523464049473618aed4b9634c506c3ee3136af6d912f8f2477cbcd8c088e20));
-        vk.gamma_abc[1] = Pairing.G1Point(uint256(0x17e525d8c39d71d0d9c3ba47e911cc9c63edcd36b47298c0aa8f935097b9fd90), uint256(0x2aa3816ce1ad01581f99bf5511427d0feefbcc93617cf761dece4d196a7d7b10));
-        vk.gamma_abc[2] = Pairing.G1Point(uint256(0x02a5ca3a4c4ae133d4a3659d09abf55e90f3d700b9db3323453fdd0a92431fd7), uint256(0x24ec733b6d01bd0f4cd29fff45428302d966a458b68396f656be021d26f77eac));
-        vk.gamma_abc[3] = Pairing.G1Point(uint256(0x161232b36bd7759b8a95bbbceba654ea66471ad1a216a00e8efecb789812140c), uint256(0x1b60ed81f801f672ac78eb40eb37d8f1ee2c70e287829d3294d5ed8a761f1ccb));
+        vk.gamma_abc[0] = Pairing.G1Point(uint256(0x1a170f42051870df50455a3a48ae96545fc6ebb25a9fa7f3cbd979c369cb76f0), uint256(0x2d067f80d060c7c2eb1480c343125b3ff38494e59d033a8f42787470ce97c134));
+        vk.gamma_abc[1] = Pairing.G1Point(uint256(0x0c859ceb1942ae291af70dd5f389d5f00222d514d233d5d14c6c554333446015), uint256(0x1c546cfeaf9e403a33dfc3868d81468e736a12d038f949a6444963ad9822feef));
+        vk.gamma_abc[2] = Pairing.G1Point(uint256(0x00ff92f8942556a7f9def11aa292ba83dd323bce9d46bc945a3dd747721e2ecc), uint256(0x28e87de57d9ee192432ae7c3b53d4a7be1d45c1ca335de86a044c91517e0687a));
+        vk.gamma_abc[3] = Pairing.G1Point(uint256(0x175ddfd5e3ccf685feb706756e173175fa270bb3df5c66008f66175dc80e5f62), uint256(0x19f01e0c2fcc9990755a4a729c7f7322bdae62f195c00f1a7979ffc4d8db8757));
     }
     function verify(uint[] memory input, Proof memory proof) internal view returns (uint) {
         uint256 snark_scalar_field = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
@@ -68,10 +64,7 @@ contract Verifier {
     function verifyEncoded(Proof calldata proof, uint[] calldata input_) public view returns (bool r) {
         // (Proof memory proof, uint[25] memory input) = abi.decode(b, (Proof, uint[25]));
         uint[3] memory input;
-        require(input[1] == 0x00c8834c1fcf0df6623fc8c8ed25064a4148d99388, "Proof must come from Holonym Foundation's relayer address"); //Check it comes from the right address (00 preprended so it is treated as uint) 
-        require(input[2] == 2, "CountryCode must equal 2 (USA)"); 
-
-        for (uint i = 0; i < 2; i++) {
+        for (uint i = 0; i < 3; i++) {
             input[i] = input_[i];
         }
         return verifyTx(proof, input);
