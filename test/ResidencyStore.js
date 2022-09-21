@@ -29,13 +29,15 @@ describe("ResidencyStore", function () {
         this.hub = _hub;
 
         this.router = await (await ethers.getContractFactory("ProofRouter")).attach(await this.hub.router());
+        this.verifier = await (await ethers.getContractFactory("ProofOfCountry")).deploy();
+        await this.router.connect(this.admin).addRoute("USResident", this.verifier.address);
+        this.resStore = await (await ethers.getContractFactory("ResidencyStore")).deploy(this.hub.address);
         
     });
 
     describe.only("Verifier works:", function() {
         before("Add new proof route and verify the proof ", async function() {
-            const CountryVerifier = await (await ethers.getContractFactory("ProofOfCountry")).deploy();
-            await this.router.connect(this.admin).addRoute("USResident", CountryVerifier.address);
+            
             
             // Add a new leaf:
             this.leafParams = {
@@ -190,7 +192,11 @@ describe("ResidencyStore", function () {
         });
 
         it("Proving your country works", async function() {
-            expect(await this.hub.verifyProof("USResident", this.proofObject.proof, this.proofObject.inputs)).to.not.be.reverted;
+            // this.proofObject.proof.a[0] = "0x2b54a104041923a8cf188cf06d579aa3f78f8832803088af6dd4f0048d7da669"
+            // expect(await this.verifier.verifyTx(this.proofObject.proof, this.proofObject.inputs)).to.equal(true);
+            // expect(await this.verifier.verifyEncoded(this.proofObject.proof, this.proofObject.inputs)).to.equal(true);
+            // expect(await this.hub.verifyProof("USResident", this.proofObject.proof, this.proofObject.inputs)).to.not.be.reverted;
+            expect(await this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)).to.not.be.reverted;
         });
 
         it("Invalid proof doesn't work: root", async function() {
@@ -216,7 +222,7 @@ describe("ResidencyStore", function () {
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
             await expect(
-                this.hub.verifyProof("USResident", this.proofObject.proof, this.proofObject.inputs)
+                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
             ).to.be.revertedWith("First public argument of proof must be a recent Merkle Root");
         });
 
@@ -243,13 +249,13 @@ describe("ResidencyStore", function () {
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
             await expect(
-                this.hub.verifyProof("USResident", this.proofObject.proof, this.proofObject.inputs)
-            ).to.be.revertedWith("First public argument of proof must be a recent Merkle Root");
+                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+            ).to.be.revertedWith("Proof must come from authority address");
         });
 
         it("Invalid proof doesn't work: country", async function() {
            // Add a new leaf so the root is bad:
-           const t = Tree(14, [this.newLeaf, this.newLeafWrongAddress, this.newLeafWrongCountry, 123456789]);
+           const t = Tree(14, [this.newLeaf, this.newLeafWrongAddress, this.newLeafWrongCountry]);
            let proof = await t.createCLISerializedProof(2);
            proof = proof.split(" ");
            proof.shift();
@@ -270,8 +276,8 @@ describe("ResidencyStore", function () {
            this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
            await expect(
-               this.hub.verifyProof("USResident", this.proofObject.proof, this.proofObject.inputs)
-           ).to.be.revertedWith("First public argument of proof must be a recent Merkle Root");
+               this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+           ).to.be.revertedWith("Credentials do not have US as country code");
         });
     });
 });
