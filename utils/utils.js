@@ -38,6 +38,17 @@ const deployPoseidon = async () => {
     return await PoseidonContractFactory.deploy();
 }
 
+// gets a Posiedon contract at address
+const attachPoseidon = async (address) => {
+    const [account] = await ethers.getSigners();
+    const PoseidonContractFactory = new ethers.ContractFactory(
+        abiPoseidon,
+        bytecodePoseidon,
+        account
+    );
+    return await PoseidonContractFactory.attach(address);
+}
 exports.createLeaf = createLeaf; 
 exports.createLeafAdditionProof = createLeafAdditionProof; 
+exports.attachPoseidon = attachPoseidon;
 exports.deployPoseidon = deployPoseidon;
