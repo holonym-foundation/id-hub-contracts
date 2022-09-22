@@ -8,81 +8,22 @@
 
 
 const { ethers } = require("hardhat");
-const { createLeaf, createLeafAdditionProof, deployPoseidon, attachPoseidon } = require("../utils/utils");
-
-
-// Initialize all smart contracts and return their addresses
-// Can pass addresses like such:
-// init({
-//   POSEIDONT6_ADDRESS : "",
-//   INCREMENTALQUINTREE_ADDRESS : "",
-//   COUNTRYVERIFIER_ADDRESS : "",
-//   RESSTORE_ADDRESS : "",
-// })
-async function init(addresses) {
-  const {
-      POSEIDONT6_ADDRESS,
-      INCREMENTALQUINTREE_ADDRESS ,
-      COUNTRYVERIFIER_ADDRESS,
-      RESSTORE_ADDRESS,
-  } = 
-  {
-      POSEIDONT6_ADDRESS : "",
-      INCREMENTALQUINTREE_ADDRESS : "",
-      COUNTRYVERIFIER_ADDRESS : "",
-      RESSTORE_ADDRESS : "",
-      ...addresses
-  }
-  
-
-  const [admin] = await ethers.getSigners();
-  const pt6 = POSEIDONT6_ADDRESS ? await attachPoseidon(POSEIDONT6_ADDRESS) : await deployPoseidon();
-  
-  const iqtFactory = await ethers.getContractFactory("IncrementalQuinTree", 
-  {
-      libraries : {
-      PoseidonT6 : pt6.address
-      }
-  });
-
-  const iqt = INCREMENTALQUINTREE_ADDRESS ? await iqtFactory.attach(INCREMENTALQUINTREE_ADDRESS) : await iqtFactory.deploy();
-  const hub = await (await ethers.getContractFactory("Hub", {
-    libraries : {
-        IncrementalQuinTree : iqt.address
-        } 
-    })).deploy(admin.address);
-
-  // await hub.deployed();
-
-  const router = await (await ethers.getContractFactory("ProofRouter")).attach(await hub.router());
-
-  const verifierFactory = await ethers.getContractFactory("ProofOfCountry");
-  const verifier = COUNTRYVERIFIER_ADDRESS ? await verifierFactory.attach(COUNTRYVERIFIER_ADDRESS) : await verifierFactory.deploy();
-  
-  await router.addRoute("USResident", verifier.address);
-
-  const resStoreFactory = await ethers.getContractFactory("ResidencyStore"); 
-  const resStore = RESSTORE_ADDRESS ? await resStoreFactory.attach(RESSTORE_ADDRESS) : await (resStoreFactory).deploy(hub.address);
-  
-  const result = {
-    pt6 : pt6, 
-    iqt : iqt, 
-    hub : hub, 
-    router : router, 
-    verifier : verifier, 
-    resStore : resStore
-  }
-  // Log all contract addresses
-  console.log("------------Contract addresses:------------");
-  Object.keys(result).forEach((key) => console.log(key, result[key].address));
-  console.log("-------------------------------------------");
-  return result;
-  
-}
+const { initContracts } = require("../utils/utils");
 
 async function main() {
-  await init();
+  // Leave these address blank if you want to redeploy them.
+  const contracts = await initContracts(
+    {
+      POSEIDONT6_ADDRESS : "0x4D4d8D5b88D66CC370aCB18F2C501C0AFD2861Ce",
+      INCREMENTALQUINTREE_ADDRESS : "0x9282bB470D26129001ab8F81e514D6FEFc1a3d4B",
+      HUB_ADDRESS : "0xb77Af0558e1eC1Bb37849B102fef8d1DbB98dfb2",
+      COUNTRYVERIFIER_ADDRESS : "0x35e827e957fa530b8dA884aeCd5e5f7bf6f25c38",
+      RESSTORE_ADDRESS : "0xd49D9EB5B2425472232564159441e1399E606297"
+    }
+  );
+
 }
+
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {
