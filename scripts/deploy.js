@@ -4,23 +4,85 @@
 // You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
-const hre = require("hardhat");
+// const hre = require("hardhat");
 
-async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
-  const lockedAmount = hre.ethers.utils.parseEther("1");
+const { ethers } = require("hardhat");
+const { createLeaf, createLeafAdditionProof, deployPoseidon, attachPoseidon } = require("../utils/utils");
 
-  const Lock = await hre.ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
 
-  await lock.deployed();
+// Initialize all smart contracts and return their addresses
+// Can pass addresses like such:
+// init({
+//   POSEIDONT6_ADDRESS : "",
+//   INCREMENTALQUINTREE_ADDRESS : "",
+//   COUNTRYVERIFIER_ADDRESS : "",
+//   RESSTORE_ADDRESS : "",
+// })
+async function init(addresses) {
+  const {
+      POSEIDONT6_ADDRESS,
+      INCREMENTALQUINTREE_ADDRESS ,
+      COUNTRYVERIFIER_ADDRESS,
+      RESSTORE_ADDRESS,
+  } = 
+  {
+      POSEIDONT6_ADDRESS : "",
+      INCREMENTALQUINTREE_ADDRESS : "",
+      COUNTRYVERIFIER_ADDRESS : "",
+      RESSTORE_ADDRESS : "",
+      ...addresses
+  }
+  
 
-  console.log("Lock with 1 ETH deployed to:", lock.address);
+  const [admin] = await ethers.getSigners();
+  const pt6 = POSEIDONT6_ADDRESS ? await attachPoseidon(POSEIDONT6_ADDRESS) : await deployPoseidon();
+  
+  const iqtFactory = await ethers.getContractFactory("IncrementalQuinTree", 
+  {
+      libraries : {
+      PoseidonT6 : pt6.address
+      }
+  });
+
+  const iqt = INCREMENTALQUINTREE_ADDRESS ? await iqtFactory.attach(INCREMENTALQUINTREE_ADDRESS) : await iqtFactory.deploy();
+  const hub = await (await ethers.getContractFactory("Hub", {
+    libraries : {
+        IncrementalQuinTree : iqt.address
+        } 
+    })).deploy(admin.address);
+
+  // await hub.deployed();
+
+  const router = await (await ethers.getContractFactory("ProofRouter")).attach(await hub.router());
+
+  const verifierFactory = await ethers.getContractFactory("ProofOfCountry");
+  const verifier = COUNTRYVERIFIER_ADDRESS ? await verifierFactory.attach(COUNTRYVERIFIER_ADDRESS) : await verifierFactory.deploy();
+  
+  await router.addRoute("USResident", verifier.address);
+
+  const resStoreFactory = await ethers.getContractFactory("ResidencyStore"); 
+  const resStore = RESSTORE_ADDRESS ? await resStoreFactory.attach(RESSTORE_ADDRESS) : await (resStoreFactory).deploy(hub.address);
+  
+  const result = {
+    pt6 : pt6, 
+    iqt : iqt, 
+    hub : hub, 
+    router : router, 
+    verifier : verifier, 
+    resStore : resStore
+  }
+  // Log all contract addresses
+  console.log("------------Contract addresses:------------");
+  Object.keys(result).forEach((key) => console.log(key, result[key].address));
+  console.log("-------------------------------------------");
+  return result;
+  
 }
 
+async function main() {
+  await init();
+}
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {
