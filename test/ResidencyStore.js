@@ -6,9 +6,10 @@ const exec = util.promisify(require("child_process").exec);
 const { createLeaf, createLeafAdditionProof, deployPoseidon } = require("../utils/utils");
 const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
+const { randomBytes } = require("crypto");
 
 
-describe("ResidencyStore", function () {
+describe.only("ResidencyStore", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
 
@@ -43,8 +44,8 @@ describe("ResidencyStore", function () {
             this.leafParams = {
                 issuerAddress : this.account.address,
                 wrongIssuerAddress : this.someAccount.address,
-                oldSecret : 69,
-                newSecret : 71,
+                oldSecret : ethers.BigNumber.from(randomBytes(16)),
+                newSecret : ethers.BigNumber.from(randomBytes(16)),
                 countryCode : 2,
                 wrongCountryCode : 69,
                 subdivision : ethers.BigNumber.from(Buffer.from("NY")),
@@ -164,10 +165,10 @@ describe("ResidencyStore", function () {
            const sigWrongCountry = ethers.utils.splitSignature(
             await this.account.signMessage(tbsWrongCountry)
            );
-    
-           await this.hub.addLeaf(this.leafParams.issuerAddress, sigGood.v, sigGood.r, sigGood.s, this.additionProofGood.proof, this.additionProofGood.inputs);
-           await this.hub.addLeaf(this.leafParams.wrongIssuerAddress, sigWrongAddress.v, sigWrongAddress.r, sigWrongAddress.s, this.additionProofWrongAddress.proof, this.additionProofWrongAddress.inputs);
-           await this.hub.addLeaf(this.leafParams.issuerAddress, sigWrongCountry.v, sigWrongCountry.r, sigWrongCountry.s, this.additionProofWrongCountry.proof, this.additionProofWrongCountry.inputs);
+
+            await this.hub.addLeaf(this.leafParams.issuerAddress, sigGood.v, sigGood.r, sigGood.s, this.additionProofGood.proof, this.additionProofGood.inputs);
+            await this.hub.addLeaf(this.leafParams.wrongIssuerAddress, sigWrongAddress.v, sigWrongAddress.r, sigWrongAddress.s, this.additionProofWrongAddress.proof, this.additionProofWrongAddress.inputs);
+            await this.hub.addLeaf(this.leafParams.issuerAddress, sigWrongCountry.v, sigWrongCountry.r, sigWrongCountry.s, this.additionProofWrongCountry.proof, this.additionProofWrongCountry.inputs);
 
             // Now, make proof of the new residency
             const t = Tree(14, [this.newLeaf, this.newLeafWrongAddress, this.newLeafWrongCountry]);
