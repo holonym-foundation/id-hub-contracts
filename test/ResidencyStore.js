@@ -180,6 +180,7 @@ describe.only("ResidencyStore", function () {
             const proofArgs = `${[
                 t.root, 
                 ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
+                ethers.BigNumber.from(this.account.address),
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
@@ -210,7 +211,8 @@ describe.only("ResidencyStore", function () {
 
             const proofArgs = `${[
                 t.root, 
-                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
+                ethers.BigNumber.from(this.account.address), 
+                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(),
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
@@ -227,7 +229,7 @@ describe.only("ResidencyStore", function () {
             ).to.be.revertedWith("First public argument of proof must be a recent Merkle Root");
         });
 
-        it("Invalid proof doesn't work: address", async function() {
+        it("Invalid proof doesn't work: issuer address", async function() {
             // Add a new leaf so the root is bad:
             const t = Tree(14, [this.newLeaf, this.newLeafWrongAddress, this.newLeafWrongCountry]);
             let proof = await t.createCLISerializedProof(1);
@@ -237,6 +239,7 @@ describe.only("ResidencyStore", function () {
 
             const proofArgs = `${[
                 t.root, 
+                ethers.BigNumber.from(this.account.address),
                 ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
@@ -254,6 +257,34 @@ describe.only("ResidencyStore", function () {
             ).to.be.revertedWith("Proof must come from authority address");
         });
 
+        it("Invalid proof doesn't work: msg sender address", async function() {
+            // Add a new leaf so the root is bad:
+            const t = Tree(14, [this.newLeaf, this.newLeafWrongAddress, this.newLeafWrongCountry]);
+            let proof = await t.createCLISerializedProof(1);
+            proof = proof.split(" ");
+            proof.shift();
+            proof = proof.join(" ")
+
+            const proofArgs = `${[
+                t.root, 
+                ethers.BigNumber.from(this.someAccount.address),
+                ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
+                this.leafParams.countryCode,
+                this.leafParams.subdivision,
+                this.leafParams.completedAt,
+                this.leafParams.birthdate,
+                this.leafParams.newSecret // newSecret == nullifier
+            ].join(" ", )
+            } ${ proof }`;
+            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+            await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
+            this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
+
+            await expect(
+                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+            ).to.be.revertedWith("Second public argument of proof must be your address");
+        });
+
         it("Invalid proof doesn't work: country", async function() {
            // Add a new leaf so the root is bad:
            const t = Tree(14, [this.newLeaf, this.newLeafWrongAddress, this.newLeafWrongCountry]);
@@ -265,6 +296,7 @@ describe.only("ResidencyStore", function () {
            const proofArgs = `${[
                t.root, 
                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
+               ethers.BigNumber.from(this.account.address),
                this.leafParams.wrongCountryCode,
                this.leafParams.subdivision,
                this.leafParams.completedAt,
