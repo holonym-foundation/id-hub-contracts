@@ -2,11 +2,10 @@
 pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Hub.sol";
 import "./PairingAndProof.sol";
 
-contract ResidencyStore is Ownable  {
+contract ResidencyStore {
     
     mapping(address => bool) public usResidency; // e.g., 0x123... => true
     mapping(uint256 => bool) public footprints;
@@ -36,7 +35,7 @@ contract ResidencyStore is Ownable  {
 
     /// @param proof PairingAndProof.sol Proof struct
     /// @param input The public inputs to the proof, in ZoKrates' format
-    function prove(Proof calldata proof, uint[] calldata input) public onlyOwner {
+    function prove(Proof calldata proof, uint[] calldata input) public {
         require(proofIsValid(proof, input));
         footprints[input[4]] = true;
         usResidency[msg.sender] = true;
