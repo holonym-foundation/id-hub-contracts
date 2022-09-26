@@ -22,9 +22,12 @@ contract ResidencyStore is Ownable  {
     // It is useful to separate this from the prove() function which is changes state, so that somebody can call this off-chain as a view function.
     // Then, they can maintain their own off-chain list of footprints and verified address 
     function proofIsValid(Proof calldata proof, uint[] calldata input) public view returns (bool isValid) {
+        console.log("inputs");
+        console.log(input[0], input[1], input[2]);
+        console.log(input[3],input[4], input[5]);
         require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
         require(input[2] == 1144726183143482297049508718223886886488380117896, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
-        require(input[3] == 59257896596766011586056368680640813178757414818545978794498057233032252153570, "Footprint is made from the wrong salt"); //keccak256("IsFromUS")
+        require(input[3] == 18450029681611047275023442534946896643130395402313725026917000686233641593164, "Footprint is made from the wrong salt"); //poseidon("IsFromUS")
         require(!footprints[input[4]], "One person can only verify once");
         require(input[5] == 2, "Credentials do not have US as country code"); // 2 is prime that represents USA because USA is #2
         require(hub.verifyProof("USResident", proof, input), "Failed to verify proof");

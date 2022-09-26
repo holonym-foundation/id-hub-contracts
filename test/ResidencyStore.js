@@ -7,6 +7,7 @@ const { createLeaf, createLeafAdditionProof, deployPoseidon } = require("../util
 const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
 const { randomBytes } = require("crypto");
+const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
 
 
 describe.only("ResidencyStore", function () {
@@ -52,6 +53,9 @@ describe.only("ResidencyStore", function () {
                 completedAt : ethers.BigNumber.from(Math.floor(Date.now()/1000)),
                 birthdate : 6969696969
             }
+            
+            this.salt = ethers.BigNumber.from("18450029681611047275023442534946896643130395402313725026917000686233641593164"); // this number is poseidon("IsFromUS")
+            this.footprint = ethers.BigNumber.from(poseidon([this.salt, this.leafParams.newSecret]));
     
             this.oldLeaf = await createLeaf(
               ethers.BigNumber.from(this.leafParams.issuerAddress), 
@@ -181,6 +185,8 @@ describe.only("ResidencyStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
                 ethers.BigNumber.from(this.account.address),
+                this.salt,
+                this.footprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
@@ -188,6 +194,8 @@ describe.only("ResidencyStore", function () {
                 this.leafParams.newSecret // newSecret == nullifier
             ].join(" ", )
             } ${ proof }`;
+
+            console.log("proofArgs", proofArgs);
             await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
             await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
@@ -213,6 +221,8 @@ describe.only("ResidencyStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.account.address), 
                 ethers.BigNumber.from(this.leafParams.issuerAddress).toString(),
+                this.salt,
+                this.footprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
@@ -241,6 +251,8 @@ describe.only("ResidencyStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.account.address),
                 ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
+                this.salt,
+                this.footprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
@@ -269,6 +281,8 @@ describe.only("ResidencyStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.someAccount.address),
                 ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
+                this.salt,
+                this.footprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
@@ -297,6 +311,8 @@ describe.only("ResidencyStore", function () {
                t.root, 
                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
                ethers.BigNumber.from(this.account.address),
+               this.salt,
+                this.footprint,
                this.leafParams.wrongCountryCode,
                this.leafParams.subdivision,
                this.leafParams.completedAt,
