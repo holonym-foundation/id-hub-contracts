@@ -1,0 +1,44 @@
+// This is intended to be the complete proof used for Lobby3 (after the leaf is added
+// to the merkle tree). It is slightly more abstract than Lobby3's use case requires. 
+// This more abstract version simply allows for more use cases to be built with it.
+// The general proof scheme here does the following: Prove that the user knows the 
+// preimage of a leaf that was signed by Holonym. Proof that their credentials were
+// signed by Holonym is accomplished via a merkle proof.
+
+
+import "hashes/poseidon/poseidon" as poseidon;
+
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
+
+// NOTE: Not needed for Lobby3
+// Proves that user_nullifier+verifier_message is indeed the preimage of publicly provided nullifierHash
+// This allows verifier to prevent sybil attacks
+// @param nullifierHash - blake2s hash of nullifier+verifier_message
+// def assertValidNullifier(u32[8] nullifierHash, u32[4] nullifier, u32[12] message) {
+//     u32[1][16] preimage = [[...nullifier, ...message]];
+//     assert(blake2s(preimage) == nullifierHash);
+// }
+
+
+def main(field root, field msgSenderAddr, field issuerAddr, field countryCode, private field subdivision, private field completedAt, private field birthdate, private field nullifier, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+    // assert valid preimage
+    field[6] preimage = [issuerAddr, nullifier, countryCode, subdivision, completedAt, birthdate];
+    assert(poseidon(preimage) == leaf);
+    
+    // Merkle proof
+    field mut digest = leaf;
+    for u32 i in 0..DEPTH {
+        // At each step, check for the digest in the next level of path, then calculate the new digest
+        assert(path[i][indices[i]] == digest);
+        digest = poseidon(path[i]);
+    }
+    assert(digest == root);
+
+    // Malleability check
+    assert(msgSenderAddr - msgSenderAddr == 0);
+
+    return;
+}
+
+// NOTE: For Lobby3, countryCode should be checked in smart contract
