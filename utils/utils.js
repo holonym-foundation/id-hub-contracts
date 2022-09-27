@@ -97,7 +97,6 @@ async function initContracts(addresses) {
     await hub.deployed();
   
     const router = await (await ethers.getContractFactory("ProofRouter")).attach(await hub.router());
-    await router.deployed();
   
     const verifierFactory = await ethers.getContractFactory("ProofOfCountry");
     const verifier = COUNTRYVERIFIER_ADDRESS ? await verifierFactory.attach(COUNTRYVERIFIER_ADDRESS) : await verifierFactory.deploy();
