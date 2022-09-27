@@ -360,12 +360,12 @@ describe.only("ResidencyStore", function () {
                 ethers.BigNumber.from(this.someAccount.address),
                 ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
                 this.salt,
-                this.footprint,
+                this.wrongAddressFootprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
                 this.leafParams.birthdate,
-                this.leafParams.newSecret 
+                this.leafParams.wrongAddressNewSecret 
             ].join(" ", )
             } ${ proof }`;
             await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
@@ -377,34 +377,34 @@ describe.only("ResidencyStore", function () {
             ).to.be.revertedWith("Second public argument of proof must be your address");
         });
 
-        // it("Invalid proof doesn't work: country", async function() {
-        //    // Add a new leaf so the root is bad:
-        //    const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
-        //    let proof = await t.createCLISerializedProof(2);
-        //    proof = proof.split(" ");
-        //    proof.shift();
-        //    proof = proof.join(" ")
+        it("Invalid proof doesn't work: country", async function() {
+           // Add a new leaf so the root is bad:
+           const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
+           let proof = await t.createCLISerializedProof(2);
+           proof = proof.split(" ");
+           proof.shift();
+           proof = proof.join(" ")
 
-        //    const proofArgs = `${[
-        //         t.root, 
-        //         ethers.BigNumber.from(this.account.address),
-        //         ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
-        //         this.salt,
-        //         this.wrongCountryFootprint,
-        //         this.leafParams.wrongCountryCode,
-        //         this.leafParams.subdivision,
-        //         this.leafParams.completedAt,
-        //         this.leafParams.birthdate,
-        //         this.leafParams.wrongCountryNewSecret // newSecret == nullifier
-        //    ].join(" ", )
-        //    } ${ proof }`;
-        //    await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
-        //    await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
-        //    this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
+           const proofArgs = `${[
+                t.root, 
+                ethers.BigNumber.from(this.account.address),
+                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
+                this.salt,
+                this.wrongCountryFootprint,
+                this.leafParams.wrongCountryCode,
+                this.leafParams.subdivision,
+                this.leafParams.completedAt,
+                this.leafParams.birthdate,
+                this.leafParams.wrongCountryNewSecret 
+           ].join(" ", )
+           } ${ proof }`;
+           await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+           await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
+           this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
-        //    await expect(
-        //        this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
-        //    ).to.be.revertedWith("Credentials do not have US as country code");
-        // });
+           await expect(
+               this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+           ).to.be.revertedWith("Credentials do not have US as country code");
+        });
     });
 });
