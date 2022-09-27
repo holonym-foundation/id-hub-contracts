@@ -380,7 +380,7 @@ describe.only("ResidencyStore", function () {
         it("Invalid proof doesn't work: country", async function() {
            // Add a new leaf so the root is bad:
            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
-           let proof = await t.createCLISerializedProof(2);
+           let proof = await t.createCLISerializedProof(3);
            proof = proof.split(" ");
            proof.shift();
            proof = proof.join(" ")
