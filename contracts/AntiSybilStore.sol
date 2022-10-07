@@ -28,9 +28,6 @@ contract AntiSybilStore {
     // It is useful to separate this from the prove() function which is changes state, so that somebody can call this off-chain as a view function.
     // Then, they can maintain their own off-chain list of footprints and verified address 
     function proofIsValid(Proof calldata proof, uint[] calldata input) public view returns (bool isValid) {
-        console.log("inputs");
-        console.log(input[0], input[1], input[2]);
-        console.log(input[3],input[4]);
         require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
         require(input[2] == authorityAddress, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
         require(!footprints[input[4]], "One person can only verify once");
@@ -44,6 +41,7 @@ contract AntiSybilStore {
         require(proofIsValid(proof, input));
         footprints[input[4]] = true;
         bytes32 commit = keccak256(abi.encodePacked(msg.sender, input[3])); //input[3] is actionId
+        console.logBytes32(commit);
         verifications[commit] = true;
         emit Uniqueness(msg.sender, input[3]);
     }

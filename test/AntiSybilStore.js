@@ -8,9 +8,10 @@ const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
 const { randomBytes } = require("crypto");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
+const { keccak256 } = require("ethers/lib/utils");
 require("dotenv").config();
 
-describe.only("AntiSybilStore", function () {
+describe("AntiSybilStore", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
 
@@ -59,7 +60,7 @@ describe.only("AntiSybilStore", function () {
             }
             
 
-            this.actionId = ethers.BigNumber.from("69696969696969696969696969696969696969696969696969696969696969696969696969696"); // this number is poseidon("IsFromUS")
+            this.actionId = ethers.BigNumber.from("696969696969696969696969696969696969696969696969696969696969696969696969696"); // this number is poseidon("IsFromUS")
             this.footprint = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.newSecret]));
             this.footprint2 = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.newSecret2]));
             this.wrongAddressFootprint = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.wrongAddressNewSecret]));
@@ -210,7 +211,15 @@ describe.only("AntiSybilStore", function () {
         });
 
         it("Proving uniqueness once works", async function() {
-            expect(await this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)).to.not.be.reverted;
+            // Check we aren't verified
+            expect(await this.resStore.isUniqueForAction(this.account.address, this.actionId)).to.equal(false);
+
+            let tx = this.resStore.prove(this.proofObject.proof, this.proofObject.inputs);
+            expect(tx).to.emit(this.resStore, "Uniqueness").withArgs(this.account.address, this.actionId);
+            await (await tx).wait();
+            await ethers.provider.send("evm_mine");
+            // Check we are verified
+            expect(await this.resStore.isUniqueForAction(this.account.address, this.actionId)).to.equal(true);            
         });
 
         it("Using the same nullifier, cannot prove twice", async function() {
