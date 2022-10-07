@@ -109,7 +109,7 @@ async function initContracts(addresses) {
     }
   
     const resStoreFactory = await ethers.getContractFactory("ResidencyStore"); 
-    const resStore = RESSTORE_ADDRESS ? await resStoreFactory.attach(RESSTORE_ADDRESS) : await (resStoreFactory).deploy(hub.address);
+    const resStore = RESSTORE_ADDRESS ? await resStoreFactory.attach(RESSTORE_ADDRESS) : await (resStoreFactory).deploy(hub.address, "0x8281316ac1d51c94f2de77575301cef615adea84");
     await resStore.deployed();
   
     const result = {

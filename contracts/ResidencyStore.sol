@@ -11,10 +11,12 @@ contract ResidencyStore {
     mapping(uint256 => bool) public footprints;
 
     Hub hub;
+    uint authorityAddress; // Stored as uint instead of address for easy comparison to proof input uints
     event USResidency(address userAddr, bool usResidency);
 
-    constructor(address hub_) {
+    constructor(address hub_, address authorityAddress_) {
         hub = Hub(hub_);
+        authorityAddress = uint256(uint160(authorityAddress_));
     }
 
 
@@ -25,7 +27,7 @@ contract ResidencyStore {
         console.log(input[0], input[1], input[2]);
         console.log(input[3],input[4], input[5]);
         require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
-        require(input[2] == 1144726183143482297049508718223886886488380117896, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
+        require(input[2] == authorityAddress, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
         require(input[3] == 18450029681611047275023442534946896643130395402313725026917000686233641593164, "Footprint is made from the wrong salt"); //poseidon("IsFromUS")
         require(!footprints[input[4]], "One person can only verify once");
         require(input[5] == 2, "Credentials do not have US as country code"); // 2 is prime that represents USA because USA is #2

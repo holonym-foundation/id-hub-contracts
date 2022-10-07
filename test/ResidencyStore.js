@@ -8,7 +8,7 @@ const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
 const { randomBytes } = require("crypto");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
-
+require("dotenv").config();
 
 describe.only("ResidencyStore", function () {
     before(async function() {
@@ -33,7 +33,7 @@ describe.only("ResidencyStore", function () {
         this.router = await (await ethers.getContractFactory("ProofRouter")).attach(await this.hub.router());
         this.verifier = await (await ethers.getContractFactory("ProofOfCountry")).deploy();
         await this.router.connect(this.admin).addRoute("USResident", this.verifier.address);
-        this.resStore = await (await ethers.getContractFactory("ResidencyStore")).deploy(this.hub.address);
+        this.resStore = await (await ethers.getContractFactory("ResidencyStore")).deploy(this.hub.address, "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
         
     });
 
@@ -226,8 +226,6 @@ describe.only("ResidencyStore", function () {
             // Now, make proof of the new residency
             const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
             let proof = await t.createCLISerializedProof(0);
-            console.log("proof length", proof.length);
-            console.log(proof);
             proof = proof.split(" ");
             proof.shift();
             proof = proof.join(" ")
@@ -258,8 +256,6 @@ describe.only("ResidencyStore", function () {
         it("Sybil resistance: cannot prove more than once with same nullifier", async function() {
             const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
             let proof = await t.createCLISerializedProof(0);
-            console.log("proof length", proof.length);
-            console.log(proof);
             proof = proof.split(" ");
             proof.shift();
             proof = proof.join(" ");
@@ -288,8 +284,7 @@ describe.only("ResidencyStore", function () {
             // Add a new leaf so the root is bad:
             const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry, 69]);
             let proof = await t.createCLISerializedProof(1);
-            console.log("proof length", proof.length);
-            console.log(proof);
+            
             proof = proof.split(" ");
             proof.shift();
             proof = proof.join(" ")
