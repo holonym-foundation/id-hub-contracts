@@ -31,7 +31,7 @@ contract AntiSybilStore {
         require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
         require(input[2] == authorityAddress, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
         require(!footprints[input[4]], "One person can only verify once");
-        require(hub.verifyProof("AntiSybil", proof, input), "Failed to verify proof");
+        require(hub.verifyProof("SybilResistance", proof, input), "Failed to verify proof");
         return true;
     }
 

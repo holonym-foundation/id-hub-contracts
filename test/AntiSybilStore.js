@@ -33,7 +33,7 @@ describe("AntiSybilStore", function () {
 
         this.router = await (await ethers.getContractFactory("ProofRouter")).attach(await this.hub.router());
         this.verifier = await (await ethers.getContractFactory("AntiSybilVerifier")).deploy();
-        await this.router.connect(this.admin).addRoute("AntiSybil", this.verifier.address);
+        await this.router.connect(this.admin).addRoute("SybilResistance", this.verifier.address);
         this.resStore = await (await ethers.getContractFactory("AntiSybilStore")).deploy(this.hub.address, "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
         
     });
