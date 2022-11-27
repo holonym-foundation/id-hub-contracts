@@ -115,5 +115,9 @@ module.exports = {
       url: "https://arb1.arbitrum.io/rpc",
       accounts: [process.env.PRIVATE_KEY],
     },
+    optimismMainnet: {
+      url: "https://rpc.ankr.com/optimism",
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
 };
