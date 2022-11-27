@@ -88,7 +88,7 @@ describe("Merkle Tree", function () {
             console.log(`testing insertion ${i+1}/${MAX_HISTORY}`) 
         }
     });
-    describe.only("Reading inserted values", function () {
+    describe("Reading inserted values", function () {
         before(async function() {
             this.toInsert = [5, 10, 15, 20, 100];
         });
