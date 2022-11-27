@@ -4,8 +4,8 @@ import "hashes/poseidon/poseidon" as poseidon;
 const u32 DEPTH = 14;
 const u32 ARITY=5; // Quinary tree
 
-// footprint is a salted nullifier hash to ensure a use can only do an action given by the "salt" once. this proof reveals the user's footprint but not nullifier
-def main(field root, field msgSenderAddr, field issuerAddr, field salt, field footprint, private field countryCode, private field subdivision, private field completedAt, private field birthdate, private field nullifier, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+// masala is a salted nullifier (pepper) hash to ensure a use can only do an action given by the "salt" once. this proof reveals the user's masala but not nullifier/pepper
+def main(field root, field msgSenderAddr, field issuerAddr, field salt, field masala, private field countryCode, private field subdivision, private field completedAt, private field birthdate, private field nullifier, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
     // assert valid preimage
     field[6] preimage = [issuerAddr, nullifier, countryCode, subdivision, completedAt, birthdate];
     assert(poseidon(preimage) == leaf);
@@ -19,8 +19,8 @@ def main(field root, field msgSenderAddr, field issuerAddr, field salt, field fo
     }
     assert(digest == root);
 
-    // Check that footprint is calculated correctly
-    assert(poseidon([salt, nullifier]) == footprint);
+    // Check that masala is calculated correctly
+    assert(poseidon([salt, nullifier]) == masala);
     // Malleability check
     assert(msgSenderAddr - msgSenderAddr == 0);
 
