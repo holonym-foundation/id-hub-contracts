@@ -22,6 +22,8 @@ contract MerkleTree is Ownable {
     
     address public hubAddress;
 
+    uint256[] internal emptyArray;
+
     /// @param _hubAddress Address of the Hub contract
     constructor(address _hubAddress) {
         console.log("WARNING: INCRASE ROOT_HISTORY_SIZE TO AT LEAST 30 BEFORE PRODUCTION, AND REMOVE HARDHAT/CONSOLE.SOL");
@@ -65,5 +67,16 @@ contract MerkleTree is Ownable {
     }
     function getLeaves() public view returns(uint256[] memory) {
         return leaves;
+    }
+    // Returns all new leaves, starting at idx (this is called off-chain to update a local state cache with new leaves)
+    function getLeavesFrom(uint idx) public view returns(uint256[] memory) {
+        if(leaves.length <= idx) { return emptyArray; }
+        uint256[] memory leavesFrom = new uint256[](leaves.length - idx);
+        uint256 j = 0;
+        for(uint i=idx; i<leaves.length; i++) {
+            leavesFrom[j] = leaves[i];
+            j++;
+        }
+        return leavesFrom;
     }
 }

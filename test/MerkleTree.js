@@ -88,5 +88,27 @@ describe("Merkle Tree", function () {
             console.log(`testing insertion ${i+1}/${MAX_HISTORY}`) 
         }
     });
+    describe.only("Reading inserted values", function () {
+        before(async function() {
+            this.toInsert = [5, 10, 15, 20, 100];
+        });
+        it("getLeaves", async function () {
+            for(const leaf of this.toInsert) { console.log("inserting", leaf); await this.mt.insertLeaf(leaf) }
+            expect(await this.mt.getLeaves()).to.deep.equal(this.toInsert);
+        });
+        it("getLeavesFrom", async function () {
+            for(const leaf of this.toInsert) { console.log("inserting", leaf); await this.mt.insertLeaf(leaf) }
+            expect(await this.mt.getLeavesFrom(0)).to.deep.equal(this.toInsert);
+            expect(await this.mt.getLeavesFrom(1)).to.deep.equal(this.toInsert.slice(1));
+            expect(await this.mt.getLeavesFrom(3)).to.deep.equal(this.toInsert.slice(3));
+            expect(await this.mt.getLeavesFrom(4)).to.deep.equal(this.toInsert.slice(4));
+
+            expect(await this.mt.getLeavesFrom(5)).to.deep.equal([]);
+            expect(await this.mt.getLeavesFrom(6)).to.deep.equal([]);
+            expect(await this.mt.getLeavesFrom(11)).to.deep.equal([]);
+
+        });
+
+    });
   });
 });
