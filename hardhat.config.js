@@ -71,6 +71,10 @@ module.exports = {
       gas: 2100000,
       gasPrice: 2000000000,
     },
+    bscTest: {
+      url: "https://data-seed-prebsc-1-s3.binance.org:8545	",
+      accounts: [process.env.PRIVATE_KEY],
+    },
     harmony: {
       url: "https://api.s0.b.hmny.io",
       accounts: [process.env.PRIVATE_KEY],
@@ -80,6 +84,11 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY],
       gas: 2100000,
       gasPrice: 2000000000,
+    },
+    optimisticGoerli: {
+      url: "https://goerli.optimism.io",
+      accounts: [process.env.PRIVATE_KEY],
+
     },
     avalanche: {
       url: "https://api.avax-test.network/ext/bc/C/rpc",
