@@ -119,4 +119,8 @@ contract Hub {
     function getLeaves() public view returns (uint256[] memory) {
         return mt.getLeaves();
     }
+
+    function getLeavesFrom(uint idx) public view returns(uint256[] memory) {
+        return mt.getLeavesFrom(idx);
+    }
 }

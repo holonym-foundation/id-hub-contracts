@@ -39,7 +39,7 @@ contract AntiSybilStore {
     /// @param input The public inputs to the proof, in ZoKrates' format
     function prove(Proof calldata proof, uint[] calldata input) public {
         require(proofIsValid(proof, input));
-        footprints[input[4]] = true;
+        footprints[input[4]] = true; //input[4] is address
         bytes32 commit = keccak256(abi.encodePacked(msg.sender, input[3])); //input[3] is actionId
         console.logBytes32(commit);
         verifications[commit] = true;
