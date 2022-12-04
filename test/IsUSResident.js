@@ -8,10 +8,9 @@ const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
 const { randomBytes } = require("crypto");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
-const { keccak256 } = require("ethers/lib/utils");
 require("dotenv").config();
 
-describe("AntiSybilStore", function () {
+describe("IsUSResident", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
 
@@ -32,9 +31,9 @@ describe("AntiSybilStore", function () {
         this.hub = _hub;
 
         this.router = await (await ethers.getContractFactory("ProofRouter")).attach(await this.hub.router());
-        this.verifier = await (await ethers.getContractFactory("AntiSybilVerifier")).deploy();
-        await this.router.connect(this.admin).addRoute("SybilResistance", this.verifier.address);
-        this.resStore = await (await ethers.getContractFactory("AntiSybilStore")).deploy(this.hub.address, "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
+        this.verifier = await (await ethers.getContractFactory("ProofOfCountry")).deploy();
+        await this.router.connect(this.admin).addRoute("USResident", this.verifier.address);
+        this.resStore = await (await ethers.getContractFactory("IsUSResident")).deploy(this.hub.address, "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
         
     });
 
@@ -60,10 +59,11 @@ describe("AntiSybilStore", function () {
             }
             
 
-            this.actionId = ethers.BigNumber.from("696969696969696969696969696969696969696969696969696969696969696969696969696"); // this number is poseidon("IsFromUS")
-            this.footprint = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.newSecret]));
-            this.footprint2 = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.newSecret2]));
-            this.wrongAddressFootprint = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.wrongAddressNewSecret]));
+            this.salt = ethers.BigNumber.from("18450029681611047275023442534946896643130395402313725026917000686233641593164"); // this number is poseidon("IsFromUS")
+            this.footprint = ethers.BigNumber.from(poseidon([this.salt, this.leafParams.newSecret]));
+            this.footprint2 = ethers.BigNumber.from(poseidon([this.salt, this.leafParams.newSecret2]));
+            this.wrongAddressFootprint = ethers.BigNumber.from(poseidon([this.salt, this.leafParams.wrongAddressNewSecret]));
+            this.wrongCountryFootprint = ethers.BigNumber.from(poseidon([this.salt, this.leafParams.wrongCountryNewSecret]));
             
 
             this.oldLeaf = await createLeaf(
@@ -119,6 +119,24 @@ describe("AntiSybilStore", function () {
                 this.leafParams.completedAt,
                 this.leafParams.birthdate
             );
+
+            this.oldLeafWrongCountry = await createLeaf(
+                ethers.BigNumber.from(this.leafParams.issuerAddress), 
+                this.leafParams.oldSecret, 
+                this.leafParams.wrongCountryCode,
+                this.leafParams.subdivision,
+                this.leafParams.completedAt,
+                this.leafParams.birthdate
+              );
+            
+              this.newLeafWrongCountry = await createLeaf(
+                ethers.BigNumber.from(this.leafParams.issuerAddress), 
+                this.leafParams.wrongCountryNewSecret,
+                this.leafParams.wrongCountryCode,
+                this.leafParams.subdivision,
+                this.leafParams.completedAt,
+                this.leafParams.birthdate
+              );
     
             this.additionProofGood = await createLeafAdditionProof(
               ethers.BigNumber.from(this.leafParams.issuerAddress), 
@@ -139,6 +157,17 @@ describe("AntiSybilStore", function () {
                 this.leafParams.birthdate,
                 this.leafParams.oldSecret2, 
                 this.leafParams.newSecret2
+      
+              )
+        
+            this.additionProofWrongCountry = await createLeafAdditionProof(
+                ethers.BigNumber.from(this.leafParams.issuerAddress), 
+                this.leafParams.wrongCountryCode, 
+                this.leafParams.subdivision,
+                this.leafParams.completedAt,
+                this.leafParams.birthdate,
+                this.leafParams.oldSecret, 
+                this.leafParams.wrongCountryNewSecret
       
               )
 
@@ -167,6 +196,11 @@ describe("AntiSybilStore", function () {
             ethers.BigNumber.from(this.oldLeafWrongAddress).toHexString().replace("0x",""),
             "hex"
            );
+
+           const tbsWrongCountry = Buffer.from(
+            ethers.BigNumber.from(this.oldLeafWrongCountry).toHexString().replace("0x",""),
+            "hex"
+           );
     
            const sigGood = ethers.utils.splitSignature(
             await this.account.signMessage(tbsGood)
@@ -180,12 +214,17 @@ describe("AntiSybilStore", function () {
             await this.someAccount.signMessage(tbsWrongAddress)
            );
 
+           const sigWrongCountry = ethers.utils.splitSignature(
+            await this.account.signMessage(tbsWrongCountry)
+           );
+
             await this.hub.addLeaf(this.leafParams.issuerAddress, sigGood.v, sigGood.r, sigGood.s, this.additionProofGood.proof, this.additionProofGood.inputs);
             await this.hub.addLeaf(this.leafParams.issuerAddress, sigGood2.v, sigGood2.r, sigGood2.s, this.additionProofGood2.proof, this.additionProofGood2.inputs);
             await this.hub.addLeaf(this.leafParams.wrongIssuerAddress, sigWrongAddress.v, sigWrongAddress.r, sigWrongAddress.s, this.additionProofWrongAddress.proof, this.additionProofWrongAddress.inputs);
+            await this.hub.addLeaf(this.leafParams.issuerAddress, sigWrongCountry.v, sigWrongCountry.r, sigWrongCountry.s, this.additionProofWrongCountry.proof, this.additionProofWrongCountry.inputs);
 
-            // Now, make proof of the new leaf
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress]);
+            // Now, make proof of the new residency
+            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
             let proof = await t.createCLISerializedProof(0);
             proof = proof.split(" ");
             proof.shift();
@@ -195,7 +234,7 @@ describe("AntiSybilStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.account.address),
                 ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
-                this.actionId,
+                this.salt,
                 this.footprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
@@ -205,35 +244,28 @@ describe("AntiSybilStore", function () {
             ].join(" ", )
             } ${ proof }`;
             
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
+            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+            await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
         });
 
-        it("Proving uniqueness once works", async function() {
-            // Check we aren't verified
-            expect(await this.resStore.isUniqueForAction(this.account.address, this.actionId)).to.equal(false);
-
-            let tx = this.resStore.prove(this.proofObject.proof, this.proofObject.inputs);
-            expect(tx).to.emit(this.resStore, "Uniqueness").withArgs(this.account.address, this.actionId);
-            await (await tx).wait();
-            await ethers.provider.send("evm_mine");
-            // Check we are verified
-            expect(await this.resStore.isUniqueForAction(this.account.address, this.actionId)).to.equal(true);            
+        it("Proving your country works", async function() {
+            expect(await this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)).to.not.be.reverted;
         });
 
-        it("Using the same nullifier, cannot prove twice", async function() {
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress]);
+        it("Sybil resistance: cannot prove more than once with same nullifier", async function() {
+            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
             let proof = await t.createCLISerializedProof(0);
             proof = proof.split(" ");
             proof.shift();
             proof = proof.join(" ");
             
+            
             const proofArgs = `${[
                 t.root, 
                 ethers.BigNumber.from(this.someAccount.address),
                 ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
-                this.actionId,
+                this.salt,
                 this.footprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
@@ -242,15 +274,15 @@ describe("AntiSybilStore", function () {
                 this.leafParams.newSecret // newSecret == nullifier
             ].join(" ", )
             } ${ proof }`;
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
+            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+            await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
             await expect(this.resStore.connect(this.someAccount).prove(this.proofObject.proof, this.proofObject.inputs)).to.be.revertedWith("One person can only verify once");
         });
         
         it("Invalid proof doesn't work: root", async function() {
             // Add a new leaf so the root is bad:
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, 69]);
+            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry, 69]);
             let proof = await t.createCLISerializedProof(1);
             
             proof = proof.split(" ");
@@ -262,7 +294,7 @@ describe("AntiSybilStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.account.address),
                 ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
-                this.actionId,
+                this.salt,
                 this.footprint2,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
@@ -271,8 +303,8 @@ describe("AntiSybilStore", function () {
                 this.leafParams.newSecret2
             ].join(" ", )
             } ${ proof }`;
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
+            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+            await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
             
             await expect(
@@ -282,7 +314,7 @@ describe("AntiSybilStore", function () {
 
         it("Invalid proof doesn't work: issuer address", async function() {
             // Add a new leaf so the root is bad:
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress]);
+            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
             let proof = await t.createCLISerializedProof(2);
             proof = proof.split(" ");
             proof.shift();
@@ -292,7 +324,7 @@ describe("AntiSybilStore", function () {
                 t.root, 
                 ethers.BigNumber.from(this.account.address),
                 ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
-                this.actionId,
+                this.salt,
                 this.wrongAddressFootprint,
                 this.leafParams.countryCode,
                 this.leafParams.subdivision,
@@ -301,8 +333,8 @@ describe("AntiSybilStore", function () {
                 this.leafParams.wrongAddressNewSecret
             ].join(" ", )
             } ${ proof }`;
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
+            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+            await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
             await expect(
@@ -310,34 +342,66 @@ describe("AntiSybilStore", function () {
             ).to.be.revertedWith("Proof must come from authority address");
         });
 
-        it("Invalid proof doesn't work: msg sender address", async function() {
-            // Add a new leaf so the root is bad:
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress]);
-            let proof = await t.createCLISerializedProof(2);
-            proof = proof.split(" ");
-            proof.shift();
-            proof = proof.join(" ")
+        it("Invalid proof doesn't work: country", async function() {
+           // Add a new leaf so the root is bad:
+           const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
+           let proof = await t.createCLISerializedProof(3);
+           proof = proof.split(" ");
+           proof.shift();
+           proof = proof.join(" ")
 
-            const proofArgs = `${[
+           const proofArgs = `${[
                 t.root, 
-                ethers.BigNumber.from(this.someAccount.address),
-                ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
-                this.actionId,
-                this.wrongAddressFootprint,
-                this.leafParams.countryCode,
+                ethers.BigNumber.from(this.account.address),
+                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
+                this.salt,
+                this.wrongCountryFootprint,
+                this.leafParams.wrongCountryCode,
                 this.leafParams.subdivision,
                 this.leafParams.completedAt,
                 this.leafParams.birthdate,
-                this.leafParams.wrongAddressNewSecret 
-            ].join(" ", )
-            } ${ proof }`;
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
-            this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
+                this.leafParams.wrongCountryNewSecret 
+           ].join(" ", )
+           } ${ proof }`;
+           await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+           await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
+           this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
-            await expect(
-                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
-            ).to.be.revertedWith("Second public argument of proof must be your address");
+           await expect(
+               this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+           ).to.be.revertedWith("Credentials do not have US as country code");
         });
+
+
+        // Checking msg.sender no longer seems useful and prevents signature-free interactions. Without it, relayers can now submit cross-chain transactions without the user signature. Thus, we are deprecating this check:
+        // it("Invalid proof doesn't work: msg sender address", async function() {
+        //     // Add a new leaf so the root is bad:
+        //     const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, this.newLeafWrongCountry]);
+        //     let proof = await t.createCLISerializedProof(2);
+        //     proof = proof.split(" ");
+        //     proof.shift();
+        //     proof = proof.join(" ")
+
+        //     const proofArgs = `${[
+        //         t.root, 
+        //         ethers.BigNumber.from(this.someAccount.address),
+        //         ethers.BigNumber.from(this.leafParams.wrongIssuerAddress).toString(), 
+        //         this.salt,
+        //         this.wrongAddressFootprint,
+        //         this.leafParams.countryCode,
+        //         this.leafParams.subdivision,
+        //         this.leafParams.completedAt,
+        //         this.leafParams.birthdate,
+        //         this.leafParams.wrongAddressNewSecret 
+        //     ].join(" ", )
+        //     } ${ proof }`;
+        //     await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
+        //     await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
+        //     this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
+
+        //     await expect(
+        //         this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+        //     ).to.be.revertedWith("Second public argument of proof must be your address");
+        // });
     });
 });
