@@ -79,6 +79,7 @@ async function initContracts(addresses) {
     const [admin] = await ethers.getSigners();
     const pt6 = POSEIDONT6_ADDRESS ? await attachPoseidon(POSEIDONT6_ADDRESS) : await deployPoseidon();
     await pt6.deployed();
+    console.log("PoseidonT6 address is", pt6.address)
   
     const iqtFactory = await ethers.getContractFactory("IncrementalQuinTree", 
     {
@@ -89,6 +90,8 @@ async function initContracts(addresses) {
   
     const iqt = INCREMENTALQUINTREE_ADDRESS ? await iqtFactory.attach(INCREMENTALQUINTREE_ADDRESS) : await iqtFactory.deploy();
     await iqt.deployed();
+    console.log("IncrementalQuinTree address is", iqt.address)
+
   
     const hubFactory = await ethers.getContractFactory("Hub", {
       libraries : {
@@ -97,6 +100,8 @@ async function initContracts(addresses) {
     });
     const hub = HUB_ADDRESS ? await hubFactory.attach(HUB_ADDRESS) : await hubFactory.deploy(admin.address);
     await hub.deployed();
+    console.log("Hub address is", hub.address)
+
   
     const router = await (await ethers.getContractFactory("ProofRouter")).attach(await hub.router());
     console.log("Router address is ", router.address);
@@ -104,22 +109,25 @@ async function initContracts(addresses) {
     const pocFactory = await ethers.getContractFactory("ProofOfCountry");
     const poc = COUNTRYVERIFIER_ADDRESS ? await pocFactory.attach(COUNTRYVERIFIER_ADDRESS) : await pocFactory.deploy();
     await poc.deployed();
+    console.log("ProofOfCountry address is", pt6.address)
     if (!(await router.routes("USResident"))) await router.addRoute("USResident", poc.address);
     
     // Yeah the nomenclature is bad; the same type of contract is called Proof of Country and Anti Sybil Verifier despite them both being verifiers
     const asvFactory = await ethers.getContractFactory("AntiSybilVerifier");
     const asv = ANTISYBILVERIFIER_ADDRESS ? await asvFactory.attach(ANTISYBILVERIFIER_ADDRESS) : await asvFactory.deploy();
     await asv.deployed();
+    console.log("AntiSybilVerifier address is", pt6.address)
     if (!(await router.routes("SybilResistance"))) await router.addRoute("SybilResistance", asv.address);
       
 
-    const resStoreFactory = await ethers.getContractFactory("ResidencyStore"); 
+    const resStoreFactory = await ethers.getContractFactory("IsUSResident"); 
     const resStore = RESSTORE_ADDRESS ? await resStoreFactory.attach(RESSTORE_ADDRESS) : await (resStoreFactory).deploy(hub.address, "0x8281316ac1d51c94f2de77575301cef615adea84");
     await resStore.deployed();
+    console.log("IsUSResident address is", pt6.address)
 
-    const assFactory = await ethers.getContractFactory("AntiSybilStore"); 
-    const ass = ANTISYBIL_ADDRESS ? await assFactory.attach(ANTISYBIL_ADDRESS) : await (assFactory).deploy(hub.address, "0x8281316ac1d51c94f2de77575301cef615adea84");
-    await ass.deployed();
+    const srFactory = await ethers.getContractFactory("SybilResistance"); 
+    const sr = ANTISYBIL_ADDRESS ? await srFactory.attach(ANTISYBIL_ADDRESS) : await (srFactory).deploy(hub.address, "0x8281316ac1d51c94f2de77575301cef615adea84");
+    await sr.deployed();
   
     const result = {
       pt6 : pt6, 
@@ -129,7 +137,7 @@ async function initContracts(addresses) {
       countryVerifier : poc, 
       resStore : resStore,
       antiSybilVerifier : asv,
-      ass : ass,
+      sr : sr,
     }
     // Log all contract addresses
     console.log("------------Contract addresses:------------");
