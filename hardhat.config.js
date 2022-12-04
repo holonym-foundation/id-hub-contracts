@@ -71,6 +71,18 @@ module.exports = {
       gas: 2100000,
       gasPrice: 2000000000,
     },
+    polygonMainnet: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_POLYGONMAINNET_APIKEY}`,
+      accounts: [process.env.PRIVATE_KEY]
+    },
+    zkSyncTest: {
+      url: "https://zksync2-testnet.zksync.dev",
+      accounts: [process.env.PRIVATE_KEY]
+    },
+    zkSync: {
+      url: "https://zksync2-testnet.zksync.dev",
+      accounts: [process.env.PRIVATE_KEY]
+    },
     bscTest: {
       url: "https://data-seed-prebsc-1-s3.binance.org:8545	",
       accounts: [process.env.PRIVATE_KEY],
@@ -86,7 +98,7 @@ module.exports = {
       gasPrice: 2000000000,
     },
     optimismGoerli: {
-      url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_HARDHAT_TEST_APIKEY}`,
+      url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_OPTIMISMGOERLI_APIKEY}`,
       accounts: [process.env.PRIVATE_KEY],
 
     },
