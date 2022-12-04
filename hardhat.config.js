@@ -85,8 +85,8 @@ module.exports = {
       gas: 2100000,
       gasPrice: 2000000000,
     },
-    optimisticGoerli: {
-      url: "https://goerli.optimism.io",
+    optimismGoerli: {
+      url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_HARDHAT_TEST_APIKEY}`,
       accounts: [process.env.PRIVATE_KEY],
 
     },
