@@ -1,11 +1,11 @@
 pragma solidity ^0.8.0;
-import "../interfaces/IResidencyStore.sol";
+import "../interfaces/IIsUSResident.sol";
 
 // US Residents have had it hard this year! let's send 1 gwei to anyone who can prove they're from the US
 contract USResidency {
-    IResidencyStore resStore;
+    IIsUSResident resStore;
     constructor() {
-        resStore = IResidencyStore(0x42D6007317CED2281a64aCc052cE57e3d92bf912); //ResidencyStore address can be found on https://github.com/holonym-foundation/app.holonym.id-frontend/blob/main/src/constants/proofContractAddresses.json
+        resStore = IIsUSResident(0x42D6007317CED2281a64aCc052cE57e3d92bf912); //ResidencyStore address can be found on https://github.com/holonym-foundation/app.holonym.id-frontend/blob/main/src/constants/proofContractAddresses.json
     }
 
     // NOTE: there are better ways to send ETH. Please don't copy this code
