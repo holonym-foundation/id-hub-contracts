@@ -87,6 +87,10 @@ module.exports = {
       url: "https://data-seed-prebsc-1-s3.binance.org:8545	",
       accounts: [process.env.PRIVATE_KEY],
     },
+    bnbSmartChain: {
+      url: "https://bsc-dataseed.binance.org/",
+      accounts: [process.env.PRIVATE_KEY],
+    },
     harmony: {
       url: "https://api.s0.b.hmny.io",
       accounts: [process.env.PRIVATE_KEY],
