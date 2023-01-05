@@ -109,21 +109,22 @@ async function initContracts(addresses) {
     const pocFactory = await ethers.getContractFactory("ProofOfCountry");
     const poc = COUNTRYVERIFIER_ADDRESS ? await pocFactory.attach(COUNTRYVERIFIER_ADDRESS) : await pocFactory.deploy();
     await poc.deployed();
-    console.log("ProofOfCountry address is", pt6.address)
-    if (!(await router.routes("USResident"))) await router.addRoute("USResident", poc.address);
+    console.log("ProofOfCountry address is", poc.address)
+    if (await router.routes("USResident") === "0x0000000000000000000000000000000000000000") await router.addRoute("USResident", poc.address);
     
     // Yeah the nomenclature is bad; the same type of contract is called Proof of Country and Anti Sybil Verifier despite them both being verifiers
     const asvFactory = await ethers.getContractFactory("AntiSybilVerifier");
     const asv = ANTISYBILVERIFIER_ADDRESS ? await asvFactory.attach(ANTISYBILVERIFIER_ADDRESS) : await asvFactory.deploy();
     await asv.deployed();
-    console.log("AntiSybilVerifier address is", pt6.address)
-    if (!(await router.routes("SybilResistance"))) await router.addRoute("SybilResistance", asv.address);
+    console.log("AntiSybilVerifier address is", asv.address)
+    if (await router.routes("SybilResistance") === "0x0000000000000000000000000000000000000000") await router.addRoute("SybilResistance", asv.address);
+    console.log("ROUTE SybilResistance", await router.routes("SybilResistance"));
       
 
     const resStoreFactory = await ethers.getContractFactory("IsUSResident"); 
     const resStore = RESSTORE_ADDRESS ? await resStoreFactory.attach(RESSTORE_ADDRESS) : await (resStoreFactory).deploy(hub.address, "0x8281316ac1d51c94f2de77575301cef615adea84");
     await resStore.deployed();
-    console.log("IsUSResident address is", pt6.address)
+    console.log("IsUSResident address is", resStore.address)
 
     const srFactory = await ethers.getContractFactory("SybilResistance"); 
     const sr = ANTISYBIL_ADDRESS ? await srFactory.attach(ANTISYBIL_ADDRESS) : await (srFactory).deploy(hub.address, "0x8281316ac1d51c94f2de77575301cef615adea84");

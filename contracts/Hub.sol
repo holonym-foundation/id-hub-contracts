@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./onAddLeaf.verifier.sol";
-import "./ProofRouter.sol";
 import "./MerkleTree.sol";
 // Adds a verified crendential to the user
 contract Hub {    
@@ -11,11 +10,9 @@ contract Hub {
     mapping (uint256 => bool) public oldLeafUsed;
     OnAddLeaf oal;
 
-    ProofRouter public router;
     MerkleTree public mt;
 
-    constructor(address routerAdmin_){
-        router = new ProofRouter(routerAdmin_);
+    constructor(){
         oal = new OnAddLeaf(); 
         mt = new MerkleTree(address(this));
     }
@@ -107,13 +104,17 @@ contract Hub {
     }
 
     // Encode input using abi.encode to convert fixed-length uint[n] array to bytes
-    function verifyProof(string calldata proofType, Proof calldata proof, uint[] calldata input) public view returns (bool) {
-        require(mt.rootIsRecent(input[0]), "First public argument of proof must be a recent Merkle Root");
-        return router.verifyProof(proofType, proof, input);
-    }
+    // function verifyProof(string calldata proofType, Proof calldata proof, uint[] calldata input) public view returns (bool) {
+    //     require(mt.rootIsRecent(input[0]), "First public argument of proof must be a recent Merkle Root");
+    //     return router.verifyProof(proofType, proof, input);
+    // }
 
     function mostRecentRoot() public view returns (uint256) {
         return mt.mostRecentRoot();
+    }
+
+    function rootIsRecent(uint256 root_) public view returns (bool isRecent) {
+        return mt.rootIsRecent(root_);
     }
 
     function getLeaves() public view returns (uint256[] memory) {

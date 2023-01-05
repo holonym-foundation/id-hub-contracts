@@ -1,0 +1,37 @@
+{
+  "inputs": [
+    {
+      "name": "address",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "secret",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "countryCode",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "subdivision",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "completedAt",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "birthdate",
+      "public": false,
+      "type": "field"
+    }
+  ],
+  "output": {
+    "type": "field"
+  }
+}
