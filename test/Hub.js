@@ -22,7 +22,7 @@ describe("Hub", function () {
        libraries : {
           IncrementalQuinTree : _tree.address,
         } 
-      })).deploy(this.admin.address);
+      })).deploy();
 
       this.hub = _hub;
     })
@@ -114,7 +114,7 @@ describe("Hub", function () {
         libraries : {
             IncrementalQuinTree : _tree.address,
           } 
-        })).deploy(this.admin.address);
+        })).deploy();
 
         this.hub = _hub;
   

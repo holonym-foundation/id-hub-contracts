@@ -27,13 +27,10 @@ describe("SybilResistance", function () {
         libraries : {
             IncrementalQuinTree : _tree.address
             } 
-        })).deploy(this.admin.address);
+        })).deploy();
 
         this.hub = _hub;
 
-        this.router = await (await ethers.getContractFactory("ProofRouter")).attach(await this.hub.router());
-        this.verifier = await (await ethers.getContractFactory("AntiSybilVerifier")).deploy();
-        await this.router.connect(this.admin).addRoute("SybilResistance", this.verifier.address);
         this.resStore = await (await ethers.getContractFactory("SybilResistance")).deploy(this.hub.address, "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
         
     });
@@ -277,7 +274,7 @@ describe("SybilResistance", function () {
             
             await expect(
                 this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
-            ).to.be.revertedWith("First public argument of proof must be a recent Merkle Root");
+            ).to.be.revertedWith("The root provided was not found in the Merkle tree's recent root list");
         });
 
         it("Invalid proof doesn't work: issuer address", async function() {
