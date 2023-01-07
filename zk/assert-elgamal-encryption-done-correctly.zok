@@ -1,0 +1,11 @@
+import "./ecc-in-circuit/encryptElGamal" as encryptElGamal;
+import "./ecc-in-circuit/messageFromPoint" as messageFromPoint;
+
+
+
+def main(public field[2] pubKey, public field[2][2] encryptedMessage, private u32 message, private field[2] encodedMessage, private bool[256] randomSecret) {
+    // Ensure that the point encodedMessage really specifies the correct message
+    assert(message == messageFromPoint(encodedMessage));
+    assert(encryptElGamal(pubKey, randomSecret, encodedMessage) == encryptedMessage);
+    return;
+}
