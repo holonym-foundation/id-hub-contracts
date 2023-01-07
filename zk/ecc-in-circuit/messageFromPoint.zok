@@ -21,9 +21,8 @@ If not, repeat from step 1 until a point is found.
 */
 
 import "utils/casts/field_to_u32" as toU32;
-// const u32 B = 8;
-// const field MODULUS = 2 ** B;
-const u32 MODULUS = 256; // Should be a power of 2
+const u32 B = 8;
+const u32 MODULUS = toU32(2 ** B);
 
 // Convert point to message
 def main(field[2] point) -> u32 {
