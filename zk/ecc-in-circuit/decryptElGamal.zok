@@ -15,7 +15,7 @@ Inputs:
 */
 
 
-def main(private bool[256] xBits, public field[2][2] encryptedMessage) -> u32 {
+def main(bool[256] xBits, field[2][2] encryptedMessage) -> u32 {
     field[2] c1 = encryptedMessage[0]; 
     field[2] c2 = encryptedMessage[1];
     field[2] s = multiply(xBits, c1, bjj); // Compute shared secret of g^(xy) like Diffie hellman (h is other party's pubkey where h = g^x and x is other party's private key)

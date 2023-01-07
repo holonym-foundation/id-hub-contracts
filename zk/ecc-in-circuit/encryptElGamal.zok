@@ -11,12 +11,12 @@ ElGamal encryption on BabyJubJub curve
 --------------------------------------
 Inputs: 
     h: public key to encrypt to. equivalent to g^x, where x is the private key of the receiving party.
-    yBits: a random string of bits used to create a shared secret with the receiving party
+    yBits: a secret random string of bits used to create a shared secret with the receiving party
     m: a point representing the message to encrypt
 */
 
 
-def main(public field[2] h, private bool[256] yBits, private field[2] m) -> field[2][2] {
+def main(field[2] h, bool[256] yBits, field[2] m) -> field[2][2] {
     field[2] s = multiply(yBits, h, bjj); // Compute shared secret of g^(xy) like Diffie hellman (h is other party's pubkey where h = g^x and x is other party's private key)
     field[2] c1 = multiply(yBits, g, bjj); // Compute first part of ciphertext, c1
     return [c1, add(m, s, bjj)]; // Return c1 and c2, the two components
