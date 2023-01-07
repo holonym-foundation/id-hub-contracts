@@ -1,0 +1,32 @@
+/* 
+This converts a point on a curve to a message. It uses a mapping adapted from the standard probabilistic mapping described in 
+https://crypto.stackexchange.com/a/14966
+and implemented in 
+https://github.com/dedis/kyber/blob/b627bb323bc7380f4c09d803208a18b7624e1ec1/group/nist/curve.go
+This is a very similar method but instead uses arithmetic-circuit-friendly operations without bit operations.
+
+NOTE: converting a message to a point using this method cannot
+be done within a circuit per se, since it requires randomness. It is only deterministic one-way; many
+random points can be created by a message but a point only has one corresponding message. So this simply checks one way,
+ whether a point corresponds to a message. 
+
+
+To implement client-side, the method to encode message m to a point (X,Y) that will be checkable with this circuit is:
+1. choose a random number r between 0 and 2^B
+B is a constant saying how many bytes should be random and preceeding the message
+2. let x = concat(b,m)
+check whether there exists a point with x coordinate x. If so, return one of the two corresponding points (x, y) or (x, -y).
+If not, repeat from step 1 until a point is found.
+3. Return either (x,y) or (x,-y), it doesn't matter which one
+*/
+
+import "utils/casts/field_to_u32" as toU32;
+// const u32 B = 8;
+// const field MODULUS = 2 ** B;
+const u32 MODULUS = 256; // Should be a power of 2
+
+// Convert point to message
+def main(field[2] point) -> u32 {
+    u32 x = toU32(point[0]);
+    return (x % MODULUS);
+}
