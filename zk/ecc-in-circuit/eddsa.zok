@@ -1,0 +1,53 @@
+/* 
+Adapted from ZoKrates stdlib/signatures/verifyEddsa.zok with some modifications:
+1. Hash function changed from sha256 to poseidon -- 
+2. BabyJubJub params no longer inputted by user, now constant
+*/
+// import "hashes/sha256/1024bitPadded" as sha256;
+// import "hashes/mimcSponge/mimcSponge" as mimcSponge;
+import "hashes/poseidon/poseidon" as poseidon;
+import "ecc/edwardsScalarMult" as scalarMult;
+import "ecc/edwardsAdd" as add;
+import "utils/pack/bool/nonStrictUnpack256" as unpack256bool;
+import "utils/pack/u32/nonStrictUnpack256" as unpack256u;
+import "ecc/edwardsOnCurve" as onCurve;
+import "ecc/edwardsOrderCheck" as orderCheck;
+from "ecc/babyjubjubParams" import BABYJUBJUB_PARAMS as bjj;
+import "utils/casts/u32_8_to_bool_256";
+
+/// Verifies an EdDSA Signature.
+///
+/// Checks the correctness of a given EdDSA Signature (R,S) for the provided
+/// public key A and message (M).
+
+/// Arguments:
+///    R: Curve point. Public version of the per-message nonce (i.e., nonce * G where G is generator).
+///    s: Field element. Signature to be verified.
+///    A: Public key as a curve point
+///    M: message consisting of 4 field elements (because why not, poseidon hash can fit four more elements so might as well use all four of them)
+///    context: Curve parameters used to create S.
+///
+/// Returns:
+///     Return true for s being a valid EdDSA Signature, false otherwise.
+
+const field[2] G = [bjj.Gu, bjj.Gv];
+
+def main(field[2] R, field s, field[2] A, field[4] M) -> bool {
+    
+    
+    // Check if R is on curve and if it is not in a small subgroup. A is public input and can be checked offline
+    assert(onCurve(R, bjj)); // throws if R is not on curve
+    assert(orderCheck(R, bjj));
+
+    // field[1] h = mimcSponge([R[0], A[0], M[0], M[1], M[2], M[3]], 0);
+    field h = poseidon([R[0], A[0], M[0], M[1], M[2], M[3]]);
+    bool[256] hBits = unpack256bool(h);
+    bool[256] sBits = unpack256bool(s);
+    
+    field[2] Ah = scalarMult(hBits, A, bjj);
+    field[2] rhs = add(R, Ah, bjj);
+    field[2] lhs = scalarMult(sBits, G, bjj);    
+
+    bool out = (rhs[0] == lhs[0]) && (rhs[1] == lhs[1]);
+    return out;
+}
