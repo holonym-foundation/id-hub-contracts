@@ -2,6 +2,17 @@ pragma circom 2.0.0;
 include "node_modules/circomlib/circuits/poseidon.circom";
 include "node_modules/circomlib/circuits/eddsaposeidon.circom";
 
+/* onAddLeaf proof
+ * public inputs: signed leaf, signature of leaf, new leaf
+ * private inputs: pubkey of signer, signed leaf preimage, new leaf preimage
+ * to constrain:
+ *  - signed leaf is signed by the given pubkey
+ *  - signed leaf's preimage starts with the given pubkeky's address
+ *  - signed leaf's purported preimage actually hashes to the signed leaf
+ *  - new leaf's purported preimage actually hashes to the new leaf
+ *  - new leaf's purported preimage is the exact same as signed leaf's preimage except for its secret
+*/
+
 template OAL () {  
     // Issuer pubkey and signature (R, S) :
     signal input pubKeyX;
