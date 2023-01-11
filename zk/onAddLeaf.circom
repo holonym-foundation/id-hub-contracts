@@ -3,8 +3,8 @@ include "node_modules/circomlib/circuits/poseidon.circom";
 include "node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 /* onAddLeaf proof
- * public inputs: signed leaf, signature of leaf, new leaf
- * private inputs: pubkey of signer, signed leaf preimage, new leaf preimage
+ * public inputs: signed leaf, new leaf
+ * private inputs: signature of signed leaf, pubkey of signer, signed leaf preimage, new leaf preimage
  * to constrain:
  *  - signed leaf is signed by the given pubkey
  *  - signed leaf's preimage starts with the given pubkeky's address
@@ -74,4 +74,4 @@ template OAL () {
 
 }
 
-component main = OAL();
+component main {public [signedLeaf, newLeaf]} = OAL();
