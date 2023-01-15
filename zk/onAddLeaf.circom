@@ -62,7 +62,7 @@ template OAL () {
     createSignedLeaf.out === signedLeaf;
     createNewLeaf.out === newLeaf; 
 
-    // Check that signature for the signed leaf is actually and from the given pubkey
+    // Check that signature for the signed leaf is actually from the given pubkey
     component verifier = EdDSAPoseidonVerifier();
     verifier.enabled <== 1;
     verifier.Ax <== pubKeyX;
