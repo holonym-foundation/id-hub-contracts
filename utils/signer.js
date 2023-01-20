@@ -25,14 +25,19 @@ class Signer {
         const iat = getCurrentDateAsInt();
         const scope = 0; // Lol we're not even using scope anymore --- :(
 
-        return this.poseidon([addr, secret, customFields[0], customFields[1], scope]);
+        const preimage = [addr, secret, customFields[0], customFields[1], iat, scope];
+        return {
+            preimage : preimage,
+            digest: this.poseidon(preimage)
+        }
 
     }
+    
     // Takes an array of two custom fields, returns the leaf (issuer address, secret, customFields, scope)
     // along with a signature of the leaf
     createAndSignLeaf(customFields) {
         const leaf = this.createLeaf(customFields);
-        const signature = this.signLeaf(leaf);
+        const signature = this.signLeaf(leaf.digest);
         return {leaf: leaf, signature: signature};
     }
     getAddress() {
