@@ -32,8 +32,11 @@ template OAL () {
     // Time the issuer says the credential was issued at
     signal input iat;
 
+    // Scope of credentials (probably set to 0)
+    signal input scope; 
+
     // Three custom fields the issuer can put in the leaf (can be anything, e.g. [name, address, birthdate, phone #])
-    signal input customFields[3];
+    signal input customFields[2];
 
     // This is our somewhat odd address scheme: hash of pubkey x and y, so that we don't have to worry about point conversions:
     component addressFromPubKey = Poseidon(2);
@@ -48,15 +51,15 @@ template OAL () {
     createSignedLeaf.inputs[1] <== signedLeafSecret;
     createSignedLeaf.inputs[2] <== customFields[0];
     createSignedLeaf.inputs[3] <== customFields[1];
-    createSignedLeaf.inputs[4] <== iat; // Yes, this is a weird place to place it in between, but it made sense at some point in time, and it's now backward-compatible with the other circuits we have already built
-    createSignedLeaf.inputs[5] <== customFields[2];
+    createSignedLeaf.inputs[4] <== iat; 
+    createSignedLeaf.inputs[5] <== scope;
 
     createNewLeaf.inputs[0] <== addressFromPubKey.out;
     createNewLeaf.inputs[1] <== newLeafSecret; // Note this secret is different than in createSignedLeaf; we are changing *only* the secret -- no other fields
     createNewLeaf.inputs[2] <== customFields[0];
     createNewLeaf.inputs[3] <== customFields[1];
-    createNewLeaf.inputs[4] <== iat; // Yes, this is a weird place to place it in between, but it made sense at some point in time, and it's now backward-compatible with the other circuits we have already built
-    createNewLeaf.inputs[5] <== customFields[2];
+    createNewLeaf.inputs[4] <== iat; 
+    createNewLeaf.inputs[5] <== scope;
     
     // Check that the leaves were not spoofed; their preimage was indeed known
     createSignedLeaf.out === signedLeaf;
