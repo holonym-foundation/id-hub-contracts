@@ -23,7 +23,7 @@ async function createProofCircom(circuitName, zkeyName, inputs) {
 
 }
 
-const createProof = {
+const Proofs = {
     // onAddLeaf : async (inputs: IOnAddLeafInputs) => {
         onAddLeaf : async (inputs) => {
         return await createProofCircom("onAddLeaf", "onAddLeaf_0001", inputs)
@@ -31,28 +31,7 @@ const createProof = {
     sybilResistance : ()=>{},
     proofOfResidency : ()=>{}
 }
-createProof.onAddLeaf({
-    pubKeyX: 12345n,
-    pubKeyY: 12345n,
-    R8x: 12345n,
-    R8y: 12345n,
-    S: 12345n,
 
-    // Old leaf and new leaf
-    signedLeaf: 12345n,
-    newLeaf: 12345n,
-
-    // Secret known to issuer (signedLeafSecret) and secret known only to user (newLeafSecret)
-    signedLeafSecret: 12345n,
-    newLeafSecret: 12345n,
-
-    // Time the issuer says the credential was issued at
-    iat: 12345n,
-
-    // Two custom fields the issuer can put in the leaf (can be anything, e.g. [name, address, birthdate, phone #])
-    // For now, the last should always be a 0 (need to update spec so this is beter)
-    customFields: [12345n, 12345n, 0n],
-
-}).then(() => {
-    process.exit(0);
-});
+module.exports = {
+    Proofs : Proofs
+}
