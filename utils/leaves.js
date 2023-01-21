@@ -16,8 +16,17 @@ class LeafMaker {
     // customFields: two custom fields that can be supplied, e.g., birthday, phoneNumber, reputation, whatever issuer desires to put as a custom field. These can be hashes of other fields!
     createLeaf(addr, secret, iat, customFields, scope) {
         assert(customFields.length === 2);
+        const inputs = {
+            addr:addr,
+            secret:secret,
+            iat:iat,
+            customFields:customFields,
+            scope:scope
+        }
         const preimage = [addr, secret, customFields[0], customFields[1], iat, scope];
+        
         return {
+            inputs : inputs,
             preimage : preimage,
             digest: this.poseidon(preimage)
         }
@@ -26,11 +35,10 @@ class LeafMaker {
 
     // Swaps the secret in a preimage, returning the old leaf with the old secret and the new leaf with the new secret
     swapSecret(originalLeaf, newSecret) {
-        let preimage_ = [...originalLeaf.preimage]
-        preimage_[1] = newSecret;
+        let newInputs = { ...originalLeaf.inputs, secret: newSecret }
         return {
             originalLeaf : originalLeaf,
-            newLeaf : { preimage: preimage_, digest: this.poseidon(preimage_) }
+            newLeaf : this.createLeaf(newInputs.addr, newInputs.secret, newInputs.iat, newInputs.customFields, newInputs.scope)
         }
     }
 

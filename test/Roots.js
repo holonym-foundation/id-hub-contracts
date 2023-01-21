@@ -2,7 +2,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe.only("Roots", function () {
+describe("Roots", function () {
     before(async function() {
         [this.account1, this.account2, this.account3] = await ethers.getSigners();
 
