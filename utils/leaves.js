@@ -1,11 +1,13 @@
 const assert = require("assert");
-const { buildPoseidon } = require("circomlibjs");
+const { buildPoseidon, buildBabyjub } = require("circomlibjs");
+const { randomBytes } = require("crypto");
+const { BigNumber } = require("ethers");
 
-let poseidon = null;
 
 class LeafMaker {
-    constructor(poseidon) {
+    constructor(poseidon, babyJubJub) {
         this.poseidon = poseidon;
+        this.bjj =  babyJubJub;
     }
 
     // addr: address of issuer
@@ -27,14 +29,19 @@ class LeafMaker {
         let preimage_ = [...originalLeaf.preimage]
         preimage_[1] = newSecret;
         return {
-            original : originalLeaf,
-            new : this.createLeaf(preimage_)
+            originalLeaf : originalLeaf,
+            newLeaf : { preimage: preimage_, digest: this.poseidon(preimage_) }
         }
-    
+    }
+
+    // Swaps the secret in a preimage, returning the old leaf with the old secret and the new leaf with the new secret
+    swapAndCreateSecret(originalLeaf) {
+        const newSecret = BigNumber.from(randomBytes(64)).mod(this.bjj.subOrder);
+        return this.swapSecret(originalLeaf, newSecret);        
     }
 }
 
 
 module.exports = {
-    makeLeafMaker : async () => new LeafMaker(await buildPoseidon())
+    makeLeafMaker : async () => new LeafMaker(await buildPoseidon(), await buildBabyjub())
 }

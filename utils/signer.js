@@ -2,7 +2,7 @@ const { buildEddsa, buildBabyjub, buildPoseidon } = require("circomlibjs");
 const { BigNumber } = require("ethers");
 const { randomBytes } = require("ethers/lib/utils");
 const { getCurrentDateAsInt } = require("./casts");
-const { makeLeafMaker } = require("./leafs");
+const { makeLeafMaker } = require("./leaves");
 
 let eddsa; 
 let bjj; 
