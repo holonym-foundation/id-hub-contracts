@@ -9,7 +9,13 @@ function getDateAsInt(date) {
     assert.ok(!isNaN(time));
     return time;
 }
+
+// Takes Uint8Array, returns BigInt
+const U8ArrToBigIntBE = (x) => BigInt("0x"+Buffer.from(x).toString("hex"));
+const U8ArrToBigIntLE = (x) => BigInt("0x"+Buffer.from(x).reverse().toString("hex"));
+
 module.exports = {
     getDateAsInt : getDateAsInt,
-    getCurrentDateAsInt : () => getDateAsInt((new Date()).toISOString().split("T")[0])
+    getCurrentDateAsInt : () => getDateAsInt((new Date()).toISOString().split("T")[0]),
+    U8ArrToBigInt : U8ArrToBigIntBE
 }

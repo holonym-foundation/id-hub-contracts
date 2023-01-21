@@ -5,12 +5,12 @@ const fs = require("fs");
 
 
 async function createProofCircom(circuitName, zkeyName, inputs) {
-    console.log(process.cwd())
-    const { proof, publicInputs } = await snarkjs.groth16.fullProve(inputs, `./zk/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/${zkeyName}.zkey`);
+    // await snarkjs.wtns.calculate(inputs, `./zk/${circuitName}_js/${circuitName}.wasm`, "tmp.wtns");
+    // console.log("Witness: ", fs.readFileSync("tmp.wtns").toString());
 
-    console.log("Proof: ");
-    console.log(JSON.stringify({proof: proof, inputs: publicInputs}));
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(inputs, `./zk/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
 
+    console.log(JSON.stringify({proof: proof, inputs: publicSignals}));
     // const vKey = JSON.parse(fs.readFileSync("verification_key.json"));
 
     // const res = await snarkjs.groth16.verify(vKey, publicInputs, proof);
@@ -25,8 +25,11 @@ async function createProofCircom(circuitName, zkeyName, inputs) {
 
 const Proofs = {
     // onAddLeaf : async (inputs: IOnAddLeafInputs) => {
-        onAddLeaf : async (inputs) => {
+    onAddLeaf : async (inputs) => {
         return await createProofCircom("onAddLeaf", "onAddLeaf_0001", inputs)
+    },
+    onAddLeafTestingDeleteThisFunction : async (inputs) => {
+        return await createProofCircom("onAddLeafTestingDeleteme", "onAddLeafTestingDeleteme_0001", inputs)
     },
     sybilResistance : ()=>{},
     proofOfResidency : ()=>{}

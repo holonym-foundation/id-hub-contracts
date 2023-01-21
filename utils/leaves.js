@@ -1,12 +1,13 @@
+const { poseidon } = require("circomlibjs-old")
 const assert = require("assert");
-const { buildPoseidon, buildBabyjub } = require("circomlibjs");
+const { buildBabyjub } = require("circomlibjs");
 const { randomBytes } = require("crypto");
 const { BigNumber } = require("ethers");
+const { U8ArrToBigInt } = require("./casts");
 
 
 class LeafMaker {
-    constructor(poseidon, babyJubJub) {
-        this.poseidon = poseidon;
+    constructor(babyJubJub) {
         this.bjj =  babyJubJub;
     }
 
@@ -28,7 +29,7 @@ class LeafMaker {
         return {
             inputs : inputs,
             preimage : preimage,
-            digest: this.poseidon(preimage)
+            digest: poseidon(preimage.map(x=>U8ArrToBigInt))
         }
     
     }
@@ -51,5 +52,5 @@ class LeafMaker {
 
 
 module.exports = {
-    makeLeafMaker : async () => new LeafMaker(await buildPoseidon(), await buildBabyjub())
+    makeLeafMaker : async () => new LeafMaker(await buildBabyjub())
 }

@@ -1,17 +1,17 @@
-const { buildEddsa, buildBabyjub, buildPoseidon } = require("circomlibjs");
+const { poseidon } = require("circomlibjs-old");
+const { buildEddsa, buildBabyjub } = require("circomlibjs");
 const { BigNumber } = require("ethers");
 const { randomBytes } = require("ethers/lib/utils");
-const { getCurrentDateAsInt } = require("./casts");
+const { getCurrentDateAsInt, U8ArrToBigInt } = require("./casts");
 const { makeLeafMaker } = require("./leaves");
 
 let eddsa; 
 let bjj; 
 
 class Signer {
-    constructor(privKey, eddsa, poseidon, babyJubJub, leafMaker) {
+    constructor(privKey, eddsa, babyJubJub, leafMaker) {
         this.privKey = privKey;
         this.eddsa = eddsa;
-        this.poseidon = poseidon;
         this.bjj = babyJubJub;
         this.leafMaker = leafMaker
     }
@@ -37,7 +37,8 @@ class Signer {
     getAddress() {
         const [x, y] = this.getPubkey();
         // Arbitrary address scheme, meant to be circuit-friendly
-        const address = this.poseidon(x,y);
+        const address = poseidon([x,y].map(value=>U8ArrToBigInt(value)));
+        // console.log("getAddress: \npubkey", [x,y], "\naddress", address);
         return address;
     }
     getPubkey() {
@@ -49,9 +50,9 @@ class Signer {
 async function makeSigner (privKey) {
     let bjj = await buildBabyjub(); 
     let eddsa = await buildEddsa();
-    let poseidon = await buildPoseidon();
+    // let poseidon = await buildPoseidon();
     let leafMaker = await makeLeafMaker();
-    return new Signer(privKey, eddsa, poseidon, bjj, leafMaker);
+    return new Signer(privKey, eddsa, bjj, leafMaker);
 }
   
 module.exports = {
