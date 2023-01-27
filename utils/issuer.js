@@ -6,7 +6,7 @@ class TestIssuer {
         this.privateKey = privateKey
     }
 
-    async issueCredentials(field1, field2) {
+    async issue(field1, field2) {
         const {stdout, stderr} = await exec(`HOLONYM_ISSUER_PRIVKEY=${this.privateKey} ../rust-ecc/binaries/${process.env.RUST_COMPILATION_TARGET_ARCHICTECTURE || "aarch64-apple-darwin"}/issuer --field1 ${field1} --field2 ${field2}`);
         if(stderr) throw `Error: ${stderr}`
         // Beyond me why JSON.parse needs to wrap JSON.parse (why??)
@@ -14,7 +14,22 @@ class TestIssuer {
     }
 
     static formatFr(frString) { return frString.replace("Fr(","").replace(")","") }
-    static frToBigInt(frString) { return BigInt(this.formatFr(frString)) }
+    static frToBigInt(frString) { return BigInt(this.formatFr(frString)) };
+
+    // Takes `response.credentials` as input where `response` is the response of `this.issue()`
+    static formatCreds(creds) { 
+        const c = {
+            addr: this.frToBigInt(creds.address),
+            secret: this.frToBigInt(creds.secret),
+            customFields: [
+                this.frToBigInt(creds.custom_fields[0]), 
+                this.frToBigInt(creds.custom_fields[1])
+            ],
+            iat: this.frToBigInt(creds.iat),
+            scope: this.frToBigInt(creds.scope)
+        }
+        return c
+    }
 
 }
 

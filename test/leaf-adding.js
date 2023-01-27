@@ -4,31 +4,25 @@ const { ethers } = require("hardhat");
 // const { buildPoseidon, buildPoseidonReference, buildPoseidonWasm, buildBabyjub } = require("circomlibjs");
 const { randomBytes } = require("crypto");
 // const { U8ArrToBigInt } = require("../utils/casts");
-// const { makeLeafMaker } = require("../utils/leaves");
+const { makeLeafMaker } = require("../utils/leaves");
 const { Proofs } = require("../utils/proofs");
 const { Issuer } = require("../utils/issuer");
-// const { makeSigner, Issuer } = require("../utils/signer");
+// const { makeSigner } = require("../utils/signer");
 
 describe.only("Leaf Insertion", function (){
     before(async function (){
+        this.leafMaker = await makeLeafMaker();
         const PRIVATE_KEY = randomBytes(32).toString("hex");
         this.issuer = new Issuer(PRIVATE_KEY);
-
         
     })
+
     describe("Issuer, JS, and constraints agree on leaves and signature implementation", function (){
         it("issuer and js agree on leaf generation", async function () {
-            const res = await this.issuer.issueCredentials("6996", "69696969");
-            const credentials = {
-                address: Issuer.frToBigInt(res.credentials.address),
-                secret: Issuer.frToBigInt(res.credentials.secret),
-                customFields: [
-                    Issuer.frToBigInt(res.credentials.custom_fields[0]), 
-                    Issuer.frToBigInt(res.credentials.custom_fields[1])
-                ],
-                iat: Issuer.frToBigInt(res.credentials.iat),
-                scope: Issuer.frToBigInt(res.credentials.scope)
-            }
+            const res = await this.issuer.issue("6996", "69696969");
+            const creds = Issuer.formatCreds(res.credentials);
+            const leaf = Issuer.frToBigInt(res.leaf)
+            expect(leaf).to.equal(this.leafMaker.createLeaf(creds).digest);
         })
         
     })

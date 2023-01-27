@@ -16,7 +16,7 @@ class LeafMaker {
     // secret: some secret pepper added to the preimage
     // iat: time issued at, as int (see Holonym's getDateAsInt util function)
     // customFields: two custom fields that can be supplied, e.g., birthday, phoneNumber, reputation, whatever issuer desires to put as a custom field. These can be hashes of other fields!
-    createLeaf(addr, secret, iat, customFields, scope) {
+    _createLeaf(addr, secret, customFields, iat, scope) {
         assert(customFields.length === 2);
         const inputs = {
             addr:addr,
@@ -35,12 +35,17 @@ class LeafMaker {
     
     }
 
+    createLeaf(inputs) {
+        const { addr, secret, customFields, iat, scope } = inputs;
+        return this._createLeaf(addr, secret, customFields, iat, scope);
+    }
+
     // Swaps the secret in a preimage, returning the old leaf with the old secret and the new leaf with the new secret
     swapSecret(originalLeaf, newSecret) {
         let newInputs = { ...originalLeaf.inputs, secret: newSecret }
         return {
             originalLeaf : originalLeaf,
-            newLeaf : this.createLeaf(newInputs.addr, newInputs.secret, newInputs.iat, newInputs.customFields, newInputs.scope)
+            newLeaf : this.createLeaf(newInputs)
         }
     }
 
