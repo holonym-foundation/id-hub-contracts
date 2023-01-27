@@ -51,7 +51,7 @@ class LeafMaker {
 
     // Swaps the secret in a preimage, returning the old leaf with the old secret and the new leaf with the new secret
     swapAndCreateSecret(originalLeaf) {
-        const newSecret = BigNumber.from(randomBytes(64)).mod(primeFieldOrder);
+        const newSecret = BigInt("0x"+randomBytes(64).toString("hex")) % primeFieldOrder;
         return this.swapSecret(originalLeaf, newSecret);        
     }
 }

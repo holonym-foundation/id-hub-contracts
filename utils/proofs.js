@@ -10,7 +10,7 @@ async function createProofCircom(circuitName, zkeyName, inputs) {
 
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(inputs, `./zk/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
 
-    console.log(JSON.stringify({proof: proof, inputs: publicSignals}));
+    return {proof: proof, inputs: publicSignals};
     // const vKey = JSON.parse(fs.readFileSync("verification_key.json"));
 
     // const res = await snarkjs.groth16.verify(vKey, publicInputs, proof);
