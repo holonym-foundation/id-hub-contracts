@@ -153,8 +153,8 @@ async function initContracts(addresses) {
     
 }
 
-exports.createLeaf = createLeaf; 
-exports.createLeafAdditionProof = createLeafAdditionProof; 
-exports.attachPoseidon = attachPoseidon;
-exports.deployPoseidon = deployPoseidon;
+// exports.createLeaf = createLeaf; 
+// exports.createLeafAdditionProof = createLeafAdditionProof; 
+// exports.attachPoseidon = attachPoseidon;
+// exports.deployPoseidon = deployPoseidon;
 exports.initContracts = initContracts;

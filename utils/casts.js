@@ -17,5 +17,7 @@ const U8ArrToBigIntLE = (x) => BigInt("0x"+Buffer.from(x).reverse().toString("he
 module.exports = {
     getDateAsInt : getDateAsInt,
     getCurrentDateAsInt : () => getDateAsInt((new Date()).toISOString().split("T")[0]),
+    U8ArrToBigIntBE : U8ArrToBigIntBE,
+    U8ArrToBigIntLE : U8ArrToBigIntLE,
     U8ArrToBigInt : U8ArrToBigIntBE
 }
