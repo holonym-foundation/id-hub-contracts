@@ -39,9 +39,10 @@ describe.only("Leaf Insertion", function (){
                 customFields: customFields.map(cf=>BigInt(cf)),
                 scope : creds.scope,
             }
-            let result = await Proofs.onAddLeaf(circuitInputs);
+            let proof = await Proofs.onAddLeaf.prove(circuitInputs);
             // Really anything here to make sure it didn't throw an error on proof generation:
-            expect("proof" in result).to.equal(true);               
+            let result = await Proofs.onAddLeaf.verify(proof);
+            expect(result).to.equal(true);               
         });
     });
 });

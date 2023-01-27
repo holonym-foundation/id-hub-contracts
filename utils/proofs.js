@@ -10,29 +10,27 @@ async function createProofCircom(circuitName, zkeyName, inputs) {
 
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(inputs, `./zk/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
 
-    return {proof: proof, inputs: publicSignals};
-    // const vKey = JSON.parse(fs.readFileSync("verification_key.json"));
+    return {proof: proof, publicSignals: publicSignals};
+}
 
-    // const res = await snarkjs.groth16.verify(vKey, publicInputs, proof);
-
-    // if (res === true) {
-    //     console.log("Verification OK");
-    // } else {
-    //     console.log("Invalid proof");
-    // }
-
+async function verifyProofCircom(circuitName, proof) {
+    const vKey = JSON.parse(fs.readFileSync(`./zk/pvkeys/circom/${circuitName}_verification_key.json`));
+    console.log("vkey", vKey, "proof", proof.proof, "inputs", proof.inputs)
+    return await snarkjs.groth16.verify(vKey, proof.publicSignals, proof.proof);
 }
 
 const Proofs = {
     // onAddLeaf : async (inputs: IOnAddLeafInputs) => {
-    onAddLeaf : async (inputs) => {
-        return await createProofCircom("onAddLeaf", "onAddLeaf_0001", inputs)
+    onAddLeaf : {
+        prove : async (inputs) => {
+            return await createProofCircom("onAddLeaf", "onAddLeaf_0001", inputs)
+        },
+        verify : async (proof) => {
+            return await verifyProofCircom("onAddLeaf", proof)
+        }
     },
-    onAddLeafTestingDeleteThisFunction : async (inputs) => {
-        return await createProofCircom("onAddLeafTestingDeleteme", "onAddLeafTestingDeleteme_0001", inputs)
-    },
-    sybilResistance : ()=>{},
-    proofOfResidency : ()=>{}
+    sybilResistance : { prove : ()=>{} } ,
+    proofOfResidency : { prove : ()=>{} } ,
 }
 
 module.exports = {
