@@ -34,9 +34,14 @@
     "@openzeppelin/contracts": "^4.7.3",
     "@zk-kit/incremental-merkle-tree": "^1.0.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.2.0",
+    "assert": "^2.0.0",
+    "blake-hash": "^2.0.0",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
+    "circomlibjs-old": "npm:circomlibjs@^0.0.8",
     "dotenv": "^16.0.1",
-    "holo-merkle-utils": "^0.0.0"
+    "ffjavascript": "^0.2.57",
+    "holo-merkle-utils": "^0.0.0",
+    "snarkjs": "^0.5.0"
   }
 }

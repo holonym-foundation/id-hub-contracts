@@ -1,11 +1,17 @@
 .DS_Store
 .vscode
+*.sym
+*.r1cs
+*.wtns
+*.ptau
+*.proving.key
 node_modules
 .env
 coverage
 coverage.json
 typechain
 typechain-types
+v2ArchRoadmap.md
 
 #Hardhat files
 cache

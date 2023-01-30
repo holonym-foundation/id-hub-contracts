@@ -1,0 +1,3 @@
+import "../ecc-in-circuit/encryptElGamal" as encryptElGamal;
+import "../ecc-in-circuit/encryptElGamal" as decryptElGamal;
+
