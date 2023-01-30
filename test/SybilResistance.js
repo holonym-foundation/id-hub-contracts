@@ -8,7 +8,6 @@ const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
 const { randomBytes } = require("crypto");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
-const { keccak256 } = require("ethers/lib/utils");
 require("dotenv").config();
 
 describe("SybilResistance", function () {
