@@ -5,7 +5,7 @@ const { Proofs } = require("../utils/proofs");
 const { Issuer } = require("../utils/issuer");
 const { rejects } = require("assert");
 
-describe.only("Leaf Insertion", function (){
+describe("Leaf Insertion", function (){
     before(async function (){
         this.leafMaker = await makeLeafMaker();
         const PRIVATE_KEY = randomBytes(32).toString("hex");

@@ -23,9 +23,9 @@ const u32 ARITY=5; // Quinary tree
 
 
 // masala is a salted nullifier (pepper) hash to ensure a use can only do an action given by the "salt" once. this proof reveals the  masala but not the user's nullifier/pepper that was used to create the masala
-def main(field root, field msgSenderAddr, field issuerAddr, field salt, field masala, field countryCode, private field subdivision, private field completedAt, private field birthdate, private field nullifier, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+def main(field root, field msgSenderAddr, field issuerAddr, field salt, field masala, field countryCode, private field subdivision, private field completedAt, private field scope, private field nullifier, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
     // assert valid preimage
-    field[6] preimage = [issuerAddr, nullifier, countryCode, subdivision, completedAt, birthdate];
+    field[6] preimage = [issuerAddr, nullifier, countryCode, subdivision, completedAt, scope];
     assert(poseidon(preimage) == leaf);
     
     // Merkle proof
