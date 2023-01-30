@@ -1,5 +1,8 @@
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
+
+// TODO: change this to holonym-wasm-issuer to not require running a local binary from exec, and to clean up the code
+
 // Issues credentials with address, secret, timestamp, scope=0, and two custom fields representing anything issuer wants
 class TestIssuer {
     constructor(privateKey){
