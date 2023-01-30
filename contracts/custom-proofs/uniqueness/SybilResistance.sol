@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../../interfaces/IHubMinimal.sol";
 import "../../utils/PairingAndProof.sol";
 import "./antiSybil.verifier.sol";
+import "../../interfaces/IRootsMinimal.sol";
+
 
 contract SybilResistance {
     // Stores all used footprints
@@ -13,13 +14,14 @@ contract SybilResistance {
     // And an event will be emitted:
     event Uniqueness(address userAddr, uint actionId);
 
-    IHubMinimal hub;
     AntiSybilVerifier verifier; 
-    uint authorityAddress; // Stored as uint instead of address for easy comparison to proof input uints
+    uint issuer; // "address" of the issuer
+    IRootsMinimal roots;
+
     
-    constructor(address hub_, address authorityAddress_) {
-        hub = IHubMinimal(hub_);
-        authorityAddress = uint256(uint160(authorityAddress_));
+    constructor(address roots_, uint256 issuer_) {
+        roots = IRootsMinimal(roots_);
+        issuer = issuer_;
         verifier = new AntiSybilVerifier();
     }
 
@@ -30,11 +32,11 @@ contract SybilResistance {
     // It is useful to separate this from the prove() function which is changes state, so that somebody can call this off-chain as a view function.
     // Then, they can maintain their own off-chain list of footprints and verified address 
     function proofIsValid(Proof calldata proof, uint[5] memory input) public view returns (bool isValid) {
-        require(hub.rootIsRecent(input[0]), "The root provided was not found in the Merkle tree's recent root list");
+        require(roots.rootIsRecent(input[0]), "The root provided was not found in the Merkle tree's recent root list");
         // Checking msg.sender no longer seems very necessary and prevents signature-free interactions. Without it, relayers can submit cross-chain transactions without the user signature. Thus, we are deprecating this check:
         // require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
 
-        require(input[2] == authorityAddress, "Proof must come from authority address"); // This is integer representation of the address 0xc88... 
+        require(input[2] == issuer, "Proof must come from correct issuer's address"); 
         require(!masalaWasUsed[input[4]], "One person can only verify once");
         require(verifier.verifyTx(proof, input), "Failed to verify ZKP");
         return true;

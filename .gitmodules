@@ -1,0 +1,3 @@
+[submodule "holonym-relayer"]
+	path = holonym-relayer
+	url = https://github.com/holonym-foundation/holonym-relayer.git
