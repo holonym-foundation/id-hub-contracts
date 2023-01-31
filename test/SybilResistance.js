@@ -48,7 +48,7 @@ const createSRProof= async ({tree, actionId, masala, address, addr, secret, cust
         return JSON.parse(readFileSync("tmp.proof.json").toString());
 }
 
-describe.only("SybilResistance", function () {
+describe("SybilResistance", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
         this.leafMaker = await makeLeafMaker();

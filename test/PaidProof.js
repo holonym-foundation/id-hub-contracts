@@ -32,7 +32,7 @@ describe.only("Pricing", function() {
     it("Only when price is paid does tx go thru", async function() {
         await expect(this.sr.prove(PROOF.proof, PROOF.inputs)).to.be.revertedWith("Missing payment");
         await expect(this.sr.prove(PROOF.proof, PROOF.inputs, { value : 68 })).to.be.revertedWith("Missing payment");
-        await expect(this.sr.prove(PROOF.proof, PROOF.inputs, { value: 100000000000000 } )).to.not.be.reverted;
+        await expect(this.sr.prove(PROOF.proof, PROOF.inputs, { value: 12345678969 } )).to.not.be.reverted;
     });
 
     it("Only owner can get funds", async function() {
@@ -41,14 +41,18 @@ describe.only("Pricing", function() {
         expect(await ethers.provider.getBalance(this.sr.address)).to.equal(startingSRBalance);
 
         const startingAdminBalance = await ethers.provider.getBalance(this.admin.address);
-        await expect(this.sr.connect(this.admin).collectPayments()).to.not.be.reverted;
-
+        const collectPayments = this.sr.connect(this.admin).collectPayments()
+        await expect(await collectPayments).to.not.be.reverted;
+        const receipt = await (await collectPayments).wait();
         expect(await ethers.provider.getBalance(this.sr.address)).to.equal("0");
+        
         // New balance minus gas shouldn't be lower than this! just double checking that the balance is actually transferred, without going into minutia of gas:
         expect(
             BigNumber.from(await ethers.provider.getBalance(this.admin.address))
-        ).to.be.greaterThan(
-            BigNumber.from(startingAdminBalance).add(500000)
+        ).to.equal(
+            BigNumber.from(startingAdminBalance)
+            .add(12345678969)
+            .sub(receipt.gasUsed * receipt.effectiveGasPrice)
         );
     });
 });
