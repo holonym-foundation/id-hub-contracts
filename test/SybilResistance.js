@@ -48,7 +48,7 @@ const createSRProof= async ({tree, actionId, masala, address, addr, secret, cust
         return JSON.parse(readFileSync("tmp.proof.json").toString());
 }
 
-describe.only("SybilResistance", function () {
+describe("SybilResistance", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
         this.leafMaker = await makeLeafMaker();
@@ -120,7 +120,7 @@ describe.only("SybilResistance", function () {
                 this.sr.prove(proofObject.proof, proofObject.inputs)
             ).to.be.revertedWith("Proof must come from correct issuer's address");
         });
-        
+
         it("Invalid proof doesn't work: root", async function() {
             // Add a new leaf so the root is bad:
             const roots_ = await (await ethers.getContractFactory("Roots"))

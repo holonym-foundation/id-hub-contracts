@@ -3308,6 +3308,11 @@
     "big-integer" "^1.6.51"
     "circomlibjs-old" "npm:circomlibjs@^0.0.8"
 
+"holonym-wasm-issuer@^0.2.2":
+  "integrity" "sha512-5n4YGWWc9dUx21AeF8UluzsUr45r2qw6svP5FC5AdYBI1eF+oPj1vGhtKHzpF0RGFrtHm2ISz13+AqCyMbbtdQ=="
+  "resolved" "https://registry.npmjs.org/holonym-wasm-issuer/-/holonym-wasm-issuer-0.2.2.tgz"
+  "version" "0.2.2"
+
 "hoopy@^0.1.4":
   "integrity" "sha512-HRcs+2mr52W0K+x8RzcLzuPPmVIKMSv97RGHy0Ea9y/mpcaK+xTrjICA04KAHi4GRzxliNqNJEFYWHghy3rSfQ=="
   "resolved" "https://registry.npmjs.org/hoopy/-/hoopy-0.1.4.tgz"
