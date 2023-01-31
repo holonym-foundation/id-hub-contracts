@@ -66,7 +66,7 @@ describe("IsUSResident", function () {
         this.roots = await (await ethers.getContractFactory("Roots"))
             .deploy();
         this.resStore = await (await ethers.getContractFactory("IsUSResident"))
-            .deploy(this.roots.address, ISSUER_ADDRESS, 0);
+            .deploy(this.roots.address, ISSUER_ADDRESS, 0, ethers.constants.AddressZero);
     });
 
     describe("Verifier works:", function() {
@@ -101,7 +101,7 @@ describe("IsUSResident", function () {
             const roots_ = await (await ethers.getContractFactory("Roots"))
                 .deploy();
             const resStore_ = await (await ethers.getContractFactory("IsUSResident"))
-            .deploy(roots_.address, ISSUER_ADDRESS, 0);
+            .deploy(roots_.address, ISSUER_ADDRESS, 0, ethers.constants.AddressZero);
 
             const t = Tree(14, [this.leaves.correct.newLeaf.digest, this.leaves.wrongIssuer.newLeaf.digest, this.leaves.wrongCountry.newLeaf.digest]);
             roots_.addRoot(t.root);

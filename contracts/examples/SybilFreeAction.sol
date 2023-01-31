@@ -1,5 +1,5 @@
 pragma solidity ^0.8.0;
-import "../interfaces/ISybilResistance.sol";
+import "../custom-proofs/uniqueness/ISybilResistance.sol";
 
 /* NOTE: you can replace airdrop with any other action that needs Sybil resistance. 
 This uses an airdrop as an example, but it can be adapted for voting, play-to-earn, play-to-learn, etc.

@@ -1,5 +1,5 @@
 pragma solidity ^0.8.0;
-import "../interfaces/IIsUSResident.sol";
+import "../custom-proofs/residency/IIsUSResident.sol";
 
 // US Residents have had it hard this year! let's send 1 gwei to anyone who can prove they're from the US
 contract USResidency {

@@ -3,12 +3,14 @@ pragma solidity ^0.8.9;
 
 import "../../utils/PairingAndProof.sol";
 import "./proofOfResidency.verifier.sol";
-import "../../interfaces/IRootsMinimal.sol";
+import "../../IRootsMinimal.sol";
 import "../PaidProof.sol";
+import "./IIsUSResident.sol";
+
 
 contract IsUSResident is PaidProof {
     
-    mapping(address => bool) public usResidency; // e.g., 0x123... => true
+    mapping(address => bool) public usResidencyMapping; // e.g., 0x123... => true
     mapping(uint256 => bool) public masalaWasUsed;
 
     ProofOfCountry verifier; 
@@ -16,14 +18,25 @@ contract IsUSResident is PaidProof {
     IRootsMinimal roots;
     event USResidency(address userAddr, bool usResidency);
 
-    constructor(address roots_, uint issuer_, uint price_) {
+    // allow for backwards compatability by also accepting users who verified in the old contract
+    bool legacySupport;
+    IIsUSResident oldContract; 
+
+    constructor(address roots_, uint issuer_, uint price_, address oldContract_) {
         roots = IRootsMinimal(roots_);
         issuer = issuer_;
         verifier = new ProofOfCountry();
         setPrice(price_);
+
+        if(oldContract_ != address(0)) {
+            legacySupport = true;
+            oldContract = IIsUSResident(oldContract_);
+        }
     }
 
-
+    function usResidency(address person) public view returns (bool) {
+        return usResidencyMapping[person] || (legacySupport && oldContract.usResidency(person));
+    }
     // It is useful to separate this from the prove() function which is changes state, so that somebody can call this off-chain as a view function.
     // Then, they can maintain their own off-chain list of footprints and verified address 
     function proofIsValid(Proof calldata proof, uint[6] calldata input) public view returns (bool isValid) {
@@ -45,7 +58,7 @@ contract IsUSResident is PaidProof {
     function prove(Proof calldata proof, uint[6] calldata input) public {
         require(proofIsValid(proof, input));
         masalaWasUsed[input[4]] = true;
-        usResidency[address(uint160(input[1]))] = true; //
+        usResidencyMapping[address(uint160(input[1]))] = true; //
         emit USResidency(msg.sender, true);
     }
 

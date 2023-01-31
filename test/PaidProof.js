@@ -16,7 +16,7 @@ describe("Pricing", function() {
         this.roots = await (await ethers.getContractFactory("Roots"))
             .connect(this.admin).deploy();
         this.sr = await (await ethers.getContractFactory("SybilResistance"))
-            .connect(this.admin).deploy(this.roots.address, ISSUER_ADDRESS, 0);
+            .connect(this.admin).deploy(this.roots.address, ISSUER_ADDRESS, 0, ethers.constants.AddressZero);
 
         this.roots.addRoot(ROOT);
     });

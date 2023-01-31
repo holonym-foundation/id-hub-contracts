@@ -3,9 +3,9 @@ pragma solidity ^0.8.9;
 
 import "../../utils/PairingAndProof.sol";
 import "./antiSybil.verifier.sol";
-import "../../interfaces/IRootsMinimal.sol";
+import "../../IRootsMinimal.sol";
 import "../PaidProof.sol";
-
+import "./ISybilResistance.sol";
 
 contract SybilResistance is PaidProof {
     // Stores all used footprints
@@ -19,16 +19,27 @@ contract SybilResistance is PaidProof {
     uint issuer; // "address" of the issuer
     IRootsMinimal roots;
 
+    // allow for backwards compatability by also accepting users who verified in the old contract
+    bool legacySupport;
+    ISybilResistance oldContract; 
     
-    constructor(address roots_, uint256 issuer_, uint price_) {
+    constructor(address roots_, uint256 issuer_, uint price_, address oldContract_) {
         roots = IRootsMinimal(roots_);
         issuer = issuer_;
         verifier = new AntiSybilVerifier();
         setPrice(price_);
+        
+        if(oldContract_ != address(0)) {
+            legacySupport = true;
+            oldContract = ISybilResistance(oldContract_);
+        }
     }
 
     function isUniqueForAction(address addr, uint actionId) public view returns (bool unique) {
-        return verifications[keccak256(abi.encodePacked(addr, actionId))];
+        return (
+            verifications[keccak256(abi.encodePacked(addr, actionId))]) || 
+            (legacySupport && oldContract.isUniqueForAction(addr, actionId)
+        );
     }
 
     // It is useful to separate this from the prove() function which is changes state, so that somebody can call this off-chain as a view function.
