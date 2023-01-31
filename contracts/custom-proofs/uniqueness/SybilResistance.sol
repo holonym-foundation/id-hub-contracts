@@ -4,9 +4,10 @@ pragma solidity ^0.8.9;
 import "../../utils/PairingAndProof.sol";
 import "./antiSybil.verifier.sol";
 import "../../interfaces/IRootsMinimal.sol";
+import "../PaidProof.sol";
 
 
-contract SybilResistance {
+contract SybilResistance is PaidProof {
     // Stores all used footprints
     mapping(uint256 => bool) public masalaWasUsed;
     // When *address* verifies they're unique for *actionId*, keccak256(address, actionId) will be stored as true:
@@ -19,10 +20,11 @@ contract SybilResistance {
     IRootsMinimal roots;
 
     
-    constructor(address roots_, uint256 issuer_) {
+    constructor(address roots_, uint256 issuer_, uint price_) {
         roots = IRootsMinimal(roots_);
         issuer = issuer_;
         verifier = new AntiSybilVerifier();
+        setPrice(price_);
     }
 
     function isUniqueForAction(address addr, uint actionId) public view returns (bool unique) {
@@ -44,12 +46,11 @@ contract SybilResistance {
 
     /// @param proof PairingAndProof.sol Proof struct
     /// @param input The public inputs to the proof, in ZoKrates' format
-    function prove(Proof calldata proof, uint256[5] calldata input) public {
+    function prove(Proof calldata proof, uint256[5] calldata input) public payable needsPayment {
         require(proofIsValid(proof, input));
         masalaWasUsed[input[4]] = true; //input[4] is address
         bytes32 commit = keccak256(abi.encodePacked(uint160(input[1]), input[3])); //input[1] is address of user to be registered for actionId, input[3] is actionId
         verifications[commit] = true;
         emit Uniqueness(msg.sender, input[3]);
     }
-
 }

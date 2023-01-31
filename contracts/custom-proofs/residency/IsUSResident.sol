@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import "../../utils/PairingAndProof.sol";
 import "./proofOfResidency.verifier.sol";
 import "../../interfaces/IRootsMinimal.sol";
+import "../PaidProof.sol";
 
-contract IsUSResident {
+contract IsUSResident is PaidProof {
     
     mapping(address => bool) public usResidency; // e.g., 0x123... => true
     mapping(uint256 => bool) public masalaWasUsed;
@@ -15,10 +16,11 @@ contract IsUSResident {
     IRootsMinimal roots;
     event USResidency(address userAddr, bool usResidency);
 
-    constructor(address roots_, uint issuer_) {
+    constructor(address roots_, uint issuer_, uint price_) {
         roots = IRootsMinimal(roots_);
         issuer = issuer_;
         verifier = new ProofOfCountry();
+        setPrice(price_);
     }
 
 
