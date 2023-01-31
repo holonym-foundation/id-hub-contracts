@@ -48,7 +48,7 @@ const createSRProof= async ({tree, actionId, masala, address, addr, secret, cust
         return JSON.parse(readFileSync("tmp.proof.json").toString());
 }
 
-describe("SybilResistance", function () {
+describe.only("SybilResistance", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
         this.leafMaker = await makeLeafMaker();
@@ -61,9 +61,9 @@ describe("SybilResistance", function () {
         };
 
         this.roots = await (await ethers.getContractFactory("Roots"))
-            .deploy();
+            .connect(this.admin).deploy();
         this.sr = await (await ethers.getContractFactory("SybilResistance"))
-            .deploy(this.roots.address, ISSUER_ADDRESS);
+            .connect(this.admin).deploy(this.roots.address, ISSUER_ADDRESS, 0);
 
         this.actionId = ethers.BigNumber.from("18450029681611047275023442534946896643130395402313725026917000686233641593164"); // this number is poseidon("IsFromUS")
         this.masala = poseidon([this.actionId, this.leaves.correct.newLeaf.inputs.secret]);
@@ -75,9 +75,33 @@ describe("SybilResistance", function () {
 
         
     });
+     describe("Pricing", function() {
+        it("Only owner can change price", async function() {
+            await expect(this.sr.connect(this.account).setPrice(69)).to.be.revertedWith("Ownable: caller is not the owner");
+            expect(await this.sr.price()).to.equal(0);
+            await expect(this.sr.connect(this.admin).setPrice(69)).to.not.be.reverted;
+            expect(await this.sr.price()).to.equal(69);
+          
+        });
 
+        // it("Only when price is paid does tx go thru", async function() {
+        //     await expect(this.sr.connect(admin).setPrice(69)).to.be.revertedWith("sdfgh");
+        //     expect(await this.sr.price()).to.equal(0);
+        //     await expect(this.sr.connect(account).setPrice(69)).to.not.be.reverted;
+        //     expect(await this.sr.price()).to.equal(69);
+          
+        // });
+
+        // it("Only owner can get funds", async function() {
+        //     await expect(this.sr.connect(admin).setPrice(69)).to.be.revertedWith("sdfgh");
+        //     expect(await this.sr.price()).to.equal(0);
+        //     await expect(this.sr.connect(account).setPrice(69)).to.not.be.reverted;
+        //     expect(await this.sr.price()).to.equal(69);
+          
+        // });
+    });
     describe("Verifier works:", function() {
-        before("Add new proof route and verify the proof. WARNING: this sometimes fails for no known reason, please retry tests if so. This is a strange bug and has never affected the version in production.", async function() {
+        before(async function() {
             // Now, make proof of the new residency
             this.proofObject = await createSRProof({ 
                 tree: this.tree, 

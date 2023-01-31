@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract PaidProof is IPaidProof, Ownable {
-    uint price;
+    uint public price;
 
     constructor() {
         console.log("owner", owner(), msg.sender);
