@@ -110,36 +110,29 @@ describe.only("SybilResistance", function () {
         
         it("Invalid proof doesn't work: root", async function() {
             // Add a new leaf so the root is bad:
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress, 69]);
-            let proof = await t.createCLISerializedProof(1);
-            
-            proof = proof.split(" ");
-            proof.shift();
-            proof = proof.join(" ")
-            
+            const roots_ = await (await ethers.getContractFactory("Roots"))
+                .deploy();
+            const sr = await (await ethers.getContractFactory("SybilResistance"))
+            .deploy(roots_.address, ISSUER_ADDRESS);
 
-            const proofArgs = `${[
-                t.root, 
-                ethers.BigNumber.from(this.account.address),
-                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
-                this.actionId,
-                this.footprint2,
-                this.leafParams.countryCode,
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate,
-                this.leafParams.newSecret2
-            ].join(" ", )
-            } ${ proof }`;
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
-            this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
+            const tree = Tree(14, [this.leaves.correct.newLeaf.digest, this.leaves.wrongIssuer.newLeaf.digest]);
+            this.roots.addRoot(tree.root);
             
+            // Add a new leaf so the root is bad:
+            tree.insert(69);
+
+            let proofObject = await createSRProof({ 
+                tree: tree, 
+                actionId: this.actionId, 
+                masala: this.masala,
+                address: this.account.address, 
+                ...this.leaves.correct.newLeaf.inputs
+            });
+
             await expect(
-                this.sr.prove(this.proofObject.proof, this.proofObject.inputs)
+                sr.prove(proofObject.proof, proofObject.inputs)
             ).to.be.revertedWith("The root provided was not found in the Merkle tree's recent root list");
         });
-
         it("Invalid proof doesn't work: issuer address", async function() {
             // Add a new leaf so the root is bad:
             const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress]);
