@@ -66,7 +66,7 @@ describe("IsUSResident", function () {
         this.roots = await (await ethers.getContractFactory("Roots"))
             .deploy();
         this.resStore = await (await ethers.getContractFactory("IsUSResident"))
-            .deploy(this.roots.address, ISSUER_ADDRESS);
+            .deploy(this.roots.address, ISSUER_ADDRESS, 0);
     });
 
     describe("Verifier works:", function() {
@@ -101,15 +101,15 @@ describe("IsUSResident", function () {
             const roots_ = await (await ethers.getContractFactory("Roots"))
                 .deploy();
             const resStore_ = await (await ethers.getContractFactory("IsUSResident"))
-            .deploy(roots_.address, ISSUER_ADDRESS);
+            .deploy(roots_.address, ISSUER_ADDRESS, 0);
 
             const t = Tree(14, [this.leaves.correct.newLeaf.digest, this.leaves.wrongIssuer.newLeaf.digest, this.leaves.wrongCountry.newLeaf.digest]);
-            this.roots.addRoot(t.root);
+            roots_.addRoot(t.root);
             
             // Add a new leaf so the root is bad:
             t.insert(69);
 
-            this.proofObject = await createProofOfResidency({ 
+            let proofObject = await createProofOfResidency({ 
                 tree: t, 
                 salt: this.salt, 
                 masala: this.masala,
@@ -118,7 +118,7 @@ describe("IsUSResident", function () {
             });
             
             await expect(
-                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+                resStore_.prove(proofObject.proof, proofObject.inputs)
             ).to.be.revertedWith("The root provided was not found in the Merkle tree's recent root list");
         });
 
