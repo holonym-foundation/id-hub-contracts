@@ -75,34 +75,12 @@ describe.only("SybilResistance", function () {
 
         
     });
-     describe("Pricing", function() {
-        it("Only owner can change price", async function() {
-            await expect(this.sr.connect(this.account).setPrice(69)).to.be.revertedWith("Ownable: caller is not the owner");
-            expect(await this.sr.price()).to.equal(0);
-            await expect(this.sr.connect(this.admin).setPrice(69)).to.not.be.reverted;
-            expect(await this.sr.price()).to.equal(69);
-          
-        });
-
-        // it("Only when price is paid does tx go thru", async function() {
-        //     await expect(this.sr.connect(admin).setPrice(69)).to.be.revertedWith("sdfgh");
-        //     expect(await this.sr.price()).to.equal(0);
-        //     await expect(this.sr.connect(account).setPrice(69)).to.not.be.reverted;
-        //     expect(await this.sr.price()).to.equal(69);
-          
-        // });
-
-        // it("Only owner can get funds", async function() {
-        //     await expect(this.sr.connect(admin).setPrice(69)).to.be.revertedWith("sdfgh");
-        //     expect(await this.sr.price()).to.equal(0);
-        //     await expect(this.sr.connect(account).setPrice(69)).to.not.be.reverted;
-        //     expect(await this.sr.price()).to.equal(69);
-          
-        // });
-    });
+     
     describe("Verifier works:", function() {
         before(async function() {
-            // Now, make proof of the new residency
+            // Reset the price to zero for the rest of the tests
+            // await this.sr.connect(this.admin).setPrice(0);
+
             this.proofObject = await createSRProof({ 
                 tree: this.tree, 
                 actionId: this.actionId, 
@@ -150,7 +128,7 @@ describe.only("SybilResistance", function () {
             const roots_ = await (await ethers.getContractFactory("Roots"))
                 .deploy();
             const sr = await (await ethers.getContractFactory("SybilResistance"))
-            .deploy(roots_.address, ISSUER_ADDRESS);
+            .deploy(roots_.address, ISSUER_ADDRESS, 0);
 
             const tree = Tree(14, [this.leaves.correct.newLeaf.digest, this.leaves.wrongIssuer.newLeaf.digest]);
             this.roots.addRoot(tree.root);
