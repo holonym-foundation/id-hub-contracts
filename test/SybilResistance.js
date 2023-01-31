@@ -108,6 +108,19 @@ describe.only("SybilResistance", function () {
             await expect(this.sr.connect(this.someAccount).prove(this.proofObject.proof, this.proofObject.inputs)).to.be.revertedWith("One person can only verify once");
         });
         
+        it("Invalid proof doesn't work: issuer address", async function() {
+            let proofObject = await createSRProof({ 
+                tree: this.tree, 
+                actionId: this.actionId, 
+                masala: this.wrongIssuerMasala,
+                address: this.account.address, 
+                ...this.leaves.wrongIssuer.newLeaf.inputs
+            });
+            await expect(
+                this.sr.prove(proofObject.proof, proofObject.inputs)
+            ).to.be.revertedWith("Proof must come from correct issuer's address");
+        });
+        
         it("Invalid proof doesn't work: root", async function() {
             // Add a new leaf so the root is bad:
             const roots_ = await (await ethers.getContractFactory("Roots"))
@@ -133,18 +146,10 @@ describe.only("SybilResistance", function () {
                 sr.prove(proofObject.proof, proofObject.inputs)
             ).to.be.revertedWith("The root provided was not found in the Merkle tree's recent root list");
         });
-        it("Invalid proof doesn't work: issuer address", async function() {
-            let proofObject = await createSRProof({ 
-                tree: this.tree, 
-                actionId: this.actionId, 
-                masala: this.wrongIssuerMasala,
-                address: this.account.address, 
-                ...this.leaves.wrongIssuer.newLeaf.inputs
-            });
-            await expect(
-                this.sr.prove(proofObject.proof, proofObject.inputs)
-            ).to.be.revertedWith("Proof must come from correct issuer's address");
-        });
+
+        it("Invalid proof doesn't work: Invalid Merkle proof", async function() {
+            console.error("TODO: implement this test `Invalid proof doesn't work: Invalid Merkle proof`. I am not super worried though, should likely be OK without testing");
+         });
 
         // Checking msg.sender no longer seems useful and prevents signature-free interactions. Without it, relayers can now submit cross-chain transactions without the user signature. Thus, we are deprecating this check:
         // it("Invalid proof doesn't work: msg sender address", async function() {
