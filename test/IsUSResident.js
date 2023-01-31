@@ -69,7 +69,7 @@ describe("IsUSResident", function () {
             .deploy(this.roots.address, ISSUER_ADDRESS);
     });
 
-    describe.only("Verifier works:", function() {
+    describe("Verifier works:", function() {
         before(async function() {
             this.salt = ethers.BigNumber.from("18450029681611047275023442534946896643130395402313725026917000686233641593164"); // this number is poseidon("IsFromUS")
             this.masala = poseidon([this.salt, this.leaves.correct.newLeaf.inputs.secret]);

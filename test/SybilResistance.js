@@ -3,219 +3,105 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
-const { createLeaf, createLeafAdditionProof, deployPoseidon } = require("../utils/utils");
 const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
-const { randomBytes } = require("crypto");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
+const { makeLeafMaker } = require("../utils/leaves");
 require("dotenv").config();
 
-describe("SybilResistance", function () {
+
+const ISSUER_ADDRESS = "1234567" // Obviously not the correct issuer address but validity of address isn't checked in Solidity; rather it's checked in the constraints
+
+const exampleCreds = {
+    addr: ISSUER_ADDRESS,
+    secret: "6969696969", // please keep this secret. don't tell anyone
+    customFields: ["453", "77"],
+    iat: "1675020200",
+    scope: "0"
+}
+
+const exampleInvalidIssuerCreds= {...exampleCreds, addr: "987654321"}
+
+const createSRProof= async ({tree, actionId, masala, address, addr, secret, customFields, iat, scope}) => {
+    const leaf = poseidon([addr, secret, customFields[0], customFields[1], iat, scope]);
+    const idx = tree.indexOf(leaf)
+    let merkleProof = await tree.createCLISerializedProof(idx);
+    merkleProof = merkleProof.split(" ");
+    merkleProof.shift();
+    merkleProof = merkleProof.join(" ")
+    const proofArgs = `${[
+            tree.root, 
+            BigInt(address).toString(), // User address
+            addr, // Issuer address
+            actionId,
+            masala,
+            customFields[0],
+            customFields[1],
+            iat,
+            scope,
+            secret
+        ].join(" ", )
+        } ${ merkleProof }`;
+        
+        await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
+        await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
+        return JSON.parse(readFileSync("tmp.proof.json").toString());
+}
+
+describe.only("SybilResistance", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
+        this.leafMaker = await makeLeafMaker();
+        const [correct, wrongIssuer] = [exampleCreds, exampleInvalidIssuerCreds].map(
+            creds => this.leafMaker.swapAndCreateSecret(this.leafMaker.createLeaf(creds))
+        );
+        this.leaves = {
+            correct: correct,
+            wrongIssuer: wrongIssuer,
+        };
 
-        const _pt6 = await deployPoseidon();
-        const _tree = await (await ethers.getContractFactory("IncrementalQuinTree", 
-        {
-            libraries : {
-            PoseidonT6 : _pt6.address
-            }
-        })).deploy();
+        this.roots = await (await ethers.getContractFactory("Roots"))
+            .deploy();
+        this.sr = await (await ethers.getContractFactory("SybilResistance"))
+            .deploy(this.roots.address, ISSUER_ADDRESS);
 
-        const _hub = await (await ethers.getContractFactory("Hub", {
-        libraries : {
-            IncrementalQuinTree : _tree.address
-            } 
-        })).deploy();
+        this.actionId = ethers.BigNumber.from("18450029681611047275023442534946896643130395402313725026917000686233641593164"); // this number is poseidon("IsFromUS")
+        this.masala = poseidon([this.actionId, this.leaves.correct.newLeaf.inputs.secret]);
+        this.wrongIssuerMasala = poseidon([this.actionId, this.leaves.wrongIssuer.newLeaf.inputs.secret]);
 
-        this.hub = _hub;
+        // Initialize the Merkle tree
+        this.tree = Tree(14, [this.leaves.correct.newLeaf.digest, this.leaves.wrongIssuer.newLeaf.digest]);
+        this.roots.addRoot(this.tree.root);
 
-        this.resStore = await (await ethers.getContractFactory("SybilResistance")).deploy(this.hub.address, "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
         
     });
 
     describe("Verifier works:", function() {
         before("Add new proof route and verify the proof. WARNING: this sometimes fails for no known reason, please retry tests if so. This is a strange bug and has never affected the version in production.", async function() {
-            
-            
-            // Add a new leaf:
-            this.leafParams = {
-                issuerAddress : this.account.address,
-                wrongIssuerAddress : this.someAccount.address,
-                oldSecret : ethers.BigNumber.from(randomBytes(16)),
-                newSecret : ethers.BigNumber.from(randomBytes(16)),
-                oldSecret2 : ethers.BigNumber.from(randomBytes(16)),
-                newSecret2 : ethers.BigNumber.from(randomBytes(16)),
-                wrongAddressNewSecret : ethers.BigNumber.from(randomBytes(16)),
-                wrongCountryNewSecret : ethers.BigNumber.from(randomBytes(16)),
-                countryCode : 2,
-                wrongCountryCode : 69,
-                subdivision : ethers.BigNumber.from(Buffer.from("NY")),
-                completedAt : ethers.BigNumber.from(Math.floor(Date.now()/1000)),
-                birthdate : 6969696969
-            }
-            
-
-            this.actionId = ethers.BigNumber.from("696969696969696969696969696969696969696969696969696969696969696969696969696"); // this number is poseidon("IsFromUS")
-            this.footprint = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.newSecret]));
-            this.footprint2 = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.newSecret2]));
-            this.wrongAddressFootprint = ethers.BigNumber.from(poseidon([this.actionId, this.leafParams.wrongAddressNewSecret]));
-            
-
-            this.oldLeaf = await createLeaf(
-              ethers.BigNumber.from(this.leafParams.issuerAddress), 
-              this.leafParams.oldSecret, 
-              this.leafParams.countryCode, 
-              this.leafParams.subdivision,
-              this.leafParams.completedAt,
-              this.leafParams.birthdate
-            );
-            
-            this.newLeaf = await createLeaf(
-              ethers.BigNumber.from(this.leafParams.issuerAddress), 
-              this.leafParams.newSecret, 
-              this.leafParams.countryCode, 
-              this.leafParams.subdivision,
-              this.leafParams.completedAt,
-              this.leafParams.birthdate
-            );
-
-            this.oldLeaf2 = await createLeaf(
-                ethers.BigNumber.from(this.leafParams.issuerAddress), 
-                this.leafParams.oldSecret2, 
-                this.leafParams.countryCode, 
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate
-              );
-              
-              this.newLeaf2 = await createLeaf(
-                ethers.BigNumber.from(this.leafParams.issuerAddress), 
-                this.leafParams.newSecret2, 
-                this.leafParams.countryCode, 
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate
-              );
-
-            this.oldLeafWrongAddress = await createLeaf(
-                ethers.BigNumber.from(this.leafParams.wrongIssuerAddress), 
-                this.leafParams.oldSecret, 
-                this.leafParams.countryCode,
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate
-            );
-
-            this.newLeafWrongAddress = await createLeaf(
-                ethers.BigNumber.from(this.leafParams.wrongIssuerAddress), 
-                this.leafParams.wrongAddressNewSecret, 
-                this.leafParams.countryCode,
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate
-            );
-    
-            this.additionProofGood = await createLeafAdditionProof(
-              ethers.BigNumber.from(this.leafParams.issuerAddress), 
-              this.leafParams.countryCode, 
-              this.leafParams.subdivision,
-              this.leafParams.completedAt,
-              this.leafParams.birthdate,
-              this.leafParams.oldSecret, 
-              this.leafParams.newSecret
-    
-            )
-
-            this.additionProofGood2 = await createLeafAdditionProof(
-                ethers.BigNumber.from(this.leafParams.issuerAddress), 
-                this.leafParams.countryCode, 
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate,
-                this.leafParams.oldSecret2, 
-                this.leafParams.newSecret2
-      
-              )
-
-            this.additionProofWrongAddress = await createLeafAdditionProof(
-                ethers.BigNumber.from(this.leafParams.wrongIssuerAddress), 
-                this.leafParams.countryCode, 
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate,
-                this.leafParams.oldSecret, 
-                this.leafParams.wrongAddressNewSecret, 
-      
-              )
-            
-           const tbsGood = Buffer.from(
-            ethers.BigNumber.from(this.oldLeaf).toHexString().replace("0x",""),
-            "hex"
-           );
-
-           const tbsGood2 = Buffer.from(
-            ethers.BigNumber.from(this.oldLeaf2).toHexString().replace("0x",""),
-            "hex"
-           );
-
-           const tbsWrongAddress = Buffer.from(
-            ethers.BigNumber.from(this.oldLeafWrongAddress).toHexString().replace("0x",""),
-            "hex"
-           );
-    
-           const sigGood = ethers.utils.splitSignature(
-            await this.account.signMessage(tbsGood)
-           );
-
-           const sigGood2 = ethers.utils.splitSignature(
-            await this.account.signMessage(tbsGood2)
-           );
-           
-           const sigWrongAddress = ethers.utils.splitSignature(
-            await this.someAccount.signMessage(tbsWrongAddress)
-           );
-
-            await this.hub.addLeaf(this.leafParams.issuerAddress, sigGood.v, sigGood.r, sigGood.s, this.additionProofGood.proof, this.additionProofGood.inputs);
-            await this.hub.addLeaf(this.leafParams.issuerAddress, sigGood2.v, sigGood2.r, sigGood2.s, this.additionProofGood2.proof, this.additionProofGood2.inputs);
-            await this.hub.addLeaf(this.leafParams.wrongIssuerAddress, sigWrongAddress.v, sigWrongAddress.r, sigWrongAddress.s, this.additionProofWrongAddress.proof, this.additionProofWrongAddress.inputs);
-
-            // Now, make proof of the new leaf
-            const t = Tree(14, [this.newLeaf, this.newLeaf2, this.newLeafWrongAddress]);
-            let proof = await t.createCLISerializedProof(0);
-            proof = proof.split(" ");
-            proof.shift();
-            proof = proof.join(" ")
-
-            const proofArgs = `${[
-                t.root, 
-                ethers.BigNumber.from(this.account.address),
-                ethers.BigNumber.from(this.leafParams.issuerAddress).toString(), 
-                this.actionId,
-                this.footprint,
-                this.leafParams.countryCode,
-                this.leafParams.subdivision,
-                this.leafParams.completedAt,
-                this.leafParams.birthdate,
-                this.leafParams.newSecret // newSecret == nullifier
-            ].join(" ", )
-            } ${ proof }`;
-            
-            await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
-            await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
-            this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
+            // Now, make proof of the new residency
+            this.proofObject = await createSRProof({ 
+                tree: this.tree, 
+                actionId: this.actionId, 
+                masala: this.masala,
+                address: this.account.address, 
+                ...this.leaves.correct.newLeaf.inputs
+            });
         });
 
         it("Proving uniqueness once works", async function() {
             // Check we aren't verified
-            expect(await this.resStore.isUniqueForAction(this.account.address, this.actionId)).to.equal(false);
+            expect(await this.sr.isUniqueForAction(this.account.address, this.actionId)).to.equal(false);
 
-            let tx = this.resStore.prove(this.proofObject.proof, this.proofObject.inputs);
-            expect(tx).to.emit(this.resStore, "Uniqueness").withArgs(this.account.address, this.actionId);
+            let tx = this.sr.prove(this.proofObject.proof, this.proofObject.inputs);
+
+            expect(tx).to.emit(this.sr, "Uniqueness").withArgs(this.account.address, this.actionId);
+
             await (await tx).wait();
             await ethers.provider.send("evm_mine");
             // Check we are verified
-            expect(await this.resStore.isUniqueForAction(this.account.address, this.actionId)).to.equal(true);            
+
+            expect(await this.sr.isUniqueForAction(this.account.address, this.actionId)).to.equal(true);  
+          
         });
 
         it("Using the same nullifier, cannot prove twice", async function() {
@@ -241,7 +127,7 @@ describe("SybilResistance", function () {
             await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
             await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
-            await expect(this.resStore.connect(this.someAccount).prove(this.proofObject.proof, this.proofObject.inputs)).to.be.revertedWith("One person can only verify once");
+            await expect(this.sr.connect(this.someAccount).prove(this.proofObject.proof, this.proofObject.inputs)).to.be.revertedWith("One person can only verify once");
         });
         
         it("Invalid proof doesn't work: root", async function() {
@@ -272,7 +158,7 @@ describe("SybilResistance", function () {
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
             
             await expect(
-                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+                this.sr.prove(this.proofObject.proof, this.proofObject.inputs)
             ).to.be.revertedWith("The root provided was not found in the Merkle tree's recent root list");
         });
 
@@ -302,7 +188,7 @@ describe("SybilResistance", function () {
             this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
             await expect(
-                this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+                this.sr.prove(this.proofObject.proof, this.proofObject.inputs)
             ).to.be.revertedWith("Proof must come from authority address");
         });
 
@@ -333,7 +219,7 @@ describe("SybilResistance", function () {
         //     this.proofObject = JSON.parse(readFileSync("tmp.proof.json").toString());
 
         //     await expect(
-        //         this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)
+        //         this.sr.prove(this.proofObject.proof, this.proofObject.inputs)
         //     ).to.be.revertedWith("Second public argument of proof must be your address");
         // });
     });
