@@ -16,19 +16,18 @@ contract SybilResistance is PaidProof {
     event Uniqueness(address userAddr, uint actionId);
 
     AntiSybilVerifier verifier; 
-    uint issuer; // "address" of the issuer
     IRootsMinimal roots;
 
     // allow for backwards compatability by also accepting users who verified in the old contract
     bool legacySupport;
     ISybilResistance oldContract; 
     
-    constructor(address roots_, uint256 issuer_, uint price_, address oldContract_) {
+    constructor(address roots_, uint[] memory issuers_, uint price_, address oldContract_) {
         roots = IRootsMinimal(roots_);
-        issuer = issuer_;
         verifier = new AntiSybilVerifier();
+        allowIssuers(issuers_);
         setPrice(price_);
-        
+
         if(oldContract_ != address(0)) {
             legacySupport = true;
             oldContract = ISybilResistance(oldContract_);
@@ -49,7 +48,7 @@ contract SybilResistance is PaidProof {
         // Checking msg.sender no longer seems very necessary and prevents signature-free interactions. Without it, relayers can submit cross-chain transactions without the user signature. Thus, we are deprecating this check:
         // require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
 
-        require(input[2] == issuer, "Proof must come from correct issuer's address"); 
+        require(isValidIssuer(input[2]), "Proof must come from correct issuer's address"); 
         require(!masalaWasUsed[input[4]], "One person can only verify once");
         require(verifier.verifyTx(proof, input), "Failed to verify ZKP");
         return true;

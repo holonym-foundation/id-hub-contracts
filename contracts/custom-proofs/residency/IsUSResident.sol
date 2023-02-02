@@ -14,7 +14,6 @@ contract IsUSResident is PaidProof {
     mapping(uint256 => bool) public masalaWasUsed;
 
     ProofOfCountry verifier; 
-    uint issuer; // "address" of the issuer
     IRootsMinimal roots;
     event USResidency(address userAddr, bool usResidency);
 
@@ -22,12 +21,12 @@ contract IsUSResident is PaidProof {
     bool legacySupport;
     IIsUSResident oldContract; 
 
-    constructor(address roots_, uint issuer_, uint price_, address oldContract_) {
+    constructor(address roots_, uint[] memory issuers_, uint price_, address oldContract_) {
         roots = IRootsMinimal(roots_);
-        issuer = issuer_;
         verifier = new ProofOfCountry();
+        allowIssuers(issuers_);
         setPrice(price_);
-
+        
         if(oldContract_ != address(0)) {
             legacySupport = true;
             oldContract = IIsUSResident(oldContract_);
@@ -45,7 +44,7 @@ contract IsUSResident is PaidProof {
         // Checking msg.sender no longer seems very necessary and prevents signature-free interactions. Without it, relayers can submit cross-chain transactions without the user signature. Thus, we are deprecating this check:
         // require(uint256(uint160(msg.sender)) == input[1], "Second public argument of proof must be your address");
         
-        require(input[2] == issuer, "Proof must come from correct issuer's address"); 
+        require(isValidIssuer(input[2]), "Proof must come from correct issuer's address"); 
         require(input[3] == 18450029681611047275023442534946896643130395402313725026917000686233641593164, "Footprint is made from the wrong salt"); //poseidon("IsFromUS")
         require(!masalaWasUsed[input[4]], "One person can only verify once");
         require(input[5] == 2, "Credentials do not have US as country code"); // 2 is prime that represents USA because USA is #2
