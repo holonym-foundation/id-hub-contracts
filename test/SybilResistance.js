@@ -63,7 +63,7 @@ describe("SybilResistance", function () {
         this.roots = await (await ethers.getContractFactory("Roots"))
             .connect(this.admin).deploy();
         this.sr = await (await ethers.getContractFactory("SybilResistance"))
-            .connect(this.admin).deploy(this.roots.address, ISSUER_ADDRESS, 0, ethers.constants.AddressZero);
+            .connect(this.admin).deploy(this.roots.address, [ISSUER_ADDRESS], 0, ethers.constants.AddressZero);
 
         this.actionId = ethers.BigNumber.from("18450029681611047275023442534946896643130395402313725026917000686233641593164"); // this number is poseidon("IsFromUS")
         this.masala = poseidon([this.actionId, this.leaves.correct.newLeaf.inputs.secret]);
@@ -128,7 +128,7 @@ describe("SybilResistance", function () {
             const roots_ = await (await ethers.getContractFactory("Roots"))
                 .deploy();
             const sr = await (await ethers.getContractFactory("SybilResistance"))
-            .deploy(roots_.address, ISSUER_ADDRESS, 0, ethers.constants.AddressZero);
+            .deploy(roots_.address, [ISSUER_ADDRESS], 0, ethers.constants.AddressZero);
 
             const tree = Tree(14, [this.leaves.correct.newLeaf.digest, this.leaves.wrongIssuer.newLeaf.digest]);
             this.roots.addRoot(tree.root);

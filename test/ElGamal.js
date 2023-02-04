@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { Proofs } = require("../utils/proofs");
 
-describe.only("ElGamal encryption&decryption over BabyJubJub", function (){
+describe("BabyJubJub ElGamal encryption", function (){
     before(async function (){
         this.correctEncryption = {
             msg : [ BigInt("0x1f41270b21a6236fe77038c2ae95dfba5dc18b0075ce0d8774c05682da30b605") , BigInt("0x2516e6ad11d596c1231dce1bee1c9e6763a95c5d57944478b4dabc3a8ad56a5c")],
@@ -31,18 +31,6 @@ describe.only("ElGamal encryption&decryption over BabyJubJub", function (){
                 c2: [proof.publicSignals[2], proof.publicSignals[3]],
             }
             expect(encrypted).to.deep.equal(this.correctEncryption.encrypted);
-        });
-
-        it("incorrect values", async function () {
-            const proof = await Proofs.encryptElGamal.prove({
-                messageAsPoint: this.correctEncryption.msg,
-                h: this.correctEncryption.pubkey,
-                y: this.correctEncryption.nonce
-            });
-
-            const result = await Proofs.encryptElGamal.verify(proof);
-            expect(result).to.equal(true);       
-            // await rejects(Proofs.onAddLeaf.prove(badCircuitInputs));
         });
         
     });
