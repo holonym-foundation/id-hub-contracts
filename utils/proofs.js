@@ -28,6 +28,14 @@ const Proofs = {
             return await verifyProofCircom("onAddLeaf", proof)
         }
     },
+    encryptElGamal : { 
+        prove : async (inputs) => {
+            return await createProofCircom("encryptElGamal", "encryptElGamal_0001", inputs)
+        },
+        verify : async (proof) => {
+            return await verifyProofCircom("encryptElGamal", proof)
+        }
+    },
     sybilResistance : { prove : ()=>{} } ,
     proofOfResidency : { prove : ()=>{} } ,
 }
