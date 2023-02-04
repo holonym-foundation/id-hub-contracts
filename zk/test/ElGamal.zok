@@ -1,3 +1,6 @@
 import "../ecc-in-circuit/encryptElGamal" as encryptElGamal;
 import "../ecc-in-circuit/encryptElGamal" as decryptElGamal;
 
+def main() {
+    assert(decryptElGamal(encryptElGamal([])))
+}

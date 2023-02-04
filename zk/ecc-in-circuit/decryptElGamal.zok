@@ -5,6 +5,7 @@ from "ecc/babyjubjubParams" import BABYJUBJUB_PARAMS as bjj;
 
 import "./messageFromPoint" as messageFromPoint;
 
+/* NOTE : this is not audited at all. Do not use in production */
 
 /* 
 ElGamal encryption on BabyJubJub curve 

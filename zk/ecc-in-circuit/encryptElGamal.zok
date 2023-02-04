@@ -4,7 +4,8 @@ import "ecc/edwardsScalarMult" as multiply;
 from "ecc/babyjubjubParams" import BABYJUBJUB_PARAMS as bjj;
 
 // Generator
-const field[2] g = [bjj.Gu, bjj.Gv]; // This order is correct or should it be Gv, Gu?!
+// Wait, this should be base point
+const field[2] g = [bjj.Gu, bjj.Gv];
 
 /* 
 ElGamal encryption on BabyJubJub curve 

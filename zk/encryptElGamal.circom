@@ -17,15 +17,16 @@ Inputs:
 template encryptElGamal () {  
     signal input h[2];
     signal input y;
-    signal input m;
+    // signal input m;
+    signal input messageAsPoint[2];
     signal output c1[2];
     signal output c2[2];
 
     component toBitsY = Num2Bits(254);
     toBitsY.in <== y;
 
-    component toBitsM = Num2Bits(256);
-    toBitsM.in <== m;
+    // component toBitsM = Num2Bits(256);
+    // toBitsM.in <== m;
 
     var BASE8[2] = [
         5299619240641551281634865583518297030282874472190772894086521144482721001553,
@@ -34,10 +35,10 @@ template encryptElGamal () {
     
     var i;
 
-    component messageToPoint = Bits2Point_Strict();
-    for (i=0; i<256; i++) {
-        messageToPoint.in[i] <== toBitsM.out[i];
-    }
+    // component messageToPoint = Bits2Point_Strict();
+    // for (i=0; i<256; i++) {
+    //     messageToPoint.in[i] <== toBitsM.out[i];
+    // }
     
     component getPubkey = EscalarMulFix(254, BASE8);
     for (i=0; i<254; i++) {
@@ -53,8 +54,8 @@ template encryptElGamal () {
     getSharedSecret.p <== h;
 
     component msgPlusSecret = BabyAdd();
-    msgPlusSecret.x1 <== messageToPoint.out[0];
-    msgPlusSecret.y1 <== messageToPoint.out[1];
+    msgPlusSecret.x1 <== messageAsPoint[0]; // messageToPoint.out[0];
+    msgPlusSecret.y1 <== messageAsPoint[1]; // messageToPoint.out[1];
     msgPlusSecret.x2 <== getSharedSecret.out[0];
     msgPlusSecret.y2 <== getSharedSecret.out[1];    
     
