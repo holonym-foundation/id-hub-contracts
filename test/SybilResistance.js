@@ -90,6 +90,12 @@ describe("SybilResistance", function () {
             });
         });
 
+        it("msgSenderAddress is constrained; nobody can frontrun by changing the address in the public inputs", async function() {
+            const badInputs = [...this.proofObject.inputs];
+            badInputs[1] = '0x0000000000000000000000000000000000000000000000000000000000000069';
+            await expect(this.sr.prove(this.proofObject.proof, badInputs)).to.be.revertedWith("Failed to verify ZKP");
+        });
+
         it("Proving uniqueness once works", async function() {
             // Check we aren't verified
             expect(await this.sr.isUniqueForAction(this.account.address, this.actionId)).to.equal(false);
@@ -105,6 +111,7 @@ describe("SybilResistance", function () {
             expect(await this.sr.isUniqueForAction(this.account.address, this.actionId)).to.equal(true);  
           
         });
+
 
         it("Using the same nullifier, cannot prove twice", async function() {
             await expect(this.sr.connect(this.someAccount).prove(this.proofObject.proof, this.proofObject.inputs)).to.be.revertedWith("One person can only verify once");

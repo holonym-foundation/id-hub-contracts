@@ -91,6 +91,12 @@ describe("IsUSResident", function () {
 
         });
 
+        it("msgSenderAddress is constrained; nobody can frontrun by changing the address in the public inputs", async function() {
+            const badInputs = [...this.proofObject.inputs];
+            badInputs[1] = '0x0000000000000000000000000000000000000000000000000000000000000069';
+            await expect(this.resStore.prove(this.proofObject.proof, badInputs)).to.be.revertedWith("Failed to verify proof");
+        });
+
         it("Proving your country works, but only once", async function() {
 
             await expect(this.resStore.prove(this.proofObject.proof, this.proofObject.inputs)).to.not.be.reverted;
