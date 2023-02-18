@@ -38,12 +38,12 @@ const Proofs = {
     },
     sybilResistance : { prove : ()=>{} } ,
     proofOfResidency : { prove : ()=>{} } ,
-    quinMerkleTree : {
+    testMerkleTree : {
         prove : async (inputs) => {
-            return await createProofCircom("merkleproof", "merkleproof_0001", inputs)
+            return await createProofCircom("merkleproof-testwrapper", "merkleproof-testwrapper_0001", inputs)
         },
         verify : async (proof) => {
-            return await verifyProofCircom("merkleproof", proof)
+            return await verifyProofCircom("merkleproof-testwrapper", proof)
         }
     },
 }

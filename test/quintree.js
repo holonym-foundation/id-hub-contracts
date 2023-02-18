@@ -4,9 +4,9 @@ const { Proofs } = require("../utils/proofs");
 
 const leafSets = [
     [1n, 2n, 3n],
-    // [100000n, 999999999999999n, 123456789n, 987654321n, 6969n],
-    // [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n],
-    // [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n],
+    [100000n, 999999999999999n, 123456789n, 987654321n, 6969n],
+    [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n],
+    [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n],
     // [100000n, 999999999999999n, 100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n],
     // [0n],
     // [0n,0n,0n,0n,0n],
@@ -60,17 +60,6 @@ class ErrorHandler {
 
 describe.only("Quinary Tree Circuit", function (){
     before(async function (){
-        /* By the end of the testing, there shuold be 4 different errors. one for each
-        * incorrect root, 
-        * incorrect leaf
-        * incorrect indices
-        * incorrect siblings
-        */
-        // this.errors = [];
-        // this.logError = (error) => {
-        //     if (!this.errors.includes(error)) {this.errors.push(error)}
-        //     console.log(this.errors)
-        // }
     });
     for (var i=0; i<leafSets.length; i++) {
         const errors = new ErrorHandler();
@@ -79,20 +68,20 @@ describe.only("Quinary Tree Circuit", function (){
         describe(`Leaf Set ${i}`, function (){
             it("correct values", async function () {
                 const mp = randMP(leaves);
-                const p = await Proofs.quinMerkleTree.prove(mp);
-                const result = await Proofs.quinMerkleTree.verify(p);
+                const p = await Proofs.testMerkleTree.prove(mp);
+                const result = await Proofs.testMerkleTree.verify(p);
                 expect(result).to.equal(true);
             });
             it("incorrect root", async function () {
                 const mp = randMP(leaves);
                 await errors.shouldUniquelyError(
-                    Proofs.quinMerkleTree.prove({...mp, root:mp.root+1n}),
+                    Proofs.testMerkleTree.prove({...mp, root:mp.root+1n}),
                 );
             });
             it("incorrect leaf", async function () {
                 const mp = randMP(leaves);
                 await errors.shouldUniquelyError(
-                    Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
+                    Proofs.testMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
                 );
             });
             it("incorrect indices", async function () {
@@ -108,7 +97,7 @@ describe.only("Quinary Tree Circuit", function (){
 
                     pathIndices_[randomIdx] = incorrect;
                     await errors.shouldUniquelyError(
-                        Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices_}),
+                        Proofs.testMerkleTree.prove({...mp, pathIndices: pathIndices_}),
                     );
                 }
             });
@@ -119,7 +108,7 @@ describe.only("Quinary Tree Circuit", function (){
                 const [i, j] = [randIdx(mp.siblings.length), randIdx(mp.siblings[0].length)];
                 siblings_[i][j] = siblings_[i][j] + 1n
                 await errors.shouldRepeatError(
-                    Proofs.quinMerkleTree.prove({...mp, siblings: siblings_}),
+                    Proofs.testMerkleTree.prove({...mp, siblings: siblings_}),
                 );
             });
             
