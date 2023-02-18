@@ -1,13 +1,14 @@
+include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "./merkleproof.circom";
 include "./encryptElGamal.circom";
+include "./hash.circom";
 
 // Country whitelist proof that proves correct encryption to the audit layer
 template ACW() {
+    // Accumulator which represents country whitelist. This is a product of whitelisted countries (mod the order of the BabyJubJub sugroup) -- each country has a corresponding prime number
+    signal input whitelistAccumulator;
     // Merkle root:
     signal input root;  
-
-    // Merkle leaf:
-    signal input leaf;
 
     // Merkle path sibling nodes
     signal input siblings;
@@ -45,9 +46,12 @@ template ACW() {
     
     /* ------------------------------------------------------------------------------------ */
 
-    // component leafMaker = Poseidon(6);
-    signal output out;
-    out <== 69;
+    component leafMaker = Hash();
+    signal leaf;
+    leafMaker.in <== [issuerAddr, pepper, countryCode, subdivision, iat, scope];
+    leaf <== leafMaker.out;
+
+
 }
 
-component main = ACW();
+component main { public [root, whitelistAccumulator, msgSenderAddr, issuerAddr] } = ACW();

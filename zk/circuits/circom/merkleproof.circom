@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
-include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
+include "./hash.circom";
 // Should test all permutations of
 // leaf: [CORRECT, INCORRECT]
 // root: [CORRECT, INCORRECT]
@@ -60,16 +60,6 @@ template QuinSelector(choices) {
 
     // Returns 0 + 0 + ... + item
     out <== calcTotal.sum;
-}
-
-template Hash() {
-    signal input in[5];
-    signal output out;
-    component hasher = Poseidon(5);
-    for (var i = 0; i < 5; i ++) {
-        hasher.inputs[i] <== in[i];
-    }
-    out <== hasher.out;
 }
 
 template MerkleProof(depth, arity) {
