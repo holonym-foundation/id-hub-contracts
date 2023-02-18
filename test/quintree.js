@@ -16,15 +16,27 @@ const leafSets = [
 class ErrorHandler {
     constructor() {
         this.errors = [];
+        this.messages = {
+            noErr : "shouldUniquelyError expected a unique error but received no error at all",
+            errSeenBefore : "shouldUniquelyError expected a unique error"
+        };
     }
-    logError(e) { if (!this.errors.includes(e)) {this.errors.push(e)} }
+    throwIfErrSeenBefore(err) { 
+        if (this.errors.includes(err)) {
+            throw Error(this.messages.errSeenBefore)
+        } else {
+            this.errors.push(err);
+        }
+    }
     async shouldUniquelyError(promise) {
         try {
             await promise;
-            expect("this should have errored").to.equal("but it didn't");
+            // await promise should have thrown. Throw an error that promise didn't throw and this line is therefore called
+            throw Error(this.messages.noErr)
         }    
         catch(e) {
-            this.logError(e.message)
+            if (e.message === this.messages.noErr) { throw e }
+            this.throwIfErrSeenBefore(e);
         }
         // finally {
         //     done();
@@ -71,25 +83,30 @@ describe.only("Quinary Tree Circuit", function (){
             });
             it("incorrect indices", async function () {
                 const mp = randMP(leaves);
-                const pathIndices = [...mp.pathIndices];
-                const randomIdx = randIdx(pathIndices.length);
-                const correct =  pathIndices[randomIdx];
+                const pathIndices_ = [...mp.pathIndices];
+                const randomIdx = randIdx(pathIndices_.length);
+                const correct =  pathIndices_[randomIdx];
                 const incorrect = ((parseInt(correct) + 1) % 4).toString(); // Can't be more than 4
 
                 // This test won't work when two adjacent values in the Merkle tree are the same and one of them occurs at randIdx. Even though the path would wrong, the proof would still succeed.
                 // Hence, don't expect it to fail; do not run this test. Only run if the adjacent sisters differ:
                 if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
 
-                    pathIndices[randomIdx] = incorrect;
+                    pathIndices_[randomIdx] = incorrect;
                     await errors.shouldUniquelyError(
-                        Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices}),
+                        Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices_}),
                     );
                 }
             });
 
-            it("incorrect siblings", async function () {
-                
-            });
+            // it("incorrect siblings", async function () {
+            //     const mp = randMP(leaves);
+            //     const siblings_ = [...mp.siblings];
+            //     const [i, j] = [randIdx(mp.siblings.length), randIdx(mp.siblings[0].length)]
+            //     await errors.shouldUniquelyError(
+            //         Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
+            //     );
+            // });
             it("the errors thrown came from failures to match different constraints", function() {
                 expect(errors.errors.length).to.equal(4);
             });
