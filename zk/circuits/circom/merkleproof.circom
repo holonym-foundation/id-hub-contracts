@@ -95,7 +95,7 @@ template MerkleProof(depth, arity) {
         s[level].out  === acc[level];
 
         // Set the accumulator of the next level:
-        h[level] = Hash();
+        h[level] = Hash5();
         h[level].in <== siblings[level];
         acc[level+1] <== h[level].out;
 
