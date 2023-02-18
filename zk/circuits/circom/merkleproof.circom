@@ -5,11 +5,11 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 // leaf: [CORRECT, INCORRECT]
 // root: [CORRECT, INCORRECT]
 // path: [CORRECT, INCORRECT]
-// indices: [CORRECT, INCORRECT]
-// that have either one element INCORRECT or all elements CORRECT
+// pathIndices: [CORRECT, INCORRECT]
+// that have either one element INCORRECT or all siblings CORRECT
 // and ensure it only succeeds when 
-// all elements CORRECT
-// This doesn't cover all edge cases of why the elements could be INCORRECT...probably worth auditing!
+// all siblings CORRECT
+// This doesn't cover all edge cases of why the siblings could be INCORRECT...probably worth auditing!
 
 /* FROM: PSE IncrementalQuinTree https://github.com/privacy-scaling-explorations/incrementalquintree/blob/master/circom/calculateTotal.circom */
 // This circuit returns the sum of the inputs.
@@ -75,37 +75,37 @@ template Hash() {
 template MerkleProof(depth, arity) {
     signal input root;
     signal input leaf;
-    signal input elements[depth][arity];
-    signal input indices[depth];
+    signal input siblings[depth][arity];
+    signal input pathIndices[depth];
     
     // To refer to all the different Hash and QuinSelector components that will be used per level
     component h[depth];
     component s[depth];
 
     var level; 
-    var idx = indices[0];
+    var idx = pathIndices[0];
 
-    // Check that elements[indices[0]] == leaf
+    // Check that siblings[pathIndices[0]] == leaf
     component leafWasSupplied = QuinSelector(5);
-    leafWasSupplied.in <== elements[0];
+    leafWasSupplied.in <== siblings[0];
     leafWasSupplied.index <== idx;
     leafWasSupplied.out === leaf;
 
-    // Accumulator tracks what the index should point to: either the leaf for iteration 0, or the hash of previous elements for iteration > 0
+    // Accumulator tracks what the index should point to: either the leaf for iteration 0, or the hash of previous siblings for iteration > 0
     signal acc[depth+1];
     acc[0] <== leaf;
     
     for (level = 0; level < depth; level++) {
-        idx = indices[level];
-        // Check the accumulator of this level was included in elements[level]
+        idx = pathIndices[level];
+        // Check the accumulator of this level was included in siblings[level]
         s[level] = QuinSelector(5);
-        s[level].in <== elements[level];
+        s[level].in <== siblings[level];
         s[level].index <== idx;
         s[level].out  === acc[level];
 
         // Set the accumulator of the next level:
         h[level] = Hash();
-        h[level].in <== elements[level];
+        h[level].in <== siblings[level];
         acc[level+1] <== h[level].out;
 
     }

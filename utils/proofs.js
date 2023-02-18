@@ -38,6 +38,14 @@ const Proofs = {
     },
     sybilResistance : { prove : ()=>{} } ,
     proofOfResidency : { prove : ()=>{} } ,
+    quinMerkleTree : {
+        prove : async (inputs) => {
+            return await createProofCircom("merkleproof", "merkleproof_0001", inputs)
+        },
+        verify : async (proof) => {
+            return await verifyProofCircom("merkleproof", proof)
+        }
+    },
 }
 
 module.exports = {
