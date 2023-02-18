@@ -115,4 +115,4 @@ template MerkleProof(depth, arity) {
 
 }
 
-component main = MerkleProof(14,5);
+component main {public [root, leaf, siblings, pathIndices]}= MerkleProof(14,5);
