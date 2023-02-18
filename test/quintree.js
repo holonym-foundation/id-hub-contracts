@@ -17,12 +17,18 @@ class ErrorHandler {
     constructor() {
         this.errors = [];
     }
-    logError(e) { console.log("logging", this.errors); if (!this.errors.includes(e)) {this.errors.push(e); console.log("pushed", e, this.errors) } }
-    shouldUniquelyError(promise, done) {
-            promise
-            .then(p=>expect("this should have errored").to.equal("but it didn't"))
-            .catch(e=>logError(e.message))
-            done();
+    logError(e) { if (!this.errors.includes(e)) {this.errors.push(e)} }
+    async shouldUniquelyError(promise) {
+        try {
+            await promise;
+            expect("this should have errored").to.equal("but it didn't");
+        }    
+        catch(e) {
+            this.logError(e.message)
+        }
+        // finally {
+        //     done();
+        // }
     }
 }
 
@@ -51,21 +57,19 @@ describe.only("Quinary Tree Circuit", function (){
                 const result = await Proofs.quinMerkleTree.verify(p);
                 expect(result).to.equal(true);
             });
-            it("incorrect root", async function (done) {
+            it("incorrect root", async function () {
                 const mp = randMP(leaves);
-                errors.shouldUniquelyError(
+                await errors.shouldUniquelyError(
                     Proofs.quinMerkleTree.prove({...mp, root:mp.root+1n}),
-                    done
                 );
             });
-            it("incorrect leaf", async function (done) {
+            it("incorrect leaf", async function () {
                 const mp = randMP(leaves);
-                errors.shouldUniquelyError(
+                await errors.shouldUniquelyError(
                     Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
-                    done
                 );
             });
-            it("incorrect indices", async function (done) {
+            it("incorrect indices", async function () {
                 const mp = randMP(leaves);
                 const pathIndices = [...mp.pathIndices];
                 const randomIdx = randIdx(pathIndices.length);
@@ -77,10 +81,9 @@ describe.only("Quinary Tree Circuit", function (){
                 if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
 
                     pathIndices[randomIdx] = incorrect;
-                    errors.shouldUniquelyError(
+                    await errors.shouldUniquelyError(
                         Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices}),
-                        done
-                    )
+                    );
                 }
             });
 
