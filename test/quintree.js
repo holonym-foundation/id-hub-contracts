@@ -31,6 +31,12 @@ describe.only("Quinary Tree Circuit", function (){
     for (var i=0; i<leafSets.length; i++) {
         const errors = [];
         const logError = (error) => { if (!errors.includes(error)) {errors.push(error) } }
+        const shouldUniquelyError = (promise, done) =>
+            promise
+            .then(p=>{console.log("abcdefg");expect("this should have errored").to.equal("but it didn't")})
+            .catch(function(e){console.log(e.message);logError(e.message)})
+            .finally(_=>done())
+        
         const leaves = leafSets[i];
         describe(`Leaf Set ${i}`, function (){
             it("correct values", async function () {
@@ -61,10 +67,10 @@ describe.only("Quinary Tree Circuit", function (){
                 if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
                     
                     pathIndices[randomIdx] = incorrect;
-                    Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices})
-                    .then(p=>expect("this should have errored").to.equal("but it didn't"))
-                    .catch(function(e){console.log(e.message);logError(e.message)})
-                    .finally(_=>done());
+                    shouldUniquelyError(
+                        Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices}),
+                        done
+                    )
                 }
             });
 
