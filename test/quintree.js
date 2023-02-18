@@ -23,17 +23,13 @@ describe.only("Quinary Tree Circuit", function (){
         const leaves = leafSets[i];
         describe(`Leaf Set ${i}`, function (){
             it("correct values", async function () {
-                const tree = Tree(14, leaves);
-                const idx = randIdx(leaves.length);
-                const mp = tree.createProof(idx);
+                const mp = randMP(leaves);
                 const p = await Proofs.quinMerkleTree.prove(mp);
                 const result = await Proofs.quinMerkleTree.verify(p);
                 expect(result).to.equal(true);
             });
             it("incorrect root", async function () {
-                const tree = Tree(14, leaves);
-                const idx = randIdx(leaves.length);
-                const mp = tree.createProof(idx);
+                const mp = randMP(leaves);
                 console.log("should error:")
                 await rejects(Proofs.quinMerkleTree.prove({...mp, root:mp.root+1n}));
             });
@@ -45,3 +41,10 @@ describe.only("Quinary Tree Circuit", function (){
 
 // returns a random index i for an array of length `length`
 function randIdx(length) { return Math.floor(Math.random() * length ) }
+
+// returns a merkle proof from leaves at a random index
+function randMP(leaves) { 
+    const tree = Tree(14, leaves);
+    const idx = randIdx(leaves.length);
+    return tree.createProof(idx);
+}
