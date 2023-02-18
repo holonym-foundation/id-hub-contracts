@@ -4,12 +4,13 @@ const { Proofs } = require("../utils/proofs");
 
 const leafSets = [
     [1n, 2n, 3n],
-    // [100000n, 999999999999999n, 123456789n, 987654321n, 6969n],
-    // [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n],
-    // [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n],
-    // [0n],
-    // [0n,0n,0n,0n,0n],
-    // [0n,0n,0n,0n,0n,0n],
+    [100000n, 999999999999999n, 123456789n, 987654321n, 6969n],
+    [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n],
+    [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n],
+    [100000n, 999999999999999n, 100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n],
+    [0n],
+    [0n,0n,0n,0n,0n],
+    [0n,0n,0n,0n,0n,0n],
 ];
 
 
@@ -26,7 +27,7 @@ describe.only("Quinary Tree Circuit", function (){
                 const mp = tree.createProof(idx);
                 const p = await Proofs.quinMerkleTree.prove(mp);
                 const result = await Proofs.quinMerkleTree.verify(p);
-                // console.log(result)
+                expect(result).to.equal(true);
             });
             
         });
