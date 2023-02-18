@@ -47,8 +47,10 @@ const createProofOfResidency = async ({tree, salt, masala, address, addr, secret
         
         await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/proofOfResidency.out -o tmp.witness`);
         await exec(`zokrates generate-proof -i zk/compiled/proofOfResidency.out -w tmp.witness -p zk/pvkeys/proofOfResidency.proving.key -j tmp.proof.json`);
-        return JSON.parse(readFileSync("tmp.proof.json").toString());
-}
+        let r = JSON.parse(readFileSync("tmp.proof.json").toString());
+        await exec(`rm -r out.wtns tmp.witness tmp.proof.json`);
+        return r;
+    }
 
 describe("IsUSResident", function () {
     before(async function() {

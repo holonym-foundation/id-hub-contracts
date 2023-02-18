@@ -45,8 +45,10 @@ const createSRProof= async ({tree, actionId, masala, address, addr, secret, cust
         
         await exec(`zokrates compute-witness -a ${proofArgs} -i zk/compiled/antiSybil.out -o tmp.witness`);
         await exec(`zokrates generate-proof -i zk/compiled/antiSybil.out -w tmp.witness -p zk/pvkeys/antiSybil.proving.key -j tmp.proof.json`);
-        return JSON.parse(readFileSync("tmp.proof.json").toString());
-}
+        let r = JSON.parse(readFileSync("tmp.proof.json").toString());
+        await exec(`rm -r out.wtns tmp.witness tmp.proof.json`);
+        return r;
+    }
 
 describe("SybilResistance", function () {
     before(async function() {
