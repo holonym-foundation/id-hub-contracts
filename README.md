@@ -1,7 +1,7 @@
 # Docs
-Not officially published. Temporary link: https://opsci.gitbook.io/untitled/4alwUHFeMIUzhQ8BnUBD/
-# Files ready for audit:
-**contracts/\***,
-**test/\***
+https://docs.holonym.id
+# Paths to be audited:
+**contracts/**,
+**test/**,
+**zk/***,
 
-**zk/onAddCredentials\*.zok**
