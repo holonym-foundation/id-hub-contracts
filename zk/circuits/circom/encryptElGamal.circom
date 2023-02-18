@@ -63,5 +63,3 @@ template encryptElGamal () {
 
         
 }
-
-component main = encryptElGamal();

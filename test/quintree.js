@@ -57,7 +57,7 @@ class ErrorHandler {
     }
 }
 
-describe.only("Quinary Tree Circuit", function (){
+describe("Quinary Tree Circuit", function (){
     before(async function (){
     });
     for (var i=0; i<leafSets.length; i++) {

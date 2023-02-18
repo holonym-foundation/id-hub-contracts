@@ -16,13 +16,13 @@ describe("BabyJubJub ElGamal encryption", function (){
     });
     describe("Encryption", function (){
         it("correct values", async function () {
-            const proof = await Proofs.encryptElGamal.prove({
+            const proof = await Proofs.testEGEncryption.prove({
                 messageAsPoint: this.correctEncryption.msg,
                 h: this.correctEncryption.pubkey,
                 y: this.correctEncryption.nonce
             });
 
-            const result = await Proofs.encryptElGamal.verify(proof);
+            const result = await Proofs.testEGEncryption.verify(proof);
             expect(result).to.equal(true);       
 
             // Make sure the result has the correct encrypted point:
