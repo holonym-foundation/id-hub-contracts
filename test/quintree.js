@@ -22,10 +22,10 @@ class ErrorHandler {
         };
     }
     throwIfErrSeenBefore(err) { 
-        if (this.errors.includes(err)) {
+        if (this.errors.includes(err.message)) {
             throw Error(this.messages.errSeenBefore)
         } else {
-            this.errors.push(err);
+            this.errors.push(err.message);
         }
     }
     async shouldUniquelyError(promise) {
@@ -99,15 +99,17 @@ describe.only("Quinary Tree Circuit", function (){
                 }
             });
 
-            // it("incorrect siblings", async function () {
-            //     const mp = randMP(leaves);
-            //     const siblings_ = [...mp.siblings];
-            //     const [i, j] = [randIdx(mp.siblings.length), randIdx(mp.siblings[0].length)]
-            //     await errors.shouldUniquelyError(
-            //         Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
-            //     );
-            // });
+            it("incorrect siblings", async function () {
+                const mp = randMP(leaves);
+                const siblings_ = [...mp.siblings];
+                const [i, j] = [randIdx(mp.siblings.length), randIdx(mp.siblings[0].length)];
+                siblings_[i][j] = siblings_[i][j] + 1n
+                await errors.shouldUniquelyError(
+                    Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
+                );
+            });
             it("the errors thrown came from failures to match different constraints", function() {
+                console.log("errors", errors.errors)
                 expect(errors.errors.length).to.equal(4);
             });
             
