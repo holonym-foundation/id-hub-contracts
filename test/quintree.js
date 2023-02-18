@@ -7,10 +7,9 @@ const leafSets = [
     [100000n, 999999999999999n, 123456789n, 987654321n, 6969n],
     [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n],
     [100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n],
-    // [100000n, 999999999999999n, 100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n],
-    // [0n],
-    // [0n,0n,0n,0n,0n],
-    // [0n,0n,0n,0n,0n,0n],
+    [100000n, 999999999999999n, 100000n, 999999999999999n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 987654321n, 6969n, 0n, 1n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n, 123456789n],
+    [123n, 0n],
+    [123n, 0n, 0n, 0n, 0n, 0n]
 ];
 
 class ErrorHandler {
@@ -18,20 +17,20 @@ class ErrorHandler {
         this.errors = [];
         this.messages = {
             noErr : "shouldUniquelyError expected a unique error but received no error at all",
-            errSeenBefore : "shouldUniquelyError expected a unique error: ",
+            errSeenBefore : "shouldUniquelyError expected a unique error but received: ",
             errNotSeenBefore : "shouldUniquelyError expected a previous error but received a new error: "
         };
     }
     throwIfErrSeenBefore(err) { 
         if (this.errors.includes(err.message)) {
-            throw Error(this.messages.errSeenBefore + err.message)
+            throw Error(`${this.messages.errSeenBefore} ${err.message} \n Errors seen so far were ${this.errors.join("\n")}`)
         } else {
             this.errors.push(err.message);
         }
     }
     throwIfErrNotSeenBefore(err) { 
         if (!this.errors.includes(err.message)) {
-            throw Error(this.messages.errNotSeenBefore + err.message)
+            throw Error(`${this.messages.errNotSeenBefore } ${err.message} \n Errors seen so far were ${this.errors.join("\n")}`)
         } 
     }
     async shouldUniquelyError(promise) {
@@ -87,25 +86,29 @@ describe.only("Quinary Tree Circuit", function (){
             it("incorrect indices", async function () {
                 const mp = randMP(leaves);
                 const pathIndices_ = [...mp.pathIndices];
-                const randomIdx = randIdx(pathIndices_.length);
+                const randomIdx = randIdx(pathIndices_.length, { notZero : true }); // If randomIdx can be 0, the error can be the same as the incorrect leaf error because the level will be at index 0
                 const correct =  pathIndices_[randomIdx];
                 const incorrect = ((parseInt(correct) + 1) % 4).toString(); // Can't be more than 4
 
                 // This test won't work when two adjacent values in the Merkle tree are the same and one of them occurs at randIdx. Even though the path would wrong, the proof would still succeed.
                 // Hence, don't expect it to fail; do not run this test. Only run if the adjacent sisters differ:
-                if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
+                // if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
 
-                    pathIndices_[randomIdx] = incorrect;
-                    await errors.shouldUniquelyError(
-                        Proofs.testMerkleTree.prove({...mp, pathIndices: pathIndices_}),
-                    );
-                }
+                pathIndices_[randomIdx] = incorrect;
+                await errors.shouldUniquelyError(
+                    Proofs.testMerkleTree.prove({...mp, pathIndices: pathIndices_}),
+                );
+                // }
             });
 
             it("incorrect siblings", async function () {
                 const mp = randMP(leaves);
                 const siblings_ = [...mp.siblings];
-                const [i, j] = [randIdx(mp.siblings.length), randIdx(mp.siblings[0].length)];
+                const [i, j] = [
+                    randIdx(mp.siblings.length, { notZero : true }), // If i can be 0, the error can be the same as the incorrect leaf error because the level will be at index 0
+                    randIdx(mp.siblings[0].length)
+                ];  
+
                 siblings_[i][j] = siblings_[i][j] + 1n
                 await errors.shouldRepeatError(
                     Proofs.testMerkleTree.prove({...mp, siblings: siblings_}),
@@ -117,7 +120,12 @@ describe.only("Quinary Tree Circuit", function (){
 });
 
 // returns a random index i for an array of length `length`
-function randIdx(length) { return Math.floor(Math.random() * length ) }
+function randIdx(length, options) { 
+    if(options?.notZero) {
+        return Math.ceil(Math.random() * length-1 )
+    }
+    return Math.floor(Math.random() * length ) 
+}
 
 // returns a merkle proof from leaves at a random index
 function randMP(leaves) { 
