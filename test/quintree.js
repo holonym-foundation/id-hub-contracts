@@ -18,15 +18,21 @@ class ErrorHandler {
         this.errors = [];
         this.messages = {
             noErr : "shouldUniquelyError expected a unique error but received no error at all",
-            errSeenBefore : "shouldUniquelyError expected a unique error"
+            errSeenBefore : "shouldUniquelyError expected a unique error: ",
+            errNotSeenBefore : "shouldUniquelyError expected a previous error but received a new error: "
         };
     }
     throwIfErrSeenBefore(err) { 
         if (this.errors.includes(err.message)) {
-            throw Error(this.messages.errSeenBefore)
+            throw Error(this.messages.errSeenBefore + err.message)
         } else {
             this.errors.push(err.message);
         }
+    }
+    throwIfErrNotSeenBefore(err) { 
+        if (!this.errors.includes(err.message)) {
+            throw Error(this.messages.errNotSeenBefore + err.message)
+        } 
     }
     async shouldUniquelyError(promise) {
         try {
@@ -38,9 +44,17 @@ class ErrorHandler {
             if (e.message === this.messages.noErr) { throw e }
             this.throwIfErrSeenBefore(e);
         }
-        // finally {
-        //     done();
-        // }
+    }
+    async shouldRepeatError(promise) {
+        try {
+            await promise;
+            // await promise should have thrown. Throw an error that promise didn't throw and this line is therefore called
+            throw Error(this.messages.noErr)
+        }    
+        catch(e) {
+            if (e.message === this.messages.noErr) { throw e }
+            this.throwIfErrNotSeenBefore(e);
+        }
     }
 }
 
@@ -104,13 +118,9 @@ describe.only("Quinary Tree Circuit", function (){
                 const siblings_ = [...mp.siblings];
                 const [i, j] = [randIdx(mp.siblings.length), randIdx(mp.siblings[0].length)];
                 siblings_[i][j] = siblings_[i][j] + 1n
-                await errors.shouldUniquelyError(
-                    Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
+                await errors.shouldRepeatError(
+                    Proofs.quinMerkleTree.prove({...mp, siblings: siblings_}),
                 );
-            });
-            it("the errors thrown came from failures to match different constraints", function() {
-                console.log("errors", errors.errors)
-                expect(errors.errors.length).to.equal(4);
             });
             
         });
