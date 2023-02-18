@@ -1,4 +1,3 @@
-const { rejects } = require("assert");
 const { expect } = require("chai");
 const { Tree } = require("holo-merkle-utils");
 const { Proofs } = require("../utils/proofs");
@@ -13,6 +12,19 @@ const leafSets = [
     // [0n,0n,0n,0n,0n],
     // [0n,0n,0n,0n,0n,0n],
 ];
+
+class ErrorHandler {
+    constructor() {
+        this.errors = [];
+    }
+    logError(e) { console.log("logging", this.errors); if (!this.errors.includes(e)) {this.errors.push(e); console.log("pushed", e, this.errors) } }
+    shouldUniquelyError(promise, done) {
+            promise
+            .then(p=>expect("this should have errored").to.equal("but it didn't"))
+            .catch(e=>logError(e.message))
+            done();
+    }
+}
 
 describe.only("Quinary Tree Circuit", function (){
     before(async function (){
@@ -29,13 +41,7 @@ describe.only("Quinary Tree Circuit", function (){
         // }
     });
     for (var i=0; i<leafSets.length; i++) {
-        const errors = [];
-        const logError = (error) => { if (!errors.includes(error)) {errors.push(error) } }
-        const shouldUniquelyError = (promise, done) =>
-            promise
-            .then(p=>{console.log("abcdefg");expect("this should have errored").to.equal("but it didn't")})
-            .catch(function(e){console.log(e.message);logError(e.message)})
-            .finally(_=>done())
+        const errors = new ErrorHandler();
         
         const leaves = leafSets[i];
         describe(`Leaf Set ${i}`, function (){
@@ -47,14 +53,14 @@ describe.only("Quinary Tree Circuit", function (){
             });
             it("incorrect root", async function (done) {
                 const mp = randMP(leaves);
-                shouldUniquelyError(
+                errors.shouldUniquelyError(
                     Proofs.quinMerkleTree.prove({...mp, root:mp.root+1n}),
                     done
                 );
             });
             it("incorrect leaf", async function (done) {
                 const mp = randMP(leaves);
-                shouldUniquelyError(
+                errors.shouldUniquelyError(
                     Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
                     done
                 );
@@ -71,7 +77,7 @@ describe.only("Quinary Tree Circuit", function (){
                 if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
 
                     pathIndices[randomIdx] = incorrect;
-                    shouldUniquelyError(
+                    errors.shouldUniquelyError(
                         Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices}),
                         done
                     )
@@ -82,7 +88,7 @@ describe.only("Quinary Tree Circuit", function (){
                 
             });
             it("the errors thrown came from failures to match different constraints", function() {
-                expect(errors.length).to.equal(4);
+                expect(errors.errors.length).to.equal(4);
             });
             
         });
