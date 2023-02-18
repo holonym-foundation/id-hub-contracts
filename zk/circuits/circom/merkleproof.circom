@@ -2,48 +2,14 @@ pragma circom 2.0.0;
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 // Should test all permutations of
-// leaf: [GOOD, BAD]
-// root: [GOOD, BAD]
-// path: [GOOD, BAD]
-// indices: [GOOD, BAD]
+// leaf: [CORRECT, INCORRECT]
+// root: [CORRECT, INCORRECT]
+// path: [CORRECT, INCORRECT]
+// indices: [CORRECT, INCORRECT]
+// that have either one element INCORRECT or all elements CORRECT
 // and ensure it only succeeds when 
-// leaf = GOOD, root = GOOD, path = GOOD, indices = GOOD
-// This doesn't cover all edge cases of why the elements could be bad...probably worth auditing!
-
-
-// /* Modified from PSE IQT https://github.com/privacy-scaling-explorations/incrementalquintree/blob/master/circom/incrementalQuinTree.circom
-//  * Given a list of sister nodes and an index, output whether shouldBeAt at idx is equal to array 
-//  */
-// template SistersHaveElementAtIdx(choices) {
-//     signal input array[choices];
-//     signal input idx;
-//     signal input shouldBeAtIdx;
-//     signal output out;
-    
-//     // Ensure that index < choices
-//     component lessThan = LessThan(3);
-//     lessThan.in[0] <== index;
-//     lessThan.in[1] <== choices;
-//     lessThan.out === 1;
-
-//     component calcTotal = CalculateTotal(choices);
-//     component eqs[choices];
-
-//     var acc;
-//     // For each item, check whether its index equals the input index.
-//     for (var i = 0; i < choices; i ++) {
-//         eqs[i] = IsEqual();
-//         eqs[i].in[0] <== i;
-//         eqs[i].in[1] <== index;
-
-//         // eqs[i].out is 1 if the index matches. As such, at most one input to
-//         // calcTotal is not 0.
-//         calcTotal.nums[i] <== eqs[i].out * in[i];
-//     }
-
-//     // Returns 0 + 0 + ... + item
-//     out <== calcTotal.sum;
-// }
+// all elements CORRECT
+// This doesn't cover all edge cases of why the elements could be INCORRECT...probably worth auditing!
 
 /* FROM: PSE IncrementalQuinTree https://github.com/privacy-scaling-explorations/incrementalquintree/blob/master/circom/calculateTotal.circom */
 // This circuit returns the sum of the inputs.
