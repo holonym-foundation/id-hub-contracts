@@ -12,6 +12,7 @@ const leafSets = [
     // [0n,0n,0n,0n,0n,0n],
 ];
 
+
 describe.only("Quinary Tree Circuit", function (){
     before(async function (){
         this.leafSets
@@ -21,19 +22,17 @@ describe.only("Quinary Tree Circuit", function (){
         describe(`Leaf Set ${i}`, function (){
             it("correct values", async function () {
                 const tree = Tree(14, leaves);
-                const randIdx = Math.floor(Math.random() * leaves.length);
-                const mp = tree.createProof(randIdx);
-                try {
-                    const result = Proofs.quinMerkleTree.prove(mp);
-                    console.log("TYPEOF RESULT", typeof result)
-                    console.log("keys", Object.keys(result))
-                } catch(e) {
-                    console.error(e, "correct values: didn't work when proof = ", mp);
-                }
-
+                const idx = randIdx(leaves.length);
+                const mp = tree.createProof(idx);
+                const p = await Proofs.quinMerkleTree.prove(mp);
+                const result = await Proofs.quinMerkleTree.verify(p);
+                // console.log(result)
             });
             
         });
     }
 
 });
+
+// returns a random index i for an array of length `length`
+function randIdx(length) { return Math.floor(Math.random() * length ) }

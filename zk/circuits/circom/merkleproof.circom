@@ -77,6 +77,7 @@ template MerkleProof(depth, arity) {
     signal input leaf;
     signal input siblings[depth][arity];
     signal input pathIndices[depth];
+    // signal output debug[5];
     
     // To refer to all the different Hash and QuinSelector components that will be used per level
     component h[depth];
@@ -110,7 +111,7 @@ template MerkleProof(depth, arity) {
 
     }
 
-    root === acc[depth-1];
+    root === acc[depth];
 
 }
 
