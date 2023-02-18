@@ -45,15 +45,19 @@ describe.only("Quinary Tree Circuit", function (){
                 const result = await Proofs.quinMerkleTree.verify(p);
                 expect(result).to.equal(true);
             });
-            it("incorrect root", async function () {
+            it("incorrect root", async function (done) {
                 const mp = randMP(leaves);
-                console.log("should error:")
-                await rejects(Proofs.quinMerkleTree.prove({...mp, root:mp.root+1n}));
+                shouldUniquelyError(
+                    Proofs.quinMerkleTree.prove({...mp, root:mp.root+1n}),
+                    done
+                );
             });
-            it("incorrect leaf", async function () {
+            it("incorrect leaf", async function (done) {
                 const mp = randMP(leaves);
-                console.log("should error:")
-                await rejects(Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}));
+                shouldUniquelyError(
+                    Proofs.quinMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
+                    done
+                );
             });
             it("incorrect indices", async function (done) {
                 const mp = randMP(leaves);
@@ -65,7 +69,7 @@ describe.only("Quinary Tree Circuit", function (){
                 // This test won't work when two adjacent values in the Merkle tree are the same and one of them occurs at randIdx. Even though the path would wrong, the proof would still succeed.
                 // Hence, don't expect it to fail; do not run this test. Only run if the adjacent sisters differ:
                 if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
-                    
+
                     pathIndices[randomIdx] = incorrect;
                     shouldUniquelyError(
                         Proofs.quinMerkleTree.prove({...mp, pathIndices: pathIndices}),
