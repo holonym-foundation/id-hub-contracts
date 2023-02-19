@@ -14,7 +14,7 @@ Inputs:
     m: a point representing the message to encrypt
 */
 
-template encryptElGamal () {  
+template EncryptElGamal () {  
     signal input h[2];
     signal input y;
     // signal input m;
