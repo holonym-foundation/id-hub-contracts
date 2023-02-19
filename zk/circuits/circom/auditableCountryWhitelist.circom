@@ -67,6 +67,8 @@ template ACW() {
     mp.siblings <== siblings;
     mp.pathIndices <== pathIndices;
 
+    // Is this whitelist safe mod l? what if the country is a generator of every element of the Fl under multiplication? Then the country could be proven to exist in any accumulator. But i don't think 
+    // Perhaps check that factor is less than a certian number? 
     component whitelist = WhitelistByPrime();
     whitelist.accumulator <== whitelistAccumulator;
     whitelist.member <== countryCode;
