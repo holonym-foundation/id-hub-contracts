@@ -30,12 +30,12 @@ const Proofs = {
     },
     sybilResistance : { prove : ()=>{} } ,
     proofOfResidency : { prove : ()=>{} } ,
-    auditableCountryWhitelist : {
+    testAuditableProof : {
         prove : async (inputs) => {
-            return await createProofCircom("auditableCountryWhitelist", "auditableCountryWhitelist_0001", inputs)
+            return await createProofCircom("auditableProof-testwrapper", "auditableProof-testwrapper_0001", inputs)
         },
         verify : async (proof) => {
-            return await verifyProofCircom("auditableCountryWhitelist", proof)
+            return await verifyProofCircom("auditableProof-testwrapper", proof)
         }
     },
     testEGEncryption : { 
