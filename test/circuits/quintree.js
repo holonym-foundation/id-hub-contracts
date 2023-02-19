@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { Tree } = require("holo-merkle-utils");
-const { Proofs } = require("../utils/proofs");
+const { Proofs } = require("../../utils/proofs");
 
 const leafSets = [
     [1n, 2n, 3n],

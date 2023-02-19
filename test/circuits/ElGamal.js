@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { Proofs } = require("../utils/proofs");
+const { Proofs } = require("../../utils/proofs");
 
 describe("BabyJubJub ElGamal encryption", function (){
     before(async function (){

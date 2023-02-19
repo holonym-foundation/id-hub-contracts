@@ -1,8 +1,8 @@
 const { expect } = require("chai");
 const { randomBytes } = require("crypto");
-const { makeLeafMaker } = require("../utils/leaves");
-const { Proofs } = require("../utils/proofs");
-const { Issuer } = require("../utils/issuer");
+const { makeLeafMaker } = require("../../utils/leaves");
+const { Proofs } = require("../../utils/proofs");
+const { Issuer } = require("../../utils/issuer");
 const { rejects } = require("assert");
 
 describe("Leaf Insertion", function (){

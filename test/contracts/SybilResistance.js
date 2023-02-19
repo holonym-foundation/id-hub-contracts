@@ -6,7 +6,7 @@ const exec = util.promisify(require("child_process").exec);
 const { Tree } = require("holo-merkle-utils");
 const { readFileSync } = require("fs");
 const { poseidon } = require("circomlibjs-old"); //The new version gives wrong outputs of Poseidon hash that disagree with ZoKrates and are too big for the max scalar in the field
-const { makeLeafMaker } = require("../utils/leaves");
+const { makeLeafMaker } = require("../../utils/leaves");
 require("dotenv").config();
 
 
