@@ -28,6 +28,16 @@ const Proofs = {
             return await verifyProofCircom("onAddLeaf", proof)
         }
     },
+    sybilResistance : { prove : ()=>{} } ,
+    proofOfResidency : { prove : ()=>{} } ,
+    auditableCountryWhitelist : {
+        prove : async (inputs) => {
+            return await createProofCircom("auditableCountryWhitelist", "auditableCountryWhitelist_0001", inputs)
+        },
+        verify : async (proof) => {
+            return await verifyProofCircom("auditableCountryWhitelist", proof)
+        }
+    },
     testEGEncryption : { 
         prove : async (inputs) => {
             return await createProofCircom("encryptElGamal-testwrapper", "encryptElGamal-testwrapper_0001", inputs)
@@ -36,8 +46,6 @@ const Proofs = {
             return await verifyProofCircom("encryptElGamal-testwrapper", proof)
         }
     },
-    sybilResistance : { prove : ()=>{} } ,
-    proofOfResidency : { prove : ()=>{} } ,
     testMerkleTree : {
         prove : async (inputs) => {
             return await createProofCircom("merkleproof-testwrapper", "merkleproof-testwrapper_0001", inputs)
