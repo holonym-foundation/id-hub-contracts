@@ -1,0 +1,26 @@
+import "hashes/poseidon/poseidon" as poseidon;
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
+// root - public so that we can verify Merkle proof
+// issuerAddr - public so that we can check that these creds were issued by trusted issuer
+// firstName - public so that we can verify the user's name
+// lastName - public so that we can verify the user's name
+def main(field root, field issuerAddr, field firstName, field lastName, private field leaf, private field middleName, private field countryCode, private field birthdate, private field addressHash, private field expirationDate, private field iat, private field scope, private field secret, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+    // Construct leaf. Derive nameHash from name fields and nameDobCitySubdivisionZipStreetExpireHashPreimage from nameHash and other fields
+    // to ensure that the names are correct.
+    field[3] nameHashPreimage = [firstName, middleName, lastName];
+    field nameHash = poseidon(nameHashPreimage);
+    field nameDobCitySubdivisionZipStreetExpireHash = poseidon([nameHash, birthdate, addressHash, expirationDate]);
+    field[6] leafPreimage = [issuerAddr, secret, countryCode, nameDobCitySubdivisionZipStreetExpireHash, iat, scope];
+    // assert valid leaf preimage
+    assert(poseidon(leafPreimage) == leaf);
+    // Merkle proof
+    field mut digest = leaf;
+    for u32 i in 0..DEPTH {
+        // At each step, check for the digest in the next level of path, then calculate the new digest
+        assert(path[i][indices[i]] == digest);
+        digest = poseidon(path[i]);
+    }
+    assert(digest == root);
+    return;
+}
