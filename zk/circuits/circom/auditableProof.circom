@@ -28,7 +28,7 @@ template AuditableProof(numMessagesToEncrypt) {
     //ElGamal encryption parameters:
     signal input encryptToPubkey[2];
     signal input encryptWithNonce[numMessagesToEncrypt];
-    signal input messageAsPoint[numMessagesToEncrypt][2];
+    signal input messagesAsPoint[numMessagesToEncrypt][2];
     // Encryption output will be the two points c1 and c2 for every message. It has dimensions [numMessagesToEncrypt][2][2]
     // E.g., encryptions[1] will be a 2*2 array representing [c1,c2] where c1 and c2 are the two points that represent an encryption
     signal output encryptions[numMessagesToEncrypt][2][2];
@@ -48,7 +48,7 @@ template AuditableProof(numMessagesToEncrypt) {
         encryptors[i] = EncryptElGamal();
         encryptors[i].h <== encryptToPubkey;
         encryptors[i].y <== encryptWithNonce[i];
-        encryptors[i].messageAsPoint <== messageAsPoint[i];
+        encryptors[i].messageAsPoint <== messagesAsPoint[i];
         // ElGamal encryption values
         encryptions[i] <== [encryptors[i].c1, encryptors[i].c2];
     }

@@ -5611,6 +5611,11 @@
     "promise" "^8.0.0"
     "qs" "^6.4.0"
 
+"threshold-eg-babyjub@^0.0.1":
+  "integrity" "sha512-y6678gDjjKK8uTXfZw2HTgJeMoGlR8jmX6RohykrKYPI/HHGM9ohYqzcpXV3ovzcfgdUdvQFIPo7Fe1k9aBGPA=="
+  "resolved" "https://registry.npmjs.org/threshold-eg-babyjub/-/threshold-eg-babyjub-0.0.1.tgz"
+  "version" "0.0.1"
+
 "timed-out@^4.0.0", "timed-out@^4.0.1":
   "integrity" "sha512-G7r3AhovYtr5YKOWQkta8RKAPb+J9IsO4uVmzjl8AZwfhs8UcUwTiD6gcJYSgOtzyjvQKrKYn41syHbUWMkafA=="
   "resolved" "https://registry.npmjs.org/timed-out/-/timed-out-4.0.1.tgz"

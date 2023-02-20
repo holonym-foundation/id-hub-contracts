@@ -43,6 +43,7 @@
     "ffjavascript": "^0.2.57",
     "holo-merkle-utils": "^0.0.0",
     "holonym-wasm-issuer": "^0.2.2",
-    "snarkjs": "^0.5.0"
+    "snarkjs": "^0.5.0",
+    "threshold-eg-babyjub": "^0.0.1"
   }
 }
