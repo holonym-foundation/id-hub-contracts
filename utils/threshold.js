@@ -31,13 +31,13 @@ class AuditLayerSimulator {
     async decryptFromAuditLayer(encryptedMessages) {
         if(!this.initialized) await this.init();
 
-        decrypted = [];
+        let decrypted = [];
 
-        encryptedMessages.forEach(async encrypted => {
+        for (const encrypted of encryptedMessages) {
             const litPartialDecryption = await this.lit.partialDecrypt(this.auditorKeygenForLit, encrypted.encrypted.c1);
             const fullDecryption = await this.auditor.decrypt(this.litKeygenForAuditor, encrypted.encrypted, litPartialDecryption);
             decrypted.push(fullDecryption);
-        });
+        }
 
         return decrypted;
     }
