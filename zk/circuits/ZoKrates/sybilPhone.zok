@@ -1,0 +1,29 @@
+
+import "hashes/poseidon/poseidon" as poseidon;
+
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
+
+// hashbrowns is a salted nullifier (pepper) hash to ensure a use can only do an action given by the "salt" once. this proof reveals the user's hashbrowns but not nullifier/pepper
+def main(field root, field msgSenderAddr, field issuerAddr, field salt, field hashbrowns, private field phoneNumber, private field issuedAt, private field nullifier, private field scope, private field leaf, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+    // assert valid preimage
+    field[6] preimage = [issuerAddr, nullifier, phoneNumber, 0, issuedAt, scope];
+    assert(poseidon(preimage) == leaf);
+    
+    // Merkle proof
+    field mut digest = leaf;
+    for u32 i in 0..DEPTH {
+        // At each step, check for the digest in the next level of path, then calculate the new digest
+        assert(path[i][indices[i]] == digest);
+        digest = poseidon(path[i]);
+    }
+    assert(digest == root);
+
+    // Check that hashbrowns is calculated correctly
+    assert(poseidon([salt, nullifier]) == hashbrowns);
+    // Malleability check
+    assert(msgSenderAddr - msgSenderAddr == 0);
+
+    return;
+}
+

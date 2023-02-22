@@ -43,7 +43,7 @@ describe.only("Auditable Proof Base Circuit", function (){
         const encryptToPK = await this.auditLayer.pubkey();
         const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
         const msgsAsPoints = await Promise.all(msgsToEncrypt.map(msg=>Utils.msgToPoint(msg)));
-        // const encryptedMsgs = await Promise.all(msgsToEncrypt.map(msg=>this.auditLayer.encryptToAuditLayer(msg)));
+
         // NOTE: this is probably not a safe way to generate nonces; please generate a random element in the prime subgroup
         const nonces = msgsToEncrypt.map(_=>BigInt("0x"+randomBytes(16).toString("hex")).toString());
         
