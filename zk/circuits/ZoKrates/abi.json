@@ -36,12 +36,12 @@
       "type": "field"
     },
     {
-      "name": "nullifier",
+      "name": "scope",
       "public": false,
       "type": "field"
     },
     {
-      "name": "scope",
+      "name": "nullifier",
       "public": false,
       "type": "field"
     },
