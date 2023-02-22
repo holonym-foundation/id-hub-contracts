@@ -8,7 +8,7 @@ async function createProofCircom(circuitName, zkeyName, inputs) {
     // await snarkjs.wtns.calculate(inputs, `./zk/${circuitName}_js/${circuitName}.wasm`, "tmp.wtns");
     // console.log("Witness: ", fs.readFileSync("tmp.wtns").toString());
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(inputs, `./zk/circuits/circom/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(inputs, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
 
     return {proof: proof, publicSignals: publicSignals};
 }

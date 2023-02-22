@@ -5,7 +5,8 @@ const { Tree } = require("holo-merkle-utils");
 const { AuditLayerSimulator } = require("../../utils/threshold");
 const { randomBytes } = require("crypto");
 const { rejects } = require("assert");
-describe.only("Auditable Proof Base Circuit", function (){
+
+describe("Auditable Proof Base Circuit", function (){
     before(async function (){
         this.tree = Tree(14, ["12345", "999999", "1234567890987654321234567890987654321"]);
         this.auditLayer = new AuditLayerSimulator();
