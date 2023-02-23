@@ -49,7 +49,7 @@ const createSRProof= async ({tree, actionId, hashbrowns, address, addr, secret, 
         return r;
     }
 
-describe.only("SybilResistance Phone", function () {
+describe("SybilResistance Phone", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
         this.leafMaker = await makeLeafMaker();

@@ -1,3 +1,4 @@
+const { rejects } = require("assert");
 const { expect } = require("chai");
 const { Tree } = require("holo-merkle-utils");
 const { Proofs } = require("../../utils/proofs");
@@ -12,56 +13,56 @@ const leafSets = [
     [123n, 0n, 0n, 0n, 0n, 0n]
 ];
 
-class ErrorHandler {
-    constructor() {
-        this.errors = [];
-        this.messages = {
-            noErr : "shouldUniquelyError expected a unique error but received no error at all",
-            errSeenBefore : "shouldUniquelyError expected a unique error but received: ",
-            errNotSeenBefore : "shouldUniquelyError expected a previous error but received a new error: "
-        };
-    }
-    throwIfErrSeenBefore(err) { 
-        if (this.errors.includes(err.message)) {
-            throw Error(`${this.messages.errSeenBefore} ${err.message} \n Errors seen so far were ${this.errors.join("\n")}`)
-        } else {
-            this.errors.push(err.message);
-        }
-    }
-    throwIfErrNotSeenBefore(err) { 
-        if (!this.errors.includes(err.message)) {
-            throw Error(`${this.messages.errNotSeenBefore } ${err.message} \n Errors seen so far were ${this.errors.join("\n")}`)
-        } 
-    }
-    async shouldUniquelyError(promise) {
-        try {
-            await promise;
-            // await promise should have thrown. Throw an error that promise didn't throw and this line is therefore called
-            throw Error(this.messages.noErr)
-        }    
-        catch(e) {
-            if (e.message === this.messages.noErr) { throw e }
-            this.throwIfErrSeenBefore(e);
-        }
-    }
-    async shouldRepeatError(promise) {
-        try {
-            await promise;
-            // await promise should have thrown. Throw an error that promise didn't throw and this line is therefore called
-            throw Error(this.messages.noErr)
-        }    
-        catch(e) {
-            if (e.message === this.messages.noErr) { throw e }
-            this.throwIfErrNotSeenBefore(e);
-        }
-    }
-}
+// class ErrorHandler {
+//     constructor() {
+//         this.errors = [];
+//         this.messages = {
+//             noErr : "shouldUniquelyError expected a unique error but received no error at all",
+//             errSeenBefore : "shouldUniquelyError expected a unique error but received: ",
+//             errNotSeenBefore : "shouldUniquelyError expected a previous error but received a new error: "
+//         };
+//     }
+//     throwIfErrSeenBefore(err) { 
+//         if (this.errors.includes(err.message)) {
+//             throw Error(`${this.messages.errSeenBefore} ${err.message} \n Errors seen so far were ${this.errors.join("\n")}`)
+//         } else {
+//             this.errors.push(err.message);
+//         }
+//     }
+//     throwIfErrNotSeenBefore(err) { 
+//         if (!this.errors.includes(err.message)) {
+//             throw Error(`${this.messages.errNotSeenBefore } ${err.message} \n Errors seen so far were ${this.errors.join("\n")}`)
+//         } 
+//     }
+//     async shouldUniquelyError(promise) {
+//         try {
+//             await promise;
+//             // await promise should have thrown. Throw an error that promise didn't throw and this line is therefore called
+//             throw Error(this.messages.noErr)
+//         }    
+//         catch(e) {
+//             if (e.message === this.messages.noErr) { throw e }
+//             this.throwIfErrSeenBefore(e);
+//         }
+//     }
+//     async shouldRepeatError(promise) {
+//         try {
+//             await promise;
+//             // await promise should have thrown. Throw an error that promise didn't throw and this line is therefore called
+//             throw Error(this.messages.noErr)
+//         }    
+//         catch(e) {
+//             if (e.message === this.messages.noErr) { throw e }
+//             this.throwIfErrNotSeenBefore(e);
+//         }
+//     }
+// }
 
 describe("Quinary Tree Circuit", function (){
     before(async function (){
     });
     for (var i=0; i<leafSets.length; i++) {
-        const errors = new ErrorHandler();
+        // const errors = new ErrorHandler();
         
         const leaves = leafSets[i];
         describe(`Leaf Set ${i}`, function (){
@@ -73,13 +74,15 @@ describe("Quinary Tree Circuit", function (){
             });
             it("incorrect root", async function () {
                 const mp = randMP(leaves);
-                await errors.shouldUniquelyError(
+                // await errors.shouldUniquelyError(
+                await rejects(
                     Proofs.testMerkleTree.prove({...mp, root:mp.root+1n}),
                 );
             });
             it("incorrect leaf", async function () {
                 const mp = randMP(leaves);
-                await errors.shouldUniquelyError(
+                // await errors.shouldUniquelyError(
+                await rejects(
                     Proofs.testMerkleTree.prove({...mp, leaf:mp.leaf+1n}),
                 );
             });
@@ -95,7 +98,8 @@ describe("Quinary Tree Circuit", function (){
                 // if(mp.siblings[randomIdx][parseInt(correct)] !== mp.siblings[randomIdx][parseInt(incorrect)]) {
 
                 pathIndices_[randomIdx] = incorrect;
-                await errors.shouldUniquelyError(
+                // await errors.shouldUniquelyError(
+                await rejects(
                     Proofs.testMerkleTree.prove({...mp, pathIndices: pathIndices_}),
                 );
                 // }
@@ -110,7 +114,8 @@ describe("Quinary Tree Circuit", function (){
                 ];  
 
                 siblings_[i][j] = siblings_[i][j] + 1n
-                await errors.shouldRepeatError(
+                // await errors.shouldRepeatError(
+                await rejects(
                     Proofs.testMerkleTree.prove({...mp, siblings: siblings_}),
                 );
             });
