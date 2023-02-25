@@ -11,6 +11,7 @@ const { ethers } = require("hardhat");
 
 const constants = {
   ISSUER_ADDRESSES : ["0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388", "0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993"],
+  MEDICAL_CREDENTIALS_ISSUER_ADDRESS: '0x198c8c83f3e3dfab87ce363bcc2e5587dcda7dfcf56d24fc0bfa5c82454812ba',
   LEGACY_USRESIDENCY_CONTRACT : "0x6A78dF871291627C5470F7a768745C3ff05741F2", // OPTIMISM MAINNET
   LEGACY_SYBILRESISTANCE_CONTRACT : "0x3497556f7D0bF602D4237Ecb8ae92840D09E4f63", // OPTIMISM MAINNET
   
@@ -38,6 +39,12 @@ async function main() {
   
   console.log("residency", residency.address)
   console.log("SR", sr.address)
+
+  // Medical specialty contract
+  // const rootsOptimismGoerliAddr = '0xa76C96acf9b95cC988d634F1fF52C9a2eF7a9371';
+  // const medicalSpecialty = await (await ethers.getContractFactory("MedicalSpecialty"))
+  //   .deploy(rootsOptimismGoerliAddr, [constants.MEDICAL_CREDENTIALS_ISSUER_ADDRESS], constants.MEDICAL_CREDENTIALS_PRICE || 0);
+  // console.log("medicalSpecialty", medicalSpecialty.address)
 }
 
 // async function main() {
