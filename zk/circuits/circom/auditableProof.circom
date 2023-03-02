@@ -1,6 +1,8 @@
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "./merkleproof.circom";
-include "./encryptElGamal.circom";
+// include "./encryptElGamal.circom";
+include "./encryptElGamalFixedPubkey.circom";
+
 
 // Merkle Proof with encryption to audit-layer
 // Intended to be used as a template that can be reused for the majority of identity proofs that need merkle proofs and auditability
@@ -8,7 +10,8 @@ include "./encryptElGamal.circom";
 // Encrypts a certain message encoded as a point to the audit layer. This message is encoded as a point in https://github.com/holonym-foundation/babyjubjub-elgamal-project
 // Reccomended that message represents the user's name, country, state, and IP address. Anything that should be exposed to catch bad actors but kept private for average users.
 // To fit this in the message, it's reccomended to do 32 bits IP, 
-template AuditableProof(numMessagesToEncrypt) {
+template AuditableProof(numMessagesToEncrypt, pubkeyX, pubkeyY) {
+    // var encryptToPubkey = [pubkeyX, pubKeyY];
     // Merkle Tree properties
     var depth = 14;
     var arity = 5;
@@ -45,8 +48,7 @@ template AuditableProof(numMessagesToEncrypt) {
 
     component encryptors[numMessagesToEncrypt];
     for(var i=0; i<numMessagesToEncrypt; i++) {
-        encryptors[i] = EncryptElGamal();
-        encryptors[i].h <== encryptToPubkey;
+        encryptors[i] = EncryptElGamal(pubkeyX, pubkeyY);
         encryptors[i].y <== encryptWithNonce[i];
         encryptors[i].messageAsPoint <== messagesAsPoint[i];
         // ElGamal encryption values

@@ -121,4 +121,4 @@ template EdDSAPoseidonVerifier(Ax, Ay, A8x, A8y) {
     eqCheckY.in[1] <== addRight.yout;
 }
 
-component main = EdDSAPoseidonVerifier(123456789, 123456789, 123456789, 123456789);
+// component main = EdDSAPoseidonVerifier(123456789, 123456789, 123456789, 123456789);

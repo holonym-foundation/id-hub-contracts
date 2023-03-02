@@ -1,7 +1,9 @@
 include "./pointToMsg.circom";
 include "./auditableProof.circom";
+include "./eddsaFixedPubkey.circom";
+
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
-include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
+// include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 // This adds post-quantum protection to audit layer encryptions. 
 // It provides protection against quantum attacks on on-chain encrypted values. A basic implementation does not prevent against quantum attacks from a trusted third-party performing the PRF.
@@ -14,7 +16,7 @@ include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 // Then the PRF network or server will respond with p
 // Note that p does *not* enable decryption of the message. It just is one part necessary, so the PRF server / network can't decrypt it unless they
 // can decrypt the message, e.g. by a quantum attack. Thus we should either decentralize the PRF server or switch to quantum-safe encryption instead of adding p to avoid thes issues   
-template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPartyPubkeyY) {
+template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPartyPubkeyY, thirdPartyPubkeyX8, thirdPartyPubkeyY8, mpcNetworkPubkeyX, mpcNetworkPubkeyY) {
     // Merkle Tree properties
     var depth = 14;
     var arity = 5;
@@ -47,7 +49,7 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     component pointAdders[numMessagesToEncrypt];
 
     // Call AuditableProof on this template's inputs, with messages modified
-    component ap = AuditableProof(numMessagesToEncrypt);
+    component ap = AuditableProof(numMessagesToEncrypt, mpcNetworkPubkeyX, mpcNetworkPubkeyY);
     ap.leaf <== leaf;
     ap.siblings <== siblings;
     ap.pathIndices <== pathIndices;
@@ -58,12 +60,8 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     for(var i=0; i<numMessagesToEncrypt; i++) {
         fromPoint[i] = pointToMsg();
         fromPoint[i].point <== pAsPoint[i];
-        sigVerifiers[i] = EdDSAPoseidonVerifier();
+        sigVerifiers[i] = EdDSAPoseidonVerifier(thirdPartyPubkeyX, thirdPartyPubkeyY, thirdPartyPubkeyX8, thirdPartyPubkeyY8);
         sigVerifiers[i].enabled <== 1;
-
-        // EdDSA circuit can later be optimized to use EScalarMulFixed 
-        sigVerifiers[i].Ax <== thirdPartyPubkeyX;
-        sigVerifiers[i].Ay <== thirdPartyPubkeyY;
 
         sigVerifiers[i].R8x <== R8x[i];
         sigVerifiers[i].R8y <== R8y[i];
@@ -79,4 +77,4 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     }
 }
 
-component main = AuditableProofPQHack(2, 69, 69);
+component main = AuditableProofPQHack(1, 69, 69, 69, 69, 69, 69);

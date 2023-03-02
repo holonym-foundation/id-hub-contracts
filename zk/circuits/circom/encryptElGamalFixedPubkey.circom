@@ -63,4 +63,4 @@ template EncryptElGamal (pubkeyX, pubkeyY) {
         
 }
 
-component main = EncryptElGamal(69,69);
+// component main = EncryptElGamal(69,69);
