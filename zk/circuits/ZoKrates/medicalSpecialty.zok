@@ -1,0 +1,23 @@
+import "hashes/poseidon/poseidon" as poseidon;
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
+// root - public so that we can verify Merkle proof
+// issuerAddr - public so that we can check that these creds were issued by trusted issuer
+// specialty - public so that we can verify the user's medical specialty
+def main(field root, field msgSenderAddr, field issuerAddr, field specialty, field salt, field hashbrowns, private field leaf, private field npiNumLicenseMedCredsHash, private field iat, private field scope, private field secret, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+    // assert valid leaf preimage
+    assert(poseidon([issuerAddr, secret, specialty, npiNumLicenseMedCredsHash, iat, scope]) == leaf);
+    // Merkle proof
+    field mut digest = leaf;
+    for u32 i in 0..DEPTH {
+        // At each step, check for the digest in the next level of path, then calculate the new digest
+        assert(path[i][indices[i]] == digest);
+        digest = poseidon(path[i]);
+    }
+    assert(digest == root);
+    // Check that hashbrowns is calculated correctly
+    assert(poseidon([salt, secret]) == hashbrowns);
+    // Malleability check
+    assert(msgSenderAddr - msgSenderAddr == 0);
+    return;
+}
