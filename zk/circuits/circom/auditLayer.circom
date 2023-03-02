@@ -1,7 +1,7 @@
 include "./pointToMsg.circom";
-include "./auditableProof.circom";
+// include "./auditableProof.circom";
 include "./eddsaFixedPubkey.circom";
-
+include "./encryptElGamalFixedPubkey.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 // include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
@@ -17,19 +17,7 @@ include "../../../node_modules/circomlib/circuits/poseidon.circom";
 // Note that p does *not* enable decryption of the message. It just is one part necessary, so the PRF server / network can't decrypt it unless they
 // can decrypt the message, e.g. by a quantum attack. Thus we should either decentralize the PRF server or switch to quantum-safe encryption instead of adding p to avoid thes issues   
 template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPartyPubkeyY, thirdPartyPubkeyX8, thirdPartyPubkeyY8, mpcNetworkPubkeyX, mpcNetworkPubkeyY) {
-    // Merkle Tree properties
-    var depth = 14;
-    var arity = 5;
-    
-    // Merkle leaf:
-    signal input leaf;
 
-    // Merkle path sibling nodes
-    signal input siblings[depth][arity];
-
-    // Merkle path indices within sibling groups
-    signal input pathIndices[depth];
-    
     //ElGamal encryption parameters:
     signal input encryptToPubkey[2];
     signal input encryptWithNonce[numMessagesToEncrypt];
@@ -47,14 +35,7 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     signal input R8y[numMessagesToEncrypt];
     component sigVerifiers[numMessagesToEncrypt];
     component pointAdders[numMessagesToEncrypt];
-
-    // Call AuditableProof on this template's inputs, with messages modified
-    component ap = AuditableProof(numMessagesToEncrypt, mpcNetworkPubkeyX, mpcNetworkPubkeyY);
-    ap.leaf <== leaf;
-    ap.siblings <== siblings;
-    ap.pathIndices <== pathIndices;
-    ap.encryptToPubkey <== encryptToPubkey;
-    ap.encryptWithNonce <== encryptWithNonce;
+    component encryptors[numMessagesToEncrypt];
 
     // Add p to all messages, after checking p is correct
     for(var i=0; i<numMessagesToEncrypt; i++) {
@@ -73,7 +54,12 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
         pointAdders[i].x2 <== messagesAsPoint[i][0];
         pointAdders[i].y1 <== pAsPoint[i][1];
         pointAdders[i].y2 <== messagesAsPoint[i][1];
-        ap.messagesAsPoint[i] <== [pointAdders[i].xout, pointAdders[i].yout];
+
+        encryptors[i] = EncryptElGamal(mpcNetworkPubkeyX, mpcNetworkPubkeyY);
+        encryptors[i].y <== encryptWithNonce[i];
+        encryptors[i].messageAsPoint <== messagesAsPoint[i];
+        // ElGamal encryption values
+        encryptions[i] <== [encryptors[i].c1, encryptors[i].c2];
     }
 }
 

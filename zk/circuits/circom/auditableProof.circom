@@ -1,3 +1,5 @@
+// DEPRECATING IN FAVOR OF MORE MODULAR DESIGN WITH AUDITLAYER.CIRCOM
+
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "./merkleproof.circom";
 // include "./encryptElGamal.circom";
