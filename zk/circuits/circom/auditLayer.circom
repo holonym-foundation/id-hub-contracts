@@ -1,8 +1,9 @@
 include "./pointToMsg.circom";
 // include "./auditableProof.circom";
 include "./eddsaFixedPubkey.circom";
+include "./hash.circom";
 include "./encryptElGamalFixedPubkey.circom";
-include "../../../node_modules/circomlib/circuits/poseidon.circom";
+// include "../../../node_modules/circomlib/circuits/poseidon.circom";
 // include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 // This adds post-quantum protection to audit layer encryptions. 
@@ -26,7 +27,8 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     // E.g., encryptions[1] will be a 2*2 array representing [c1,c2] where c1 and c2 are the two points that represent an encryption
     signal output encryptions[numMessagesToEncrypt][2][2];
 
-
+    // Give a prfSeed so the authority can generate p, the output of the prf, which should be subtracted from the ciphertext
+    signal input prfSeed[numMessagesToEncrypt];
     signal input pAsPoint[numMessagesToEncrypt][2];
     component fromPoint[numMessagesToEncrypt];
     // p Signatures:
@@ -34,6 +36,7 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     signal input R8x[numMessagesToEncrypt];
     signal input R8y[numMessagesToEncrypt];
     component sigVerifiers[numMessagesToEncrypt];
+    component hash[numMessagesToEncrypt];
     component pointAdders[numMessagesToEncrypt];
     component encryptors[numMessagesToEncrypt];
 
@@ -47,7 +50,9 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
         sigVerifiers[i].R8x <== R8x[i];
         sigVerifiers[i].R8y <== R8y[i];
         sigVerifiers[i].S <== S[i];
-        sigVerifiers[i].M <== fromPoint[i].out;
+        hash[i] = Hash(2);
+        hash[i].in <== [prfSeed[i], fromPoint[i].out];
+        sigVerifiers[i].M <== hash[i].out;
         
         pointAdders[i] = BabyAdd();
         pointAdders[i].x1 <== pAsPoint[i][0];
@@ -63,4 +68,4 @@ template AuditableProofPQHack(numMessagesToEncrypt, thirdPartyPubkeyX, thirdPart
     }
 }
 
-component main = AuditableProofPQHack(1, 69, 69, 69, 69, 69, 69);
+component main { public [prfSeed] }= AuditableProofPQHack(1, 69, 69, 69, 69, 69, 69);
