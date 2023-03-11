@@ -2,7 +2,6 @@
 const { createHash, randomBytes } = require('crypto');
 const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
-console.log(groth16);
 const prfEndpoint = 'https://prf.zkda.network/';
 const ZK_DIR = (typeof window === 'undefined') ? './zk' : 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
 const ORDER = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
@@ -30,10 +29,7 @@ async function getPRF() {
     return await r.json();
 }
 function getPubkey() {
-    return {
-        x: '420',
-        y: '69'
-    };
+    return new Point(BigInt('420'), BigInt('69'));
 }
 /**
    * Gets the parameters needed to generate an encryption
@@ -43,18 +39,29 @@ function getPubkey() {
    * @beta
    */
 async function encryptParams(msgsToEncrypt) {
-    const encryptToPK = getPubkey();
     // const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
     const msgsAsPoints = await Promise.all(msgsToEncrypt.map(msg => Utils.msgToPoint(msg)));
-    const nonces = msgsToEncrypt.map(_ => randFr().toString());
+    const nonces = msgsToEncrypt.map(_ => randFr());
+    const prfData = await Promise.all(msgsToEncrypt.map(_ => getPRF()));
+    const prfSeeds = prfData.map(d => BigInt('0x' + d.prfSeed));
+    const ps = prfData.map(d => BigInt('0x' + d.prf));
+    const pAsPoints = await Promise.all(ps.map(p => Utils.msgToPoint(p.toString())));
     const inputs = {
-        messagesAsPoint: msgsAsPoints.map(point => [point.x, point.y]),
-        encryptToPubkey: [encryptToPK.x, encryptToPK.y],
-        encryptWithNonce: nonces
+        msgsAsPoints: msgsAsPoints,
+        encryptWithNonces: nonces,
+        encryptToPubkey: getPubkey().toRepr(),
+        prfSeeds: prfSeeds,
+        ps: ps,
+        pAsPoints: pAsPoints,
+        signatureS: prfData.map(d => BigInt(d.sig.S)),
+        signatureR8: prfData.map(data => {
+            const R8 = Point.fromHexStrings(data.sig.R8.x, data.sig.R8.y).toRepr();
+            return R8;
+        })
     };
     return inputs;
 }
-setInterval(() => encryptAndProve(["123"]).then(x => console.log(x)), 1000);
+setInterval(() => encryptParams(["123"]).then(x => console.log(x)), 1000);
 /**
    * Encrypts a message and generates a proof of successful encryption
    * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
@@ -71,6 +78,28 @@ async function encryptAndProve(msgsToEncrypt) {
         encryption: proof.publicSignals,
         proof: proof
     };
+}
+/* Point */
+class Point {
+    x;
+    y;
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    static fromDecStrings(x, y) {
+        return new Point(BigInt(x), BigInt(y));
+    }
+    static fromHexStrings(x, y) {
+        let [x_, y_] = [x, y].map(i => i.startsWith('0x') ? BigInt(i) : BigInt('0x' + i));
+        return new Point(x_, y_);
+    }
+    toRepr() {
+        return {
+            x: this.x.toString(),
+            y: this.y.toString()
+        };
+    }
 }
 module.exports = {
     getPRF: getPRF

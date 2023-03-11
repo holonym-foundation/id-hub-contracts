@@ -1,7 +1,6 @@
 const { createHash, randomBytes } = require('crypto');
 const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
-console.log(groth16)
 const prfEndpoint = 'https://prf.zkda.network/';
 
 const ZK_DIR = (typeof window === 'undefined') ? './zk' : 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
@@ -10,10 +9,9 @@ const ORDER = 218882428718392752222464057452572750886145117772685380736017252875
 const SUBORDER = ORDER >> 3n; // Order of Fr subgroup
 const MAX_MSG = ORDER >> 10n; //Use 10 bits for Koblitz encoding
 
-function randFr() {
+function randFr(): BigInt {
     return BigInt('0x'+randomBytes(64).toString('hex')) % SUBORDER
 }
-
 async function getPRF() {
     // Authenticate yourself to some random number by showing knowledge of its preimage. This will allow you to ge the PRF fo the preiamge
     const preimage = randomBytes(32).toString('hex');
@@ -35,11 +33,11 @@ async function getPRF() {
     return await r.json();
 }
 
-function getPubkey(): Point {
-    return {
-        x: '420',
-        y: '69'
-    }
+function getPubkey() {
+    return new Point(
+        BigInt('420'),
+        BigInt('69')
+    )
 }
 
 /**
@@ -50,19 +48,33 @@ function getPubkey(): Point {
    * @beta
    */
 async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionParams> {
-    const encryptToPK = getPubkey();
     // const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
-    const msgsAsPoints = await Promise.all(msgsToEncrypt.map(msg=>Utils.msgToPoint(msg)));
-    const nonces = msgsToEncrypt.map(_=>randFr().toString());
+    const msgsAsPoints: Array<PointRepr> = await Promise.all(msgsToEncrypt.map(msg=>Utils.msgToPoint(msg)));
+    const nonces = msgsToEncrypt.map(_=>randFr());
+    const prfData = await Promise.all(msgsToEncrypt.map(_=>getPRF()));
+    const prfSeeds = prfData.map(d=>BigInt('0x'+d.prfSeed))
+    const ps: Array<BigInt> = prfData.map(d=>BigInt('0x'+d.prf));
+    const pAsPoints: Array<PointRepr> = await Promise.all(ps.map(p=>Utils.msgToPoint(p.toString())));
     const inputs = {
-        messagesAsPoint: msgsAsPoints.map(point=>[point.x,point.y]),
-        encryptToPubkey: [encryptToPK.x, encryptToPK.y],
-        encryptWithNonce: nonces
+        msgsAsPoints: msgsAsPoints,
+        encryptWithNonces: nonces,
+        encryptToPubkey: getPubkey().toRepr(),
+        prfSeeds: prfSeeds,
+        ps: ps,
+        pAsPoints: pAsPoints,
+        signatureS: prfData.map(d=>BigInt(d.sig.S)),
+        signatureR8: prfData.map(data=>{
+            const R8: PointRepr = Point.fromHexStrings(
+                data.sig.R8.x, data.sig.R8.y,
+            ).toRepr();
+            return R8;
+        })
     }
+
     return inputs;
 } 
 
-setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 1000)
+setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
 
 /**
    * Encrypts a message and generates a proof of successful encryption
@@ -81,6 +93,37 @@ async function encryptAndProve(msgsToEncrypt: Array<string>): Promise<Encryption
         proof: proof
     }
 } 
+
+/* Point */
+class Point {
+
+    x: BigInt
+    y: BigInt
+
+    constructor(x: BigInt, y: BigInt){
+        this.x = x;
+        this.y = y;
+    }
+    static fromDecStrings(x: string, y: string): Point {
+        return new Point(
+            BigInt(x),
+            BigInt(y)
+        );
+    }
+    static fromHexStrings(x: string, y: string): Point {
+        let [x_, y_] = [x,y].map(i=> 
+            i.startsWith('0x') ? BigInt(i) : BigInt('0x' + i)
+        );
+        return new Point(x_, y_);
+    }
+    
+    toRepr(): PointRepr {
+        return {
+            x: this.x.toString(),
+            y: this.y.toString()
+        }
+    }
+}
 
 module.exports = {
     getPRF : getPRF
