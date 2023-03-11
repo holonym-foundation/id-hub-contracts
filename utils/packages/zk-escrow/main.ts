@@ -60,6 +60,8 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
     return inputs;
 } 
 
+encryptParams(["123"]).then(x=>console.log)
+
 /**
    * Encrypts a message and generates a proof of successful encryption
    * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.

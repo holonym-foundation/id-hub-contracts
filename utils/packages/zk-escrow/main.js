@@ -52,6 +52,7 @@ async function encryptParams(msgsToEncrypt) {
     };
     return inputs;
 }
+encryptParams(["123"]).then(x => console.log);
 /**
    * Encrypts a message and generates a proof of successful encryption
    * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
@@ -61,7 +62,7 @@ async function encryptParams(msgsToEncrypt) {
    */
 async function encryptAndProve(msgsToEncrypt) {
     const params = await encryptParams(msgsToEncrypt);
-    const proof = await groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_js/onAddLeaf.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_0001.zkey");
+    const proof = await groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/daEncrypt_js/daEncrypt.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/daEncrypt_0001.zkey");
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals);
     return {
