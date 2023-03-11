@@ -59,12 +59,6 @@ async function encryptParams(msgsToEncrypt) {
         S: prfData.map(d => BigInt(d.sig.S).toString()),
         R8x: prfData.map(data => data.sig.R8.x.toString()),
         R8y: prfData.map(data => data.sig.R8.y.toString())
-        // signatureR8: prfData.map(data=>{
-        //     const R8: Array<string> = [data.sig.R8.x, data.sig.R8.y].map(
-        //         i=>BigInt(i).toString()
-        //     );
-        //     return R8;
-        // })
     };
     return inputs;
 }
