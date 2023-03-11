@@ -1,0 +1,7 @@
+interface EncryptionParams {
+
+}
+
+interface EncryptionProof {
+
+}
