@@ -1,8 +1,10 @@
 const { createHash, randomBytes } = require('crypto');
 const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
-
+console.log(groth16)
 const prfEndpoint = 'https://prf.zkda.network/';
+
+const ZK_DIR = (typeof window === 'undefined') ? './zk' : 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
 
 const ORDER = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
 const SUBORDER = ORDER >> 3n; // Order of Fr subgroup
@@ -60,7 +62,7 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
     return inputs;
 } 
 
-// setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
+setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 1000)
 
 /**
    * Encrypts a message and generates a proof of successful encryption
@@ -71,7 +73,7 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
    */
 async function encryptAndProve(msgsToEncrypt: Array<string>): Promise<EncryptionProof> {
     const params: EncryptionParams = await encryptParams(msgsToEncrypt);
-    const proof = await groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/daEncrypt_js/daEncrypt.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/daEncrypt_0001.zkey");
+    const proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals)
     return {
