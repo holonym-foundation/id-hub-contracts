@@ -1,6 +1,6 @@
 "use strict";
 const { createHash, randomBytes } = require('crypto');
-const snarkjs = require('snarkjs');
+const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
 const prfEndpoint = 'https://prf.zkda.network/';
 const ORDER = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
@@ -33,7 +33,14 @@ function getPubkey() {
         y: 69
     };
 }
-async function getProofInputs(msgsToEncrypt) {
+/**
+   * Gets the parameters needed to generate an encryption
+   * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
+   * @returns parameters needed to encrypt
+   *
+   * @beta
+   */
+async function encryptParams(msgsToEncrypt) {
     const encryptToPK = getPubkey();
     // const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
     const msgsAsPoints = await Promise.all(msgsToEncrypt.map(msg => Utils.msgToPoint(msg)));
@@ -45,12 +52,20 @@ async function getProofInputs(msgsToEncrypt) {
     };
     return inputs;
 }
-async function encrypt(dataToEncrypt) {
-    const inputs = getProofInputs(dataToEncrypt);
-    const proof = await snarkjs.groth16.fullProve(inputs, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
+/**
+   * Encrypts a message and generates a proof of successful encryption
+   * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
+   * @returns encryption and proof of proper encryption
+   *
+   * @beta
+   */
+async function encryptAndProve(msgsToEncrypt) {
+    const params = await encryptParams(msgsToEncrypt);
+    const proof = await groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_js/onAddLeaf.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_0001.zkey");
+    // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals);
     return {
-        encryption: proof.publicSignals[n],
+        encryption: proof.publicSignals,
         proof: proof
     };
 }

@@ -1,5 +1,5 @@
 const { createHash, randomBytes } = require('crypto');
-const snarkjs = require('snarkjs');
+const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
 
 const prfEndpoint = 'https://prf.zkda.network/';
@@ -69,14 +69,14 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
    */
 async function encryptAndProve(msgsToEncrypt: Array<string>): Promise<EncryptionProof> {
     const params: EncryptionParams = await encryptParams(msgsToEncrypt);
-    const proof = await snarkjs.groth16.fullProve(inputs, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
+    const proof = await groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/daEncrypt_js/daEncrypt.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/daEncrypt_0001.zkey");
+    // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals)
     return {
-        encryption: proof.publicSignals[n],
+        encryption: proof.publicSignals,
         proof: proof
     }
 } 
-
 
 module.exports = {
     getPRF : getPRF
