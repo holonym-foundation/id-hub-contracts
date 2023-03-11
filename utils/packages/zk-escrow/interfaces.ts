@@ -1,7 +1,11 @@
-interface PointRepr {
+interface Point {
     x: string,
-    y: string,
+    y: string
 }
+// interface PointRepr {
+//     x: string,
+//     y: string,
+// }
 // interface Point {
 //     x: BigInt,
 //     y: BigInt
@@ -31,18 +35,17 @@ interface PointRepr {
 
 // Arrays should be of length N where N is the number of messages to encrypt
 interface EncryptionParams {
-    // Inner array should be of length 2: x, y
-    msgsAsPoints: Array<PointRepr>;
-    encryptWithNonces: Array<BigInt>;
-    encryptToPubkey: PointRepr;
+    encryptToPubkey: Array<string>;
+    messagesAsPoint: Array<Array<string>>;
+    encryptWithNonce: Array<string>;
 
     // prf seed and output:
-    prfSeeds: Array<BigInt>;
-    ps: Array<BigInt>;
-    pAsPoints: Array<PointRepr>;
+    prfSeed: Array<string>;
+    pAsPoint: Array<Array<string>>;
     // Signature:
-    signatureS: Array<BigInt>;
-    signatureR8: Array<PointRepr>;
+    S: Array<string>;
+    R8x: Array<string>;
+    R8y: Array<string>;
 }
 
 interface EncryptionProof {

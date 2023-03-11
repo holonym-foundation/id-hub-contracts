@@ -29,7 +29,7 @@ async function getPRF() {
     return await r.json();
 }
 function getPubkey() {
-    return new Point(BigInt('420'), BigInt('69'));
+    return ['420', '69'];
 }
 /**
    * Gets the parameters needed to generate an encryption
@@ -40,28 +40,35 @@ function getPubkey() {
    */
 async function encryptParams(msgsToEncrypt) {
     // const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
-    const msgsAsPoints = await Promise.all(msgsToEncrypt.map(msg => Utils.msgToPoint(msg)));
-    const nonces = msgsToEncrypt.map(_ => randFr());
+    const msgsAsPointObjects = await Promise.all(msgsToEncrypt.map(msg => Utils.msgToPoint(msg)));
+    const msgsAsPoints = msgsAsPointObjects.map(obj => [obj.x, obj.y]);
+    const nonces = msgsToEncrypt.map(_ => randFr().toString());
     const prfData = await Promise.all(msgsToEncrypt.map(_ => getPRF()));
-    const prfSeeds = prfData.map(d => BigInt('0x' + d.prfSeed));
-    const ps = prfData.map(d => BigInt('0x' + d.prf));
-    const pAsPoints = await Promise.all(ps.map(p => Utils.msgToPoint(p.toString())));
+    const prfSeeds = prfData.map(d => BigInt('0x' + d.prfSeed).toString());
+    const ps = prfData.map(d => BigInt('0x' + d.prf).toString());
+    const pAsPointObjects = await Promise.all(ps.map(p => Utils.msgToPoint(p.toString())));
+    const pAsPoints = pAsPointObjects.map(obj => [obj.x, obj.y]);
     const inputs = {
-        msgsAsPoints: msgsAsPoints,
-        encryptWithNonces: nonces,
-        encryptToPubkey: getPubkey().toRepr(),
-        prfSeeds: prfSeeds,
-        ps: ps,
-        pAsPoints: pAsPoints,
-        signatureS: prfData.map(d => BigInt(d.sig.S)),
-        signatureR8: prfData.map(data => {
-            const R8 = Point.fromHexStrings(data.sig.R8.x, data.sig.R8.y).toRepr();
-            return R8;
-        })
+        encryptToPubkey: getPubkey(),
+        messagesAsPoint: msgsAsPoints,
+        encryptWithNonce: nonces,
+        // prf inputs, and prf outputs converted to points
+        prfSeed: prfSeeds,
+        pAsPoint: pAsPoints,
+        // Signature
+        S: prfData.map(d => BigInt(d.sig.S).toString()),
+        R8x: prfData.map(data => data.sig.R8.x.toString()),
+        R8y: prfData.map(data => data.sig.R8.y.toString())
+        // signatureR8: prfData.map(data=>{
+        //     const R8: Array<string> = [data.sig.R8.x, data.sig.R8.y].map(
+        //         i=>BigInt(i).toString()
+        //     );
+        //     return R8;
+        // })
     };
     return inputs;
 }
-setInterval(() => encryptParams(["123"]).then(x => console.log(x)), 1000);
+setInterval(() => encryptAndProve(["123", "12341234123"]).then(x => console.log(x)), 1000);
 /**
    * Encrypts a message and generates a proof of successful encryption
    * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
@@ -71,6 +78,10 @@ setInterval(() => encryptParams(["123"]).then(x => console.log(x)), 1000);
    */
 async function encryptAndProve(msgsToEncrypt) {
     const params = await encryptParams(msgsToEncrypt);
+    // const proofParams = {};
+    // Object.keys(params).forEach(param=>
+    //     proofParams[param] = typeof
+    // );
     const proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals);
@@ -79,28 +90,34 @@ async function encryptAndProve(msgsToEncrypt) {
         proof: proof
     };
 }
-/* Point */
-class Point {
-    x;
-    y;
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    static fromDecStrings(x, y) {
-        return new Point(BigInt(x), BigInt(y));
-    }
-    static fromHexStrings(x, y) {
-        let [x_, y_] = [x, y].map(i => i.startsWith('0x') ? BigInt(i) : BigInt('0x' + i));
-        return new Point(x_, y_);
-    }
-    toRepr() {
-        return {
-            x: this.x.toString(),
-            y: this.y.toString()
-        };
-    }
-}
+// /* Point */
+// class Point {
+//     x: BigInt
+//     y: BigInt
+//     constructor(x: BigInt, y: BigInt){
+//         this.x = x;
+//         this.y = y;
+//     }
+//     static fromDecStrings(x: string, y: string): Point {
+//         return new Point(
+//             BigInt(x),
+//             BigInt(y)
+//         );
+//     }
+//     static fromHexStrings(x: string, y: string): Point {
+//         let [x_, y_] = [x,y].map(i=> 
+//             i.startsWith('0x') ? BigInt(i) : BigInt('0x' + i)
+//         );
+//         return new Point(x_, y_);
+//     }
+// toRepr(): PointRepr {
+//     return {
+//         x: this.x.toString(),
+//         y: this.y.toString()
+//     }
+// }
+// }
 module.exports = {
-    getPRF: getPRF
+    encryptParams: encryptParams,
+    encryptAndProve: encryptAndProve
 };
