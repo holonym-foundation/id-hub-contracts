@@ -33,10 +33,10 @@ async function getPRF() {
     return await r.json();
 }
 
-function getPubkey() {
+function getPubkey(): Point {
     return {
-        x: 420,
-        y: 69
+        x: '420',
+        y: '69'
     }
 }
 
@@ -60,7 +60,7 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
     return inputs;
 } 
 
-encryptParams(["123"]).then(x=>console.log)
+// setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
 
 /**
    * Encrypts a message and generates a proof of successful encryption
