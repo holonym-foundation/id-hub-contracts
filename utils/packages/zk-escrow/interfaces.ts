@@ -35,7 +35,6 @@ interface Point {
 
 // Arrays should be of length N where N is the number of messages to encrypt
 interface EncryptionParams {
-    encryptToPubkey: Array<string>;
     messagesAsPoint: Array<Array<string>>;
     encryptWithNonce: Array<string>;
 

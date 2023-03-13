@@ -58,7 +58,6 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
     const pAsPoints: Array<Array<string>> = pAsPointObjects.map(obj=>[obj.x, obj.y]);
     console.log('prfData', prfData)
     const inputs = {
-        encryptToPubkey: getPubkey(),
         messagesAsPoint: msgsAsPoints,
         encryptWithNonce: nonces,
         // prf inputs, and prf outputs converted to points
