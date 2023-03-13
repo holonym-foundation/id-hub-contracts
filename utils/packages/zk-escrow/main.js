@@ -3,7 +3,18 @@ const { createHash, randomBytes } = require('crypto');
 const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
 const prfEndpoint = 'https://prf.zkda.network/';
-const ZK_DIR = (typeof window === 'undefined') ? './zk' : 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
+/* TODO: find a better way to set ZK_DIR */
+let ZK_DIR;
+// if not in a browser, circom expects a file:
+if (typeof window === 'undefined') {
+    // if in node_modules, this path is different
+    const runningAsScript = require.main === module;
+    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk-escrow/zk';
+    // if in a browser, circom expects a url:
+}
+else {
+    ZK_DIR = 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
+}
 const ORDER_r = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 const ORDER_n = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
 const SUBORDER = ORDER_n >> 3n; // Order of prime subgroup
@@ -49,7 +60,6 @@ async function encryptParams(msgsToEncrypt) {
     const ps = prfData.map(d => BigInt(d.prf).toString());
     const pAsPointObjects = await Promise.all(ps.map(p => Utils.msgToPoint(p.toString())));
     const pAsPoints = pAsPointObjects.map(obj => [obj.x, obj.y]);
-    console.log('prfData', prfData);
     const inputs = {
         messagesAsPoint: msgsAsPoints,
         encryptWithNonce: nonces,
@@ -80,7 +90,13 @@ async function encryptAndProve(msgsToEncrypt) {
     //     proofParams[param] = typeof
     // );
     console.log('params', params);
-    const proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+    let proof;
+    try {
+        proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+    }
+    catch {
+        proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+    }
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals); //[proof.publicSignals.length-])
     return {
@@ -88,33 +104,6 @@ async function encryptAndProve(msgsToEncrypt) {
         proof: proof
     };
 }
-// /* Point */
-// class Point {
-//     x: BigInt
-//     y: BigInt
-//     constructor(x: BigInt, y: BigInt){
-//         this.x = x;
-//         this.y = y;
-//     }
-//     static fromDecStrings(x: string, y: string): Point {
-//         return new Point(
-//             BigInt(x),
-//             BigInt(y)
-//         );
-//     }
-//     static fromHexStrings(x: string, y: string): Point {
-//         let [x_, y_] = [x,y].map(i=> 
-//             i.startsWith('0x') ? BigInt(i) : BigInt('0x' + i)
-//         );
-//         return new Point(x_, y_);
-//     }
-// toRepr(): PointRepr {
-//     return {
-//         x: this.x.toString(),
-//         y: this.y.toString()
-//     }
-// }
-// }
 module.exports = {
     encryptParams: encryptParams,
     encryptAndProve: encryptAndProve

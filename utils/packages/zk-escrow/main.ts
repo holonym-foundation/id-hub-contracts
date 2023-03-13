@@ -3,7 +3,19 @@ const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
 const prfEndpoint = 'https://prf.zkda.network/';
 
-const ZK_DIR = (typeof window === 'undefined') ? './zk' : 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
+/* TODO: find a better way to set ZK_DIR */
+let ZK_DIR: string;
+
+// if not in a browser, circom expects a file:
+if (typeof window === 'undefined') {
+    // if in node_modules, this path is different
+    const runningAsScript = require.main === module;
+    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk-escrow/zk';
+
+// if in a browser, circom expects a url:
+} else {
+    ZK_DIR = 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
+}
 
 const ORDER_r = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 const ORDER_n = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
@@ -90,7 +102,13 @@ async function encryptAndProve(msgsToEncrypt: Array<string>): Promise<Encryption
     //     proofParams[param] = typeof
     // );
     console.log('params', params)
-    const proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+    let proof;
+    try {
+        proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+    } catch {
+        proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+    }
+    
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     console.log("public Signals", proof.publicSignals)//[proof.publicSignals.length-])
     return {
