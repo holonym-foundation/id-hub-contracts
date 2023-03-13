@@ -89,7 +89,6 @@ async function encryptAndProve(msgsToEncrypt) {
     // Object.keys(params).forEach(param=>
     //     proofParams[param] = typeof
     // );
-    console.log('params', params);
     let proof;
     try {
         proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
@@ -98,7 +97,7 @@ async function encryptAndProve(msgsToEncrypt) {
         proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
     }
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
-    console.log("public Signals", proof.publicSignals); //[proof.publicSignals.length-])
+    //[proof.publicSignals.length-])
     return {
         encryption: proof.publicSignals,
         proof: proof
