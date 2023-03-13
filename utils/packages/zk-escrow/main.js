@@ -4,18 +4,19 @@ const { groth16 } = require('snarkjs');
 const { Utils } = require('threshold-eg-babyjub');
 const prfEndpoint = 'https://prf.zkda.network/';
 const ZK_DIR = (typeof window === 'undefined') ? './zk' : 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
-const ORDER = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
-const SUBORDER = ORDER >> 3n; // Order of Fr subgroup
-const MAX_MSG = ORDER >> 10n; //Use 10 bits for Koblitz encoding
+const ORDER_r = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const ORDER_n = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
+const SUBORDER = ORDER_n >> 3n; // Order of prime subgroup
+const MAX_MSG = ORDER_n >> 10n; //Use 10 bits for Koblitz encoding
 function randFr() {
-    return BigInt('0x' + randomBytes(64).toString('hex')) % SUBORDER;
+    return BigInt('0x' + randomBytes(64).toString('hex')) % ORDER_r;
 }
 async function getPRF() {
     // Authenticate yourself to some random number by showing knowledge of its preimage. This will allow you to ge the PRF fo the preiamge
-    const preimage = randomBytes(32).toString('hex');
+    const preimage = randomBytes(64).toString('hex');
     const hash = createHash('sha512');
     hash.update(preimage);
-    const digest = hash.digest('hex');
+    const digestFr = BigInt('0x' + hash.digest('hex')) % ORDER_r;
     const r = await fetch(prfEndpoint, {
         method: 'POST',
         headers: {
@@ -23,7 +24,7 @@ async function getPRF() {
         },
         body: JSON.stringify({
             preimage: preimage,
-            digest: digest
+            digestFr: digestFr.toString()
         })
     });
     return await r.json();
@@ -44,10 +45,11 @@ async function encryptParams(msgsToEncrypt) {
     const msgsAsPoints = msgsAsPointObjects.map(obj => [obj.x, obj.y]);
     const nonces = msgsToEncrypt.map(_ => randFr().toString());
     const prfData = await Promise.all(msgsToEncrypt.map(_ => getPRF()));
-    const prfSeeds = prfData.map(d => BigInt('0x' + d.prfSeed).toString());
-    const ps = prfData.map(d => BigInt('0x' + d.prf).toString());
+    const prfSeeds = prfData.map(d => BigInt(d.prfSeed).toString());
+    const ps = prfData.map(d => BigInt(d.prf).toString());
     const pAsPointObjects = await Promise.all(ps.map(p => Utils.msgToPoint(p.toString())));
     const pAsPoints = pAsPointObjects.map(obj => [obj.x, obj.y]);
+    console.log('prfData', prfData);
     const inputs = {
         encryptToPubkey: getPubkey(),
         messagesAsPoint: msgsAsPoints,
@@ -62,7 +64,9 @@ async function encryptParams(msgsToEncrypt) {
     };
     return inputs;
 }
-setInterval(() => encryptAndProve(["123", "12341234123"]).then(x => console.log(x)), 1000);
+// setInterval(async () => getPRF().then(x=>console.log(x)), 1000)
+// setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
+setInterval(() => encryptAndProve(["123"]).then(x => console.log(x)), 2000);
 /**
    * Encrypts a message and generates a proof of successful encryption
    * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
@@ -76,9 +80,10 @@ async function encryptAndProve(msgsToEncrypt) {
     // Object.keys(params).forEach(param=>
     //     proofParams[param] = typeof
     // );
+    console.log('params', params);
     const proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
-    console.log("public Signals", proof.publicSignals);
+    console.log("public Signals", proof.publicSignals); //[proof.publicSignals.length-])
     return {
         encryption: proof.publicSignals,
         proof: proof
