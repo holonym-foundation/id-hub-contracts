@@ -10,7 +10,7 @@ let ZK_DIR: string;
 if (typeof window === 'undefined') {
     // if in node_modules, this path is different
     const runningAsScript = require.main === module;
-    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk-escrow/zk';
+    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk';
 
 // if in a browser, circom expects a url:
 } else {
