@@ -9,7 +9,7 @@ let ZK_DIR;
 if (typeof window === 'undefined') {
     // if in node_modules, this path is different
     const runningAsScript = require.main === module;
-    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk-escrow/zk';
+    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk';
     // if in a browser, circom expects a url:
 }
 else {
@@ -75,7 +75,7 @@ async function encryptParams(msgsToEncrypt) {
 }
 // setInterval(async () => getPRF().then(x=>console.log(x)), 1000)
 // setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
-setInterval(() => encryptAndProve(["123"]).then(x => console.log(x)), 2000);
+// setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 2000)
 /**
    * Encrypts a message and generates a proof of successful encryption
    * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
