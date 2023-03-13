@@ -56,7 +56,7 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
     const ps: Array<string> = prfData.map(d=>BigInt(d.prf).toString());
     const pAsPointObjects: Array<Point> = await Promise.all(ps.map(p=>Utils.msgToPoint(p.toString())));
     const pAsPoints: Array<Array<string>> = pAsPointObjects.map(obj=>[obj.x, obj.y]);
-    console.log('prfData', prfData)
+
     const inputs = {
         messagesAsPoint: msgsAsPoints,
         encryptWithNonce: nonces,
@@ -74,7 +74,7 @@ async function encryptParams(msgsToEncrypt: Array<string>): Promise<EncryptionPa
 
 // setInterval(async () => getPRF().then(x=>console.log(x)), 1000)
 // setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
-setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 2000)
+// setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 2000)
 
 /**
    * Encrypts a message and generates a proof of successful encryption
@@ -98,37 +98,6 @@ async function encryptAndProve(msgsToEncrypt: Array<string>): Promise<Encryption
         proof: proof
     }
 } 
-
-// /* Point */
-// class Point {
-
-//     x: BigInt
-//     y: BigInt
-
-//     constructor(x: BigInt, y: BigInt){
-//         this.x = x;
-//         this.y = y;
-//     }
-//     static fromDecStrings(x: string, y: string): Point {
-//         return new Point(
-//             BigInt(x),
-//             BigInt(y)
-//         );
-//     }
-//     static fromHexStrings(x: string, y: string): Point {
-//         let [x_, y_] = [x,y].map(i=> 
-//             i.startsWith('0x') ? BigInt(i) : BigInt('0x' + i)
-//         );
-//         return new Point(x_, y_);
-//     }
-    
-    // toRepr(): PointRepr {
-    //     return {
-    //         x: this.x.toString(),
-    //         y: this.y.toString()
-    //     }
-    // }
-// }
 
 module.exports = {
     encryptParams : encryptParams,
