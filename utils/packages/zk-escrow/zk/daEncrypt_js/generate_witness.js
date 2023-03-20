@@ -1,7 +1,7 @@
 const wc  = require("./witness_calculator.js");
 const { readFileSync, writeFile } = require("fs");
 
-if (process.argv.length != 5) {
+if (process.argv.length !== 5) {
     console.log("Usage: node generate_witness.js <file.wasm> <input.json> <output.wtns>");
 } else {
     const input = JSON.parse(readFileSync(process.argv[3], "utf8"));

@@ -24,14 +24,14 @@ const SUBORDER = ORDER_n >> 3n; // Order of prime subgroup
 const MAX_MSG = ORDER_n >> 10n; //Use 10 bits for Koblitz encoding
 
 function randFr(): BigInt {
-    return BigInt('0x'+randomBytes(64).toString('hex')) % ORDER_r
+    return BigInt(`0x${randomBytes(64).toString('hex')}`) % ORDER_r
 }
 async function getPRF() {
     // Authenticate yourself to some random number by showing knowledge of its preimage. This will allow you to ge the PRF fo the preiamge
     const preimage = randomBytes(64).toString('hex');
     const hash = createHash('sha512'); 
     hash.update(preimage); 
-    const digestFr = BigInt('0x'+hash.digest('hex')) % ORDER_r;
+    const digestFr = BigInt(`0x${hash.digest('hex')}`) % ORDER_r;
 
     const r = await fetch(prfEndpoint, {
         method: 'POST',
