@@ -5,16 +5,22 @@ interface Point {
 
 // Arrays should be of length N where N is the number of messages to encrypt
 interface EncryptionParams {
-    messagesAsPoint: Array<Array<string>>;
+    // Address pointing to the contract that access-gates the encrypted data: 
+    accessControlID: String;
+
+    msgAsPoint: Array<Array<string>>;
     encryptWithNonce: Array<string>;
 
     // prf seed and output:
-    prfSeed: Array<string>;
-    pAsPoint: Array<Array<string>>;
+    prfIn: Array<string>;
+    prfOutAsPoint: Array<Array<string>>;
     // Signature:
     S: Array<string>;
     R8x: Array<string>;
     R8y: Array<string>;
+
+    // randomness to use for Pedersen commitment of encrypted message:
+    rnd: Array<string>;
 }
 
 interface EncryptionProof {

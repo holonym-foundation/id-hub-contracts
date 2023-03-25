@@ -50,41 +50,45 @@ function getPubkey() {
    *
    * @beta
    */
-async function encryptParams(msgsToEncrypt) {
+async function encryptParams(accessControlID, msgsToEncrypt) {
     // const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
     const msgsAsPointObjects = await Promise.all(msgsToEncrypt.map(msg => Utils.msgToPoint(msg)));
     const msgsAsPoints = msgsAsPointObjects.map(obj => [obj.x, obj.y]);
     const nonces = msgsToEncrypt.map(_ => randFr().toString());
+    const commitRnd = msgsToEncrypt.map(_ => randFr().toString());
     const prfData = await Promise.all(msgsToEncrypt.map(_ => getPRF()));
-    const prfSeeds = prfData.map(d => BigInt(d.prfSeed).toString());
-    const ps = prfData.map(d => BigInt(d.prf).toString());
-    const pAsPointObjects = await Promise.all(ps.map(p => Utils.msgToPoint(p.toString())));
-    const pAsPoints = pAsPointObjects.map(obj => [obj.x, obj.y]);
+    const prfIn = prfData.map(d => BigInt(d.prfIn).toString());
+    const prfOuts = prfData.map(d => BigInt(d.prfOut).toString());
+    const prfOutAsPointObjects = await Promise.all(prfOuts.map(p => Utils.msgToPoint(p.toString())));
+    const prfOutAsPoints = prfOutAsPointObjects.map(obj => [obj.x, obj.y]);
     const inputs = {
-        messagesAsPoint: msgsAsPoints,
+        accessControlID: accessControlID,
+        msgAsPoint: msgsAsPoints,
         encryptWithNonce: nonces,
         // prf inputs, and prf outputs converted to points
-        prfSeed: prfSeeds,
-        pAsPoint: pAsPoints,
+        prfIn: prfIn,
+        prfOutAsPoint: prfOutAsPoints,
         // Signature
         S: prfData.map(d => BigInt(d.sig.S).toString()),
         R8x: prfData.map(data => data.sig.R8.x.toString()),
-        R8y: prfData.map(data => data.sig.R8.y.toString())
+        R8y: prfData.map(data => data.sig.R8.y.toString()),
+        // Randomness for commtiment:
+        rnd: commitRnd
     };
     return inputs;
 }
 // setInterval(async () => getPRF().then(x=>console.log(x)), 1000)
 // setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
-// setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 2000)
+setInterval(() => encryptAndProve(["123"]).then(x => console.log(x)), 2000);
 /**
    * Encrypts a message and generates a proof of successful encryption
-   * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
+   * @param msgToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
    * @returns encryption and proof of proper encryption
    *
    * @beta
    */
-async function encryptAndProve(msgsToEncrypt) {
-    const params = await encryptParams(msgsToEncrypt);
+async function encryptAndProve(msgToEncrypt) {
+    const params = await encryptParams("123456", msgToEncrypt);
     // const proofParams = {};
     // Object.keys(params).forEach(param=>
     //     proofParams[param] = typeof
