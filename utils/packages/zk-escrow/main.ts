@@ -1,54 +1,87 @@
-const { createHash, randomBytes } = require('crypto');
-const { groth16 } = require('snarkjs');
-const { Utils } = require('threshold-eg-babyjub');
-const prfEndpoint = 'https://prf.zkda.network/';
+import { createHash, randomBytes } from "crypto";
+// @ts-ignore
+import { groth16 } from "snarkjs";
+// @ts-ignore
+import { Utils } from "threshold-eg-babyjub";
+
+const prfEndpoint = "https://prf.zkda.network/";
+interface Point {
+    x: string,
+    y: string
+}
+
+// Arrays should be of length N where N is the number of messages to encrypt
+interface EncryptionParams {
+    // Address pointing to the contract that access-gates the encrypted data: 
+    accessControlID: String;
+
+    msgAsPoint: Array<Array<string>>;
+    encryptWithNonce: Array<string>;
+
+    // prf seed and output:
+    prfIn: Array<string>;
+    prfOutAsPoint: Array<Array<string>>;
+    // Signature:
+    S: Array<string>;
+    R8x: Array<string>;
+    R8y: Array<string>;
+
+    // randomness to use for Pedersen commitment of encrypted message:
+    rnd: Array<string>;
+}
+
+interface EncryptionProof {
+}
+
 
 /* TODO: find a better way to set ZK_DIR */
 let ZK_DIR: string;
 
 // if not in a browser, circom expects a file:
-if (typeof window === 'undefined') {
-    // if in node_modules, this path is different
-    const runningAsScript = require.main === module;
-    ZK_DIR = runningAsScript ? './zk' : './node_modules/zk-escrow/zk';
+if (typeof window === "undefined") {
+	// if in node_modules, this path is different
+	const runningAsScript = require.main === module;
+	ZK_DIR = runningAsScript ? "./zk" : "./node_modules/zk-escrow/zk";
 
-// if in a browser, circom expects a url:
+	// if in a browser, circom expects a url:
 } else {
-    ZK_DIR = 'https://preproc-zkp.s3.us-east-2.amazonaws.com/circom';
+	ZK_DIR = "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom";
 }
 
-const ORDER_r = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
-const ORDER_n = 21888242871839275222246405745257275088614511777268538073601725287587578984328n;
+const ORDER_r =
+	21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const ORDER_n =
+	21888242871839275222246405745257275088614511777268538073601725287587578984328n;
 
 const SUBORDER = ORDER_n >> 3n; // Order of prime subgroup
 const MAX_MSG = ORDER_n >> 10n; //Use 10 bits for Koblitz encoding
 
 function randFr(): BigInt {
-    return BigInt('0x'+randomBytes(64).toString('hex')) % ORDER_r
+	return BigInt(`0x${randomBytes(64).toString("hex")}`) % ORDER_r;
 }
 async function getPRF() {
-    // Authenticate yourself to some random number by showing knowledge of its preimage. This will allow you to ge the PRF fo the preiamge
-    const preimage = randomBytes(64).toString('hex');
-    const hash = createHash('sha512'); 
-    hash.update(preimage); 
-    const digestFr = BigInt('0x'+hash.digest('hex')) % ORDER_r;
+	// Authenticate yourself to some random number by showing knowledge of its preimage. This will allow you to ge the PRF fo the preiamge
+	const preimage = randomBytes(64).toString("hex");
+	const hash = createHash("sha512");
+	hash.update(preimage);
+	const digestFr = BigInt(`0x${hash.digest("hex")}`) % ORDER_r;
 
-    const r = await fetch(prfEndpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            preimage: preimage,
-            digestFr: digestFr.toString()
-        })
-    });
+	const r = await fetch(prfEndpoint, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			preimage: preimage,
+			digestFr: digestFr.toString(),
+		}),
+	});
 
-    return await r.json();
+	return await r.json();
 }
 
 function getPubkey() {
-    return ['420', '69'];
+	return ["420", "69"];
 }
 
 /**
@@ -119,9 +152,6 @@ async function encryptAndProve(msgToEncrypt: Array<string>): Promise<EncryptionP
         encryption: proof.publicSignals,
         proof: proof
     }
-} 
+}
 
-module.exports = {
-    encryptParams : encryptParams,
-    encryptAndProve : encryptAndProve
-};
+export { encryptParams, encryptAndProve };
