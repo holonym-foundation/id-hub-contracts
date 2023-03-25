@@ -124,7 +124,7 @@ async function encryptParams(accessControlID: String, msgsToEncrypt: Array<strin
 
 // setInterval(async () => getPRF().then(x=>console.log(x)), 1000)
 // setInterval(()=>encryptParams(["123"]).then(x=>console.log(x)), 1000)
-setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 2000)
+// setInterval(()=>encryptAndProve(["123"]).then(x=>console.log(x)), 2000)
 
 /**
    * Encrypts a message and generates a proof of successful encryption
