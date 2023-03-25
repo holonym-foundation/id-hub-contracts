@@ -14,8 +14,7 @@ Inputs:
     m: a point representing the message to encrypt
 */
 
-template EncryptElGamal (pubkeyX, pubkeyY) {  
-    var h[2] = [pubkeyX, pubkeyY];
+template EncryptElGamal (pubkey) {  
     signal input y;
     // signal input m;
     signal input messageAsPoint[2];
@@ -47,7 +46,7 @@ template EncryptElGamal (pubkeyX, pubkeyY) {
     
     c1 <== getPubkey.out;
 
-    component getSharedSecret = EscalarMulFix(254, h);
+    component getSharedSecret = EscalarMulFix(254, pubkey);
     for (i=0; i<254; i++) {
         getSharedSecret.e[i] <== toBitsY.out[i];
     }

@@ -24,7 +24,7 @@ include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/escalarmulany.circom";
 include "../../../node_modules/circomlib/circuits/escalarmulfix.circom";
 
-template EdDSAPoseidonVerifier(Ax, Ay, A8x, A8y) {
+template EdDSAPoseidonVerifier(A, A8) {
     signal input enabled;
 
     signal input S;
@@ -33,7 +33,6 @@ template EdDSAPoseidonVerifier(Ax, Ay, A8x, A8y) {
 
     signal input M;
 
-    var A8[2] = [A8x, A8y];
     var i;
 
 // Ensure S<Subgroup Order
@@ -55,8 +54,8 @@ template EdDSAPoseidonVerifier(Ax, Ay, A8x, A8y) {
 
     hash.inputs[0] <== R8x;
     hash.inputs[1] <== R8y;
-    hash.inputs[2] <== Ax;
-    hash.inputs[3] <== Ay;
+    hash.inputs[2] <== A[0];
+    hash.inputs[3] <== A[1];
     hash.inputs[4] <== M;
 
     component h2bits = Num2Bits_strict();
