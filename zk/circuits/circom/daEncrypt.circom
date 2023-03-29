@@ -1,11 +1,11 @@
-// include "./pointToMsg.circom";
+include "./pointToMsg.circom";
 // include "./auditableProof.circom";
 include "./pedersenCommit.circom";
-include "./eddsaFixedPubkey.circom";
+// include "./eddsaFixedPubkey.circom";
 include "./hash.circom";
 include "./encryptElGamalFixedPubkey.circom";
 // include "../../../node_modules/circomlib/circuits/poseidon.circom";
-// include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
+include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 // This adds post-quantum protection and a centralized node to the encryption to the MPC network. This is one place where centralized server is helpful;
 // As a result, if the network is hacked now or quantum-attacked in a few decades, the data is still safe due to this centralized PRF server being necessary but not sufficient to decrypt
@@ -22,7 +22,7 @@ include "./encryptElGamalFixedPubkey.circom";
 // can decrypt the message.
 template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersenA, pedersenB) {
     // Access control for when it should be decrypted:
-    signal input accessControlID;
+    signal input accessControlLogic;
     //ElGamal encryption parameters:
     signal input encryptWithNonce[numMsgsToEncrypt];
     signal input msgAsPoint[numMsgsToEncrypt][2];
@@ -44,6 +44,8 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
     signal input S[numMsgsToEncrypt];
     signal input R8x[numMsgsToEncrypt];
     signal input R8y[numMsgsToEncrypt];
+
+    component p2m[numMsgsToEncrypt][2];
     component sigVerifiers[numMsgsToEncrypt];
     component hash[numMsgsToEncrypt];
     // components to add prf to messages and encrypt the result
@@ -52,20 +54,36 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
     // Pedersen commitments to bind the plaintext message to a public value
     component commitors[numMsgsToEncrypt];
 
+    // Malleability constraint (https://geometry.xyz/notebook/groth16-malleability):
+    accessControlLogic * 0 === 0;
+    // delete this:
+    prfIn[0] * rnd[0] === 20656700228854300805230865225678695897434564557366765516395800049197408121569;
     // Add p to all messages, after checking p is correct
     for(var i=0; i<numMsgsToEncrypt; i++) {
-        prfOut[i] <== prfOutAsPoint[i][0] \ 1024; //Convert from/to point using Koblitz encoding with last 10 bits variable
-        msg[i] <== msgAsPoint[i][0] \ 1024;
+        // Circom seems to have some unresolved edge cases pertaining to this \ operator, so using pointToMsg.circom:
+        p2m[i][0] = PointToMsg();
+        p2m[i][1] = PointToMsg();
 
-        sigVerifiers[i] = EdDSAPoseidonVerifier(prfPubkey, prfPubkey8);
-        sigVerifiers[i].enabled <== 1;
+        p2m[i][0].point <== prfOutAsPoint[i];
+        prfOut[i] <== p2m[i][0].msg;
 
-        sigVerifiers[i].R8x <== R8x[i];
-        sigVerifiers[i].R8y <== R8y[i];
-        sigVerifiers[i].S <== S[i];
-        hash[i] = Hash(2);
-        hash[i].in <== [prfIn[i], prfOut[i]];
-        sigVerifiers[i].M <== hash[i].out;
+        p2m[i][1].point <== msgAsPoint[i];
+        msg[i] <== p2m[i][1].msg;
+
+        // prfOut[i] <== prfOutAsPoint[i][0] \ 1024; //Convert from/to point using Koblitz encoding with last 10 bits variable
+        // msg[i] <== msgAsPoint[i][0] \ 1024; // Circom seems to have some unresolved edge cases pertaining to this \ operator, msgAsPoint[i][0] \ 1024;
+        
+
+        /* THIS PART CAUSES NOT WITNESS GENERATION BUT VERIFICATION TO FAIL*/
+        // sigVerifiers[i] = EdDSAPoseidonVerifier(/*prfPubkey, prfPubkey8*/);
+        // sigVerifiers[i].enabled <== 1;
+
+        // sigVerifiers[i].R8x <== R8x[i];
+        // sigVerifiers[i].R8y <== R8y[i];
+        // sigVerifiers[i].S <== S[i];
+        // hash[i] = Hash(2);
+        // hash[i].in <== [prfIn[i], prfOut[i]];
+        // sigVerifiers[i].M <== hash[i].out;
         
         pointAdders[i] = BabyAdd();
         pointAdders[i].x1 <== prfOutAsPoint[i][0];
@@ -76,16 +94,22 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
         encryptors[i] = EncryptElGamal(mpckPubkey);
         encryptors[i].y <== encryptWithNonce[i];
         encryptors[i].messageAsPoint <== msgAsPoint[i];
-        // ElGamal encryption values
+        // // ElGamal encryption values
         encryptions[i] <== [encryptors[i].c1, encryptors[i].c2];
 
+        /* THIS PART CAUSES NOT WITNESS GENERATION BUT VERIFICATION TO FAIL */
         commitors[i] = PedersenCommitFixed(pedersenA, pedersenB);
         commitors[i].msg <== msg[i];
-        commitors[i].rnd <== msg[i];
+        commitors[i].rnd <== rnd[i];
         commitments[i] <== commitors[i].commitment;
     }
 }
 
-// MAKE THIS PUBLIC AGAIN
-component main { public [prfIn] } = DAEncrypt(1, [0x1f30716f68d9e4ab3a5ce72753c0e653960b4431af2b98238006afd373c37738, 0x0f6432b77eede93f3151c49fdc4f4ac2b2025d60d4990dd58118be277f3dfb08], [0x1f74096a505833f9107e424e664a06abf0f5164876ed130025cd5621d956f0e3, 0x29c11883b887723ab734d9fca1923e0e8ce90f7eb7b4c7c6afca9f9dbe6d9bbf], [69, 69], [69, 69], [69, 69]);
+component main { public [prfIn] } = DAEncrypt(1, [14107289866124002287276209422779250352951700818210714506990091876249198884664, 6961727469581633583805163299471568258565821620152214587801470213637780929288], [0x1f74096a505833f9107e424e664a06abf0f5164876ed130025cd5621d956f0e3, 0x29c11883b887723ab734d9fca1923e0e8ce90f7eb7b4c7c6afca9f9dbe6d9bbf], [69, 69], [69, 69], [69, 69]);
 // GIT DIFF AGAINST PREVIOUS VERSION TO MAKE SURE HAVEN'T COMMENTED OUT ANYTHING IMPORTANT
+
+
+
+
+
+

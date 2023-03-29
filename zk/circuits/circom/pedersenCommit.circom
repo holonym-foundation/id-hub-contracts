@@ -1,5 +1,5 @@
 include "../../../node_modules/circomlib/circuits/escalarmulfix.circom";
-
+include "../../../node_modules/circomlib/circuits/bitify.circom";
 // template PedersenCommit() {
     
 // }
@@ -20,6 +20,7 @@ template PedersenCommitFixed(A, B) {
 
     component mulA = EscalarMulFix(254, A);
     component mulB = EscalarMulFix(254, B);
+
     var i;
     for (i=0; i<254; i++) {
         mulA.e[i] <== msgToBits.out[i];

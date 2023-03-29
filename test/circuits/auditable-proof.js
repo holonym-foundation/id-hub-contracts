@@ -1,3 +1,4 @@
+// DEPRECATING
 const { expect } = require("chai");
 const { Proofs } = require("../../utils/proofs");
 const { Utils } = require("threshold-eg-babyjub");

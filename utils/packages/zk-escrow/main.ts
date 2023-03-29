@@ -13,7 +13,7 @@ interface Point {
 // Arrays should be of length N where N is the number of messages to encrypt
 interface EncryptionParams {
     // Address pointing to the contract that access-gates the encrypted data: 
-    accessControlID: String;
+    accessControlLogic: String;
 
     msgAsPoint: Array<Array<string>>;
     encryptWithNonce: Array<string>;
@@ -41,7 +41,9 @@ let ZK_DIR: string;
 if (typeof window === "undefined") {
 	// if in node_modules, this path is different
 	const runningAsScript = require.main === module;
-	ZK_DIR = runningAsScript ? "./zk" : "./node_modules/zk-escrow/zk";
+	ZK_DIR = process?.env?.ZKESCROW_CUSTOM_ZK_DIR || 
+            (runningAsScript ? "./zk" : "./node_modules/zk-escrow/zk")
+    ;
 
 	// if in a browser, circom expects a url:
 } else {
@@ -91,7 +93,7 @@ function getPubkey() {
    *
    * @beta
    */
-async function encryptParams(accessControlID: String, msgsToEncrypt: Array<string>): Promise<EncryptionParams> {
+async function encryptParams(accessControlLogic: String, msgsToEncrypt: Array<string>): Promise<EncryptionParams> {
     // const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
     const msgsAsPointObjects: Array<Point> = await Promise.all(msgsToEncrypt.map(msg=>Utils.msgToPoint(msg)));
     const msgsAsPoints: Array<Array<string>> = msgsAsPointObjects.map(obj=>[obj.x, obj.y]);
@@ -104,7 +106,7 @@ async function encryptParams(accessControlID: String, msgsToEncrypt: Array<strin
     const prfOutAsPoints: Array<Array<string>> = prfOutAsPointObjects.map(obj=>[obj.x, obj.y]);
 
     const inputs = {
-        accessControlID: accessControlID,
+        accessControlLogic: accessControlLogic,
         msgAsPoint: msgsAsPoints,
         encryptWithNonce: nonces,
         // prf inputs, and prf outputs converted to points
@@ -118,7 +120,7 @@ async function encryptParams(accessControlID: String, msgsToEncrypt: Array<strin
         // Randomness for commtiment:
         rnd: commitRnd
     }
-
+    console.log("inputs", JSON.stringify(inputs))
     return inputs;
 } 
 
@@ -133,8 +135,8 @@ async function encryptParams(accessControlID: String, msgsToEncrypt: Array<strin
    *
    * @beta
    */
-async function encryptAndProve(msgToEncrypt: Array<string>): Promise<EncryptionProof> {
-    const params: EncryptionParams = await encryptParams("123456", msgToEncrypt);
+async function encryptAndProve(accessControlLogic: String, msgToEncrypt: Array<string>): Promise<EncryptionProof> {
+    const params: EncryptionParams = await encryptParams(accessControlLogic, msgToEncrypt);
     // const proofParams = {};
     // Object.keys(params).forEach(param=>
     //     proofParams[param] = typeof
@@ -142,8 +144,9 @@ async function encryptAndProve(msgToEncrypt: Array<string>): Promise<EncryptionP
     let proof;
     try {
         proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
+        console.log(`proving using ${ZK_DIR}/daEncrypt_js/daEncrypt.wasm and ${ZK_DIR}/daEncrypt_0001.zkey: \n\n ${JSON.stringify(proof)}`)
+
     } catch {
-        proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
     }
     
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);

@@ -54,7 +54,7 @@ const createProofOfMedicalSpecialty = async ({tree, salt, hashbrowns, address, a
         return r;
     }
 
-describe.only("MedicalSpecialty", function () {
+describe("MedicalSpecialty", function () {
     before(async function() {
         [this.account, this.admin, this.someAccount] = await ethers.getSigners();
         this.leafMaker = await makeLeafMaker();
