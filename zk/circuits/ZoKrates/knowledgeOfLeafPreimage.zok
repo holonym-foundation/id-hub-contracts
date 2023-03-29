@@ -1,0 +1,20 @@
+import "hashes/poseidon/poseidon" as poseidon;
+
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
+
+def main(field root, private field issuerAddr, private field countryCode, private field nameDobCitySubdivisionZipStreetExpireHash, private field iat, private field scope, private field secret, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+    field[6] preimage = [issuerAddr, secret, countryCode, nameDobCitySubdivisionZipStreetExpireHash, iat, scope];
+    field leaf = poseidon(preimage);
+
+    // Merkle proof
+    field mut digest = leaf;
+    for u32 i in 0..DEPTH {
+        // At each step, check for the digest in the next level of path, then calculate the new digest
+        assert(path[i][indices[i]] == digest);
+        digest = poseidon(path[i]);
+    }
+    assert(digest == root);
+
+    return;
+}
