@@ -54,6 +54,15 @@ const Proofs = {
             return await verifyProofCircom("merkleproof-testwrapper", proof)
         }
     },
+
+    daEncrypt : {
+        prove : async (inputs) => {
+            return await createProofCircom("daEncrypt", "daEncrypt_0001", inputs)
+        },
+        verify : async (proof) => {
+            return await verifyProofCircom("daEncrypt", proof)
+        }
+    },
 }
 
 module.exports = {
