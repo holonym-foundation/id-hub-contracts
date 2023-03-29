@@ -1,11 +1,11 @@
 include "./pointToMsg.circom";
 // include "./auditableProof.circom";
 include "./pedersenCommit.circom";
-// include "./eddsaFixedPubkey.circom";
+include "./eddsaFixedPubkey.circom";
 include "./hash.circom";
 include "./encryptElGamalFixedPubkey.circom";
 // include "../../../node_modules/circomlib/circuits/poseidon.circom";
-include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
+// include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 // This adds post-quantum protection and a centralized node to the encryption to the MPC network. This is one place where centralized server is helpful;
 // As a result, if the network is hacked now or quantum-attacked in a few decades, the data is still safe due to this centralized PRF server being necessary but not sufficient to decrypt
@@ -27,6 +27,7 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
     signal input encryptWithNonce[numMsgsToEncrypt];
     signal input msgAsPoint[numMsgsToEncrypt][2];
     signal msg[numMsgsToEncrypt];
+
     // Encryption output will be the two points c1 and c2 for every message. It has dimensions [numMsgsToEncrypt][2][2]
     // E.g., encryptions[1] will be a 2*2 array representing [c1,c2] where c1 and c2 are the two points that represent an encryption
     signal output encryptions[numMsgsToEncrypt][2][2];
@@ -56,8 +57,7 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
 
     // Malleability constraint (https://geometry.xyz/notebook/groth16-malleability):
     accessControlLogic * 0 === 0;
-    // delete this:
-    prfIn[0] * rnd[0] === 20656700228854300805230865225678695897434564557366765516395800049197408121569;
+
     // Add p to all messages, after checking p is correct
     for(var i=0; i<numMsgsToEncrypt; i++) {
         // Circom seems to have some unresolved edge cases pertaining to this \ operator, so using pointToMsg.circom:
@@ -73,17 +73,15 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
         // prfOut[i] <== prfOutAsPoint[i][0] \ 1024; //Convert from/to point using Koblitz encoding with last 10 bits variable
         // msg[i] <== msgAsPoint[i][0] \ 1024; // Circom seems to have some unresolved edge cases pertaining to this \ operator, msgAsPoint[i][0] \ 1024;
         
+        sigVerifiers[i] = EdDSAPoseidonVerifier(prfPubkey, prfPubkey8);
+        sigVerifiers[i].enabled <== 1;
 
-        /* THIS PART CAUSES NOT WITNESS GENERATION BUT VERIFICATION TO FAIL*/
-        // sigVerifiers[i] = EdDSAPoseidonVerifier(/*prfPubkey, prfPubkey8*/);
-        // sigVerifiers[i].enabled <== 1;
-
-        // sigVerifiers[i].R8x <== R8x[i];
-        // sigVerifiers[i].R8y <== R8y[i];
-        // sigVerifiers[i].S <== S[i];
-        // hash[i] = Hash(2);
-        // hash[i].in <== [prfIn[i], prfOut[i]];
-        // sigVerifiers[i].M <== hash[i].out;
+        sigVerifiers[i].R8x <== R8x[i];
+        sigVerifiers[i].R8y <== R8y[i];
+        sigVerifiers[i].S <== S[i];
+        hash[i] = Hash(2);
+        hash[i].in <== [prfIn[i], prfOut[i]];
+        sigVerifiers[i].M <== hash[i].out;
         
         pointAdders[i] = BabyAdd();
         pointAdders[i].x1 <== prfOutAsPoint[i][0];
@@ -97,7 +95,6 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
         // // ElGamal encryption values
         encryptions[i] <== [encryptors[i].c1, encryptors[i].c2];
 
-        /* THIS PART CAUSES NOT WITNESS GENERATION BUT VERIFICATION TO FAIL */
         commitors[i] = PedersenCommitFixed(pedersenA, pedersenB);
         commitors[i].msg <== msg[i];
         commitors[i].rnd <== rnd[i];

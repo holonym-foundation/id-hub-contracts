@@ -18,7 +18,9 @@ template PointToMsg() {
     toBits.in <== point[0];
 
     var i = 0;
-    for (i=0; i<244; i++) {
-        toNum.in[i] <== toBits.out[i];
+    for (i=10; i<254; i++) {
+        toNum.in[i-10] <== toBits.out[i];
     }
+    log("done");
+    msg <== toNum.out;
 }
