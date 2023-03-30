@@ -19,28 +19,26 @@ struct Tag {
 }
 
 contract DataAvail {
-
-    mapping(bytes32 => Tag) tagForId;
+    event TagAdded(bytes32 tagId, Tag tag);
+    mapping(bytes32 => Tag) tagForAvailID;
     constructor() {
     }
 
-    function store(/*proof*/) public {
-        // require(TODO: Verify proof)
+    function storeData(/*proof, publicSignals*/) public {
+        // require(verifier.verify(proof, publicSignals, "failed to verify proof of correct encryption");
         // Tag tag = signalsToTag(publicSignals);
         // tagId = getTagId(tag);
-        // require(tagForId[tagId] "Please use a new tagId / commitment");
-        // tagForId[tagId] = tag;
+        // require(tagForAvailID[tagId] "Please use a new tagId / commitment");
+        // tagForAvailID[tagId] = tag;
     }
 
-    // function dataExists(/*data or hash of data*/) public view returns (bool e) {}
+    // Gets the availID for a tag, which helps check whether the tag has been stored:
+    function getAvailID(Tag memory tag) public pure returns (bytes32 id) {
+        return getAvailID(tag.commitment, tag.accessControlLogic);
+    }
 
-    // Converts the daEncrypt proof's public signals to a Tag struct
-    // function signalsToTag(uint[] memory publicSignals) public view returns (Tag memory t) {}
-
-    // function tagToSignals(Tag memory tag) public view returns (uint[] memory s) {}
-
-    function getAvailabilityID(Point memory dataCommitment, address accessControlLogic) public pure returns (bytes32 id) {
-        
+    // getAvailID override with smaller arguments:
+    function getAvailID(Point memory dataCommitment, address accessControlLogic) public pure returns (bytes32 id) {
         return keccak256(abi.encodePacked(
             dataCommitment.x,
             dataCommitment.y,
@@ -48,13 +46,11 @@ contract DataAvail {
         ));
     }
 
-    function getAvailabilityID(Tag memory tag) public pure returns (bytes32 id) {
-        return getAvailabilityID(tag.commitment, tag.accessControlLogic);
-    }
-
+    // Checks a tag has been stored:
     function checkDataAvailability(Point memory dataCommitment, address accessControlLogic) public view returns (bool available) {
-        bytes32 id = getAvailabilityID(dataCommitment, accessControlLogic);
-        // This line works because if tagForId[id] is uninitialized, the accessControlLogic will be the zero address
-        return (tagForId[id].accessControlLogic == accessControlLogic) && (accessControlLogic != address(0));
+        bytes32 id = getAvailID(dataCommitment, accessControlLogic);
+        // This line works because if tagForAvailID[id] is uninitialized, the accessControlLogic will be the zero address
+        return (tagForAvailID[id].accessControlLogic == accessControlLogic) && (accessControlLogic != address(0));
     }
+    
 }
