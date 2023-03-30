@@ -175,4 +175,4 @@ function serializeSignals(signals: Array<string>) : SerializedSignals {
     return ser;
 }
 
-export { encryptParams, encryptAndProve, serializeSignals };
+export { encryptParams, encryptAndProve, serializeSignals, randFr };

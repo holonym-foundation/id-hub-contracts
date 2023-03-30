@@ -1,7 +1,9 @@
 const { readFileSync } = require("fs");
-const { encryptAndProve } = require("../lib/main");
+const { encryptAndProve, randFr } = require("../lib/main");
 const snarkjs = require("snarkjs");
 const { expect } = require("chai");
+const signalOrder = require("../signalOrder.json");
+
 describe("zkEscrow circuit", function (){
     this.timeout(10000); //Plane wifi xD
     before(async function() {
@@ -14,13 +16,18 @@ describe("zkEscrow circuit", function (){
     it("Proof generation and verification successful", async function() {
         console.log(this.proof.publicSignals, this.proof.publicSignals.length);
         const res = await snarkjs.groth16.verify(this.vKey, this.proof.publicSignals, this.proof.proof);
-        expect(res).to.equal("test malleability");
+        expect(res).to.equal(true);
     });
 
-    // it("All constraints are taken into account", async function() {
-    //     const res = await snarkjs.groth16.verify(this.vKey, this.proof.publicSignals, this.proof.proof);
-    //     expect(res).to.equal(true);
-    // });
+    it("All public signals are constrained (includes malleability check)", async function() {
+        for (let i = 0; i < this.proof.publicSignals.length; i++) {
+            let wrongPublicSignals = [...this.proof.publicSignals];
+            wrongPublicSignals[i] = randFr().toString();
+            const res = await snarkjs.groth16.verify(this.vKey, wrongPublicSignals, this.proof.proof);
+            expect(res).to.equal(false,`Signal ${signalOrder[i]} is not constrained`);
+        }
+        
+    });
 
     // for (let i = 0; i < this.proof.publicSignals.length; i++) {
     //     it(`Proof generation and verification successful for ${i}`, async function() {
