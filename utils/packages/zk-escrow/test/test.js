@@ -5,7 +5,6 @@ const { expect } = require("chai");
 const signalOrder = require("../signalOrder.json");
 
 describe("zkEscrow circuit", function (){
-    this.timeout(10000); //Plane wifi xD
     before(async function() {
         const { tag, proof } = await encryptAndProve("69", ["1234567898765"]);
         this.tag = tag; this.proof = proof;
@@ -29,10 +28,7 @@ describe("zkEscrow circuit", function (){
         
     });
 
-    // for (let i = 0; i < this.proof.publicSignals.length; i++) {
-    //     it(`Proof generation and verification successful for ${i}`, async function() {
-    //         console.log(this.proof.publicSignals[i])
-    //     });
-    // }
-    
+    after(async function() {
+        process.exit(0);
+    });
 })
