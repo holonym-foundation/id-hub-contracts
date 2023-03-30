@@ -21,6 +21,5 @@ template PointToMsg() {
     for (i=10; i<254; i++) {
         toNum.in[i-10] <== toBits.out[i];
     }
-    log("done");
     msg <== toNum.out;
 }

@@ -12,3 +12,4 @@ rm $destination_dir/daEncrypt_verification_key.json $destination_dir/daEncrypt_0
 mv daEncrypt_js $destination_dir
 mv ../../pvkeys/circom/daEncrypt_0001.zkey $destination_dir
 mv ../../pvkeys/circom/daEncrypt_verification_key.json $destination_dir
+mv daEncrypt.sym $destination_dir
