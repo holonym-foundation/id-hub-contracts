@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: MIT
+
+/* This is the data availabilty part of zkEscrow. It stores encrypted user data, given by the zk-escrow npm package.
+ * It allows for statements of the form "I have stored properly-encrypted data to this contract, and the commitment to my data is X"
+ * Then, users can do arbitrary proofs of the data by opening the commitment in a zksnark. 
+ * Neither the ciphertext and the commitment stored here can be broken by quantum computers, nor lost in a data breach of a single master key.
+*/
 pragma solidity ^0.8.9;
 
 struct Point {
@@ -11,6 +17,9 @@ struct ElGamalCiphertext {
     Point c2;
 }
 
+// A tag is given in the proof of correct encryption, as the public signals. It is all the information that will be needed to recover the plaintext.
+// Notably, it has a Pedersen commitment to the plaintext data. That way, once data is stored in this contract, a user can open the commitment in another
+// zksnark to prove facts about it. 
 struct Tag {
     address accessControlLogic;
     Point commitment;
