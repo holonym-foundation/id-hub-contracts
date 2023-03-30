@@ -6,11 +6,13 @@
   "types": "lib/main.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsc && ZKESCROW_CUSTOM_ZK_DIR=\"./zk\" mocha test/test.js"
+    "test": "tsc && ZKESCROW_CUSTOM_ZK_DIR=\"./zk\" mocha test/test.js",
+    "build-signal-serialization": "tsc && ZKESCROW_CUSTOM_ZK_DIR=\"./zk\" node scripts/buildSignalSerializationMap.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "n-readlines": "^1.0.1",
     "snarkjs": "^0.6.8",
     "threshold-eg-babyjub": "^0.0.2",
     "typedoc": "^0.23.26",

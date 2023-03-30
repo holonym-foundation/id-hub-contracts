@@ -4,6 +4,8 @@ import { groth16 } from "snarkjs";
 // @ts-ignore
 import { Utils } from "threshold-eg-babyjub";
 
+import signalOrder from "./signalOrder.json";
+
 const prfEndpoint = "https://prf.zkda.network/";
 interface Point {
     x: string,
@@ -30,9 +32,17 @@ interface EncryptionParams {
     rnd: Array<string>;
 }
 
-interface EncryptionProof {
+interface Proof {
+    proof: Object;
+    publicSignals: Array<string>;
 }
-
+interface EncryptionProof {
+    tag: SerializedSignals;
+    proof: Proof;
+}
+interface SerializedSignals {
+    [key: string]: string;
+}
 
 /* TODO: find a better way to set ZK_DIR */
 let ZK_DIR: string;
@@ -120,7 +130,6 @@ async function encryptParams(accessControlLogic: String, msgsToEncrypt: Array<st
         // Randomness for commtiment:
         rnd: commitRnd
     }
-    console.log("inputs", JSON.stringify(inputs))
     return inputs;
 } 
 
@@ -144,7 +153,7 @@ async function encryptAndProve(accessControlLogic: String, msgToEncrypt: Array<s
     let proof;
     try {
         proof = await groth16.fullProve(params, `${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`, `${ZK_DIR}/daEncrypt_0001.zkey`);
-        console.log(`proving using ${ZK_DIR}/daEncrypt_js/daEncrypt.wasm and ${ZK_DIR}/daEncrypt_0001.zkey: \n\n ${JSON.stringify(proof)}`)
+        // console.log(`proving using ${ZK_DIR}/daEncrypt_js/daEncrypt.wasm and ${ZK_DIR}/daEncrypt_0001.zkey: \n\n ${JSON.stringify(proof)}`)
 
     } catch {
     }
@@ -152,9 +161,18 @@ async function encryptAndProve(accessControlLogic: String, msgToEncrypt: Array<s
     // const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
     //[proof.publicSignals.length-])
     return {
-        encryption: proof.publicSignals,
+        tag: serializeSignals(proof.publicSignals),
         proof: proof
     }
 }
 
-export { encryptParams, encryptAndProve };
+function serializeSignals(signals: Array<string>) : SerializedSignals {
+    let ser: SerializedSignals = {};
+    signals.forEach((signal, i) => {
+        ser[signalOrder[i]] = signal;
+    });
+
+    return ser;
+}
+
+export { encryptParams, encryptAndProve, serializeSignals };
