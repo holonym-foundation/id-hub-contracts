@@ -2,8 +2,9 @@ pragma circom 2.0.0;
 
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/pointbits.circom";
-include "../../../node_modules/circomlib/circuits/escalarmulany.circom";
 include "../../../node_modules/circomlib/circuits/escalarmulfix.circom";
+include "../../../node_modules/circomlib/circuits/babyjub.circom";
+include "./subOrderCheck.circom";
 
 /* 
 ElGamal encryption on BabyJubJub curve 
@@ -34,10 +35,14 @@ template EncryptElGamal (pubkey) {
     
     var i;
 
-    // component messageToPoint = Bits2Point_Strict();
-    // for (i=0; i<256; i++) {
-    //     messageToPoint.in[i] <== toBitsM.out[i];
-    // }
+    // Prevent invalid curve attacks
+    component checkOnCurve = BabyCheck();
+    checkOnCurve.x <== messageAsPoint[0];
+    checkOnCurve.y <== messageAsPoint[1];
+
+    // Make sure msg in the subgroup to preserve semantic security
+    component checkInSubgroup = SubOrderCheck();
+    checkInSubgroup.point <== messageAsPoint;
     
     component getPubkey = EscalarMulFix(254, BASE8);
     for (i=0; i<254; i++) {
@@ -62,4 +67,4 @@ template EncryptElGamal (pubkey) {
         
 }
 
-// component main = EncryptElGamal(69,69);
+// component main = EncryptElGamal([69,69]);

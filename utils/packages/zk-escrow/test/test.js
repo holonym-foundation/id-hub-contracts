@@ -29,6 +29,6 @@ describe("zkEscrow circuit", function (){
     });
 
     after(async function() {
-        process.exit(0);
+        // process.exit(0);
     });
 })

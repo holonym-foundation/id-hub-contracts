@@ -20,7 +20,7 @@ include "./encryptElGamalFixedPubkey.circom";
 // Then the PRF network or server will respond with p
 // Note that p does *not* enable decryption of the message. It just is one part necessary, so the PRF server / network can't decrypt it unless they
 // can decrypt the message.
-template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersenA, pedersenB) {
+template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpcPubkey, pedersenA, pedersenB) {
     // Access control for when it should be decrypted:
     signal input accessControlLogic;
     //ElGamal encryption parameters:
@@ -60,7 +60,6 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
 
     // Add p to all messages, after checking p is correct
     for(var i=0; i<numMsgsToEncrypt; i++) {
-        // Circom seems to have some unresolved edge cases pertaining to this \ operator, so using pointToMsg.circom:
         p2m[i][0] = PointToMsg();
         p2m[i][1] = PointToMsg();
 
@@ -69,9 +68,7 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
 
         p2m[i][1].point <== msgAsPoint[i];
         msg[i] <== p2m[i][1].msg;
-
-        // prfOut[i] <== prfOutAsPoint[i][0] \ 1024; //Convert from/to point using Koblitz encoding with last 10 bits variable
-        // msg[i] <== msgAsPoint[i][0] \ 1024; // Circom seems to have some unresolved edge cases pertaining to this \ operator, msgAsPoint[i][0] \ 1024;
+        
         
         sigVerifiers[i] = EdDSAPoseidonVerifier(prfPubkey, prfPubkey8);
         sigVerifiers[i].enabled <== 1;
@@ -89,7 +86,7 @@ template DAEncrypt(numMsgsToEncrypt, prfPubkey, prfPubkey8, mpckPubkey, pedersen
         pointAdders[i].y1 <== prfOutAsPoint[i][1];
         pointAdders[i].y2 <== msgAsPoint[i][1];
 
-        encryptors[i] = EncryptElGamal(mpckPubkey);
+        encryptors[i] = EncryptElGamal(mpcPubkey);
         encryptors[i].y <== encryptWithNonce[i];
         encryptors[i].messageAsPoint <== msgAsPoint[i];
         // // ElGamal encryption values
