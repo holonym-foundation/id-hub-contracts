@@ -43,7 +43,10 @@ interface EncryptionProof {
 interface SerializedSignals {
 	[key: string]: string;
 }
-
+interface CommitmentInputs {
+    data: Array<String>;
+    randomness: Array<String>;
+}
 /* TODO: find a better way to set ZK_DIR */
 let ZK_DIR: string;
 
@@ -97,16 +100,16 @@ function getPubkey() {
 }
 
 /**
- * Gets the parameters needed to generate an encryption
+ * Gets the parameters needed to generate an encryption and commitment proofs
  * @param msgsToEncrypt - an array of messages that need to be encrypted. These messages are base10-strings of numbers less than 21888242871839275222246405745257275088614511777268538073601725287587578984328 << 10, where << is the bitshift operator.
  * @returns input required by the DAEncrypt circuit
  *
  * @beta
  */
-async function createDAEncryptInput(
+async function processInput(
 	accessControlLogic: String,
 	msgsToEncrypt: Array<string>,
-): Promise<DAEncryptInput> {
+): Promise<[DAEncryptInput, CommitmentInputs]> {
 	// const msgsToEncrypt = ["12341234123412341234123412341234123412341234123412341234123412341234123412", "5555555"];
 	const msgsAsPointObjects: Array<Point> = await Promise.all(
 		msgsToEncrypt.map((msg) => Utils.msgToPoint(msg)),
@@ -129,7 +132,7 @@ async function createDAEncryptInput(
 		(obj) => [obj.x, obj.y],
 	);
 
-	const inputs = {
+	const circuitInputs = {
 		accessControlLogic: accessControlLogic,
 		msgAsPoint: msgsAsPoints,
 		encryptWithNonce: nonces,
@@ -144,7 +147,12 @@ async function createDAEncryptInput(
 		// Randomness for commtiment:
 		rnd: commitRnd,
 	};
-	return inputs;
+
+    const commitmentInputs = {
+        data: msgsToEncrypt,
+        randomness: commitRnd
+    };
+	return [circuitInputs, commitmentInputs];
 }
 
 // setInterval(async () => getPRF().then(x=>console.log(x)), 1000)
@@ -164,16 +172,18 @@ async function createDAEncryptInput(
 async function encryptAndProve(
 	accessControlLogic: String,
 	msgToEncrypt: Array<string>,
-): Promise<EncryptionProof> {
+): Promise<[EncryptionProof, CommitmentInputs]> {
+    const [circuitInputs, commitmentInputs] = await processInput(accessControlLogic, msgToEncrypt);
 	const proof = await groth16.fullProve(
-		await createDAEncryptInput(accessControlLogic, msgToEncrypt),
+		circuitInputs,
 		`${ZK_DIR}/daEncrypt_js/daEncrypt.wasm`,
 		`${ZK_DIR}/daEncrypt_0001.zkey`,
 	) as CircomProof;
-	return {
+	const result = {
 		tag: serializeSignals(proof.publicSignals),
 		proof,
 	};
+    return [result, commitmentInputs];
 	// const proof = await snarkjs.groth16.fullProve(par, `./zk/circuits/circom/artifacts/${circuitName}_js/${circuitName}.wasm`, `./zk/pvkeys/circom/${zkeyName}.zkey`);
 	//[proof.publicSignals.length-])
 	// console.log(`proving using ${ZK_DIR}/daEncrypt_js/daEncrypt.wasm and ${ZK_DIR}/daEncrypt_0001.zkey: \n\n ${JSON.stringify(proof)}`)
@@ -189,7 +199,7 @@ function serializeSignals(signals: Array<string>): SerializedSignals {
 }
 
 export {
-	createDAEncryptInput as encryptParams,
+	processInput,
 	encryptAndProve,
 	serializeSignals,
 	randFr,

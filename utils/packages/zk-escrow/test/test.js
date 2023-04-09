@@ -6,9 +6,8 @@ const signalOrder = require("../signalOrder.json");
 
 describe("zkEscrow circuit", function (){
     before(async function() {
-        const { tag, proof } = await encryptAndProve("69", ["1234567898765"]);
-        this.tag = tag; this.proof = proof;
-        console.log(tag)
+        const [provableEncryption, commitmentData] = await encryptAndProve("69", ["1234567898765"]);
+        this.tag = provableEncryption.tag; this.proof = provableEncryption.proof;
         this.vKey = JSON.parse(readFileSync(`./zk/daEncrypt_verification_key.json`));
     });
     
@@ -29,6 +28,6 @@ describe("zkEscrow circuit", function (){
     });
 
     after(async function() {
-        process.exit(0);
+        // process.exit(0);
     });
 })
