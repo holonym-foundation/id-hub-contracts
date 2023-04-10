@@ -4365,6 +4365,11 @@
     "multibase" "^0.7.0"
     "varint" "^5.0.0"
 
+"n-readlines@^1.0.1":
+  "integrity" "sha512-z4SyAIVgMy7CkgsoNw7YVz40v0g4+WWvvqy8+ZdHrCtgevcEO758WQyrYcw3XPxcLxF+//RszTz/rO48nzD0wQ=="
+  "resolved" "https://registry.npmjs.org/n-readlines/-/n-readlines-1.0.1.tgz"
+  "version" "1.0.1"
+
 "nano-json-stream-parser@^0.1.2":
   "integrity" "sha512-9MqxMH/BSJC7dnLsEMPyfN5Dvoo49IsPFYMcHw3Bcfc2kN0lpHRBSzlMSVx4HGyJ7s9B31CyBTVehWJoQ8Ctew=="
   "resolved" "https://registry.npmjs.org/nano-json-stream-parser/-/nano-json-stream-parser-0.1.2.tgz"
@@ -6581,11 +6586,12 @@
   "resolved" "https://registry.npmjs.org/yocto-queue/-/yocto-queue-0.1.0.tgz"
   "version" "0.1.0"
 
-"zk-escrow@^1.1.7":
-  "integrity" "sha512-pT2wSbbIl4l0jlhq7ensBlZHxNNGodqw6zOGZbj+poSARRA0hupbaj+wm8crx3mdI3qwtipctqVFh8wH8LWnuw=="
-  "resolved" "https://registry.npmjs.org/zk-escrow/-/zk-escrow-1.1.7.tgz"
-  "version" "1.1.7"
+"zk-escrow@^1.4.0":
+  "integrity" "sha512-t/qL/mXQtKcPIGm1BrYxFh8TpNlnTiK9DufNAWKK/A9mh41yhLCSo1RPpnZ9e99IacmvzSYnSP8ipuTR6qqpIQ=="
+  "resolved" "https://registry.npmjs.org/zk-escrow/-/zk-escrow-1.4.0.tgz"
+  "version" "1.4.0"
   dependencies:
+    "n-readlines" "^1.0.1"
     "snarkjs" "^0.6.8"
     "threshold-eg-babyjub" "^0.0.2"
     "typedoc" "^0.23.26"

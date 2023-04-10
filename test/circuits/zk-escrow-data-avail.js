@@ -1,4 +1,4 @@
-const snarkjs = require("snarkjs");
+const { groth16 } = require("snarkjs");
 // const { encryptAndProve } = require("../../utils/packages/zk-escrow/lib/main");
 const { readFileSync } = require("fs");
 const { encryptAndProve } = require("zk-escrow");
@@ -15,10 +15,19 @@ const { ethers } = require("hardhat");
 
 describe.only("DataAvail contract", function (){
     before(async function (){
-        this.da = (new ethers.getContractFactory("DataAvail")).deploy();
+        this.da = await (await ethers.getContractFactory("DataAvail")).deploy();
     });
     it("Should be able to encrypt and decrypt", async function () {
         const msgsToEncrypt = ["12345678987654321"];
-        const { encryption, proof } = await encryptAndProve(msgsToEncrypt);
+        const [provableEncryption, commitmentData] = await encryptAndProve("1234", ["99999999999999999999999999999987654321"]);
+        // const { encryption, proof } = 
+        // let p = provableEncryption.proof
+        // // console.log(p.proof.pi_a, p.proof.pi_b, p.proof.pi_c)
+        // console.log(...[p.proof.pi_a, p.proof.pi_b, p.proof.pi_c].map(arr=>[arr[0], arr[1]]), p.publicSignals)
+        // // console.log([p.proof.pi_a[0], p.proof.pi_a[1]], p.proof.pi_b, [p.proof.pi_c[0], p.proof.pi_c[1]]);
+        // await this.da.storeData(...[p.proof.pi_a, p.proof.pi_b, p.proof.pi_c].map(arr=>[arr[0], arr[1]]), p.publicSignals);
+        // await this.da.storeData([p.proof.pi_a[0], p.proof.pi_a[1]], [p.proof.pi_b[0],p.proof.pi_b[1]], [p.proof.pi_c[0], p.proof.pi_c[1]], p.publicSignals);
+        const calldata = await groth16.exportSolidityCallData(provableEncryption.proof.proof, provableEncryption.proof.publicSignals);
+        await this.da.storeData(...JSON.parse(`[${calldata}]`));
     });
 });

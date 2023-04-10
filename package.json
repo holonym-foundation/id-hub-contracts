@@ -45,6 +45,6 @@
     "holonym-wasm-issuer": "^0.2.2",
     "snarkjs": "^0.5.0",
     "threshold-eg-babyjub": "^0.0.1",
-    "zk-escrow": "^1.1.7"
+    "zk-escrow": "^1.4.0"
   }
 }

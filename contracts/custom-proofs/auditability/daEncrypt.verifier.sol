@@ -110,7 +110,7 @@ library Pairing {
         assembly {
             success := staticcall(sub(gas(), 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
             // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid() }
+            // switch success case 0 { invalid() }
         }
         require(success,"pairing-opcode-failed");
         return out[0] != 0;

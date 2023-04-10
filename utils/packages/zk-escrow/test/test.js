@@ -13,6 +13,7 @@ describe("zkEscrow circuit", function (){
     
     it("Proof generation and verification successful", async function() {
         console.log(this.proof.publicSignals, this.proof.publicSignals.length);
+        console.log("THE Proof: ", this.proof);
         const res = await snarkjs.groth16.verify(this.vKey, this.proof.publicSignals, this.proof.proof);
         expect(res).to.equal(true);
     });
