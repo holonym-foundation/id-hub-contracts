@@ -1,17 +1,8 @@
 const { groth16 } = require("snarkjs");
-// const { encryptAndProve } = require("../../utils/packages/zk-escrow/lib/main");
-const { readFileSync } = require("fs");
 const { encryptAndProve } = require("zk-escrow");
-const { Proofs } = require("../../utils/proofs");
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
-// const { expect } = require("chai");
-// const { Proofs } = require("../../utils/proofs");
-// const { Utils } = require("threshold-eg-babyjub");
-// // const { Tree } = require("holo-merkle-utils");
-// const { AuditLayerSimulator } = require("../../utils/threshold");
-// const { randomBytes } = require("crypto");
-// const { rejects } = require("assert");
+
 
 
 describe.only("DataAvail contract", function (){
@@ -33,4 +24,5 @@ describe.only("DataAvail contract", function (){
             this.da.storeData(...JSON.parse(`[${calldata}]`))
         ).to.be.revertedWith("failed to verify proof of correct encryption");
     });
+    
 });
