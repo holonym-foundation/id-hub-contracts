@@ -49,9 +49,9 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      from: "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388", // Send transactions from this address by default
+      from: "0x51fEb8C526F40825953912d572f6b64B4897D073", // Send transactions from this address by default
       accounts: [
-        { privateKey: process.env.PRIVATE_KEY, balance: "2110000000000000000000000" },
+        { privateKey: process.env.TEST_PRIVATE_KEY, balance: "2110000000000000000000000" },
         {
           privateKey:
             "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
@@ -69,74 +69,74 @@ module.exports = {
       // },
     },
     mumbai: {
-      url: "https://speedy-nodes-nyc.moralis.io/a1167200f0a0e81dd757304e/polygon/mumbai",
-      accounts: [process.env.PRIVATE_KEY],
-      gas: 2100000,
-      gasPrice: 2000000000,
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_MUMBAI_APIKEY}`,
+      accounts: [process.env.TEST_PRIVATE_KEY],
+      // gas: 2100000,
+      // gasPrice: 2000000000,
     },
     polygonMainnet: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_POLYGONMAINNET_APIKEY}`,
-      accounts: [process.env.PRIVATE_KEY]
+      accounts: [process.env.TEST_PRIVATE_KEY]
     },
     zkSyncTest: {
       url: "https://zksync2-testnet.zksync.dev",
-      accounts: [process.env.PRIVATE_KEY]
+      accounts: [process.env.TEST_PRIVATE_KEY]
     },
     zkSync: {
       url: "https://zksync2-testnet.zksync.dev",
-      accounts: [process.env.PRIVATE_KEY]
+      accounts: [process.env.TEST_PRIVATE_KEY]
     },
     bscTest: {
       url: "https://data-seed-prebsc-1-s3.binance.org:8545	",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     bnbSmartChain: {
       url: "https://bsc-dataseed.binance.org/",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     harmony: {
       url: "https://api.s0.b.hmny.io",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     arbitrum: {
       url: "https://rinkeby.arbitrum.io/rpc",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
       gas: 2100000,
       gasPrice: 2000000000,
     },
     optimismGoerli: {
       url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_OPTIMISMGOERLI_APIKEY}`,
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
 
     },
     avalanche: {
       url: "https://api.avax-test.network/ext/bc/C/rpc",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     ethereum: {
       url: "https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
       gas: 2100000,
       gasPrice: 2000000000,
     },
     fantom: {
       url: "https://rpc.testnet.fantom.network",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     gnosis: {
       // url: "https://rpc.gnosischain.com",
       url: "https://poa-xdai.gateway.pokt.network/v1/lb/60b13899d3279c22da2a444d",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
       // gas: 10000000000,
       gasPrice: 1500000000,
     },
     arbitrumOne: {
       url: "https://arb1.arbitrum.io/rpc",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     optimismMainnet: {
       url: "https://rpc.ankr.com/optimism",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
   },
 };
