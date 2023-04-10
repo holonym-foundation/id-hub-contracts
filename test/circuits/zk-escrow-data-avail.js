@@ -12,8 +12,8 @@ describe.only("DataAvail contract", function (){
     it("Proving works", async function () {
         const [provableEncryption, commitmentData] = await encryptAndProve("1234", ["99999999999999999999999999999987654321"]);
         const calldata = await groth16.exportSolidityCallData(provableEncryption.proof.proof, provableEncryption.proof.publicSignals);
-        expect(
-            await this.da.storeData(...JSON.parse(`[${calldata}]`))
+        await expect(
+            this.da.storeData(...JSON.parse(`[${calldata}]`))
         ).to.not.be.reverted;
     });
     it("Invalid proof fails (not comprehensive test of circuit, more comprehensive are in utils/packages/zk-escrow/test. this just tests a bad proof fails the contract, not that all constraints exist)", async function () {
@@ -24,5 +24,15 @@ describe.only("DataAvail contract", function (){
             this.da.storeData(...JSON.parse(`[${calldata}]`))
         ).to.be.revertedWith("failed to verify proof of correct encryption");
     });
+    
+    // it("Emits the correct event", async function () {
+    //     const [provableEncryption, commitmentData] = await encryptAndProve("1234", ["99999999999999999999999999999987654321"]);
+    //     const calldata = await groth16.exportSolidityCallData(provableEncryption.proof.proof, provableEncryption.proof.publicSignals);
+    //     expect(
+    //         await this.da.storeData(...JSON.parse(`[${calldata}]`))
+    //     ).to.emit
+    // });
+
+    // TODO: check commitment actually works
     
 });

@@ -95,7 +95,7 @@ contract DataAvail {
         );
         bytes32 tagId = getTagId(tag);
         // Checks that tag hasn't been used before (commitment.x has negligible probability to be 0 if it is used)
-        require(tags[tagId].commitment.x == 0, "Please use a new tagId / commitment");
+        require(tags[tagId].commitment.x == 0, "This data already exists");
 
         tags[tagId] = tag;
         emit TagAdded(tagId, tag);
