@@ -25,13 +25,17 @@ describe.only("DataAvail contract", function (){
         ).to.be.revertedWith("failed to verify proof of correct encryption");
     });
     
-    // it("Emits the correct event", async function () {
-    //     const [provableEncryption, commitmentData] = await encryptAndProve("1234", ["99999999999999999999999999999987654321"]);
-    //     const calldata = await groth16.exportSolidityCallData(provableEncryption.proof.proof, provableEncryption.proof.publicSignals);
-    //     expect(
-    //         await this.da.storeData(...JSON.parse(`[${calldata}]`))
-    //     ).to.emit
-    // });
+    it("Emits the correct event", async function () {
+        const [provableEncryption, commitmentData] = await encryptAndProve("1234", ["99999999999999999999999999999987654321"]);
+        const calldata = await groth16.exportSolidityCallData(provableEncryption.proof.proof, provableEncryption.proof.publicSignals);
+        await expect(
+            this.da.storeData(...JSON.parse(`[${calldata}]`))
+        ).to.emit(this.da, "TagAdded");
+        // const tx = await this.da.storeData(...JSON.parse(`[${calldata}]`));
+        // for (const event of (await tx.wait()).events) {
+        //     console.log(event)
+        // }
+    });
 
     // TODO: check commitment actually works
     
