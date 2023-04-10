@@ -7,6 +7,7 @@ tmp.*
 *.ptau
 *.proving.key
 node_modules
+hardhat.config.js #this can contain private keys
 .env
 coverage
 coverage.json
