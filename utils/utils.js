@@ -28,26 +28,26 @@ const exec = util.promisify(require("child_process").exec);
 //     return JSON.parse(readFileSync(`zk/tmp/${r}.proof.json`));
 // }
 
-// const deployPoseidon = async () => {
-//     const [account] = await ethers.getSigners();
-//     const PoseidonContractFactory = new ethers.ContractFactory(
-//         abiPoseidon,
-//         bytecodePoseidon,
-//         account
-//     );
-//     return await PoseidonContractFactory.deploy();
-// }
+const deployPoseidon = async () => {
+    const [account] = await ethers.getSigners();
+    const PoseidonContractFactory = new ethers.ContractFactory(
+        abiPoseidon,
+        bytecodePoseidon,
+        account
+    );
+    return await PoseidonContractFactory.deploy();
+}
 
-// // gets a Posiedon contract at address
-// const attachPoseidon = async (address) => {
-//     const [account] = await ethers.getSigners();
-//     const PoseidonContractFactory = new ethers.ContractFactory(
-//         abiPoseidon,
-//         bytecodePoseidon,
-//         account
-//     );
-//     return await PoseidonContractFactory.attach(address);
-// }
+// gets a Posiedon contract at address
+const attachPoseidon = async (address) => {
+    const [account] = await ethers.getSigners();
+    const PoseidonContractFactory = new ethers.ContractFactory(
+        abiPoseidon,
+        bytecodePoseidon,
+        account
+    );
+    return await PoseidonContractFactory.attach(address);
+}
 
 /* Initializes all relevant smart contracts and return their addresses
  * Can pass addresses for contracts that have already been deployed like such:
@@ -80,7 +80,7 @@ async function initContracts(addresses) {
     const pt6 = POSEIDONT6_ADDRESS ? await attachPoseidon(POSEIDONT6_ADDRESS) : await deployPoseidon();
     await pt6.deployed();
     console.log("PoseidonT6 address is", pt6.address)
-  
+    console.log("result", await pt6.connect(admin).poseidon(123))
     const iqtFactory = await ethers.getContractFactory("IncrementalQuinTree", 
     {
         libraries : {
@@ -91,8 +91,7 @@ async function initContracts(addresses) {
     const iqt = INCREMENTALQUINTREE_ADDRESS ? await iqtFactory.attach(INCREMENTALQUINTREE_ADDRESS) : await iqtFactory.deploy();
     await iqt.deployed();
     console.log("IncrementalQuinTree address is", iqt.address)
-
-  
+    
     const hubFactory = await ethers.getContractFactory("Hub", {
       libraries : {
           IncrementalQuinTree : iqt.address
@@ -156,5 +155,5 @@ async function initContracts(addresses) {
 // exports.createLeaf = createLeaf; 
 // exports.createLeafAdditionProof = createLeafAdditionProof; 
 // exports.attachPoseidon = attachPoseidon;
-// exports.deployPoseidon = deployPoseidon;
+exports.deployPoseidon = deployPoseidon;
 exports.initContracts = initContracts;

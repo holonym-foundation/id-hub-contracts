@@ -31,6 +31,8 @@
     "zokrates-js": "^1.1.2"
   },
   "dependencies": {
+    "@ethersproject/hardware-wallets": "^5.7.0",
+    "@ledgerhq/hw-transport-node-hid": "^6.27.17",
     "@openzeppelin/contracts": "^4.7.3",
     "@zk-kit/incremental-merkle-tree": "^1.0.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.2.0",
@@ -40,6 +42,7 @@
     "circomlibjs": "^0.1.7",
     "circomlibjs-old": "npm:circomlibjs@^0.0.8",
     "dotenv": "^16.0.1",
+    "eth-provider": "^0.13.6",
     "ffjavascript": "^0.2.57",
     "holo-merkle-utils": "^0.0.0",
     "holonym-wasm-issuer": "^0.2.2",

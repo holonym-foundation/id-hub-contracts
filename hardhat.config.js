@@ -13,6 +13,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
+const COMRPOMISED_TEST_PRIVATE_KEY = "0x8ebd807b1973800dcf0eea7f299166c574d9d777e3b3df0804dcafae9286c68b";
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -62,7 +63,14 @@ module.exports = {
             "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
           balance: "15100000000000000000000",
         },
-      ], // Private key for the above address
+        // Compromised test private key: DO NOT USE IN PRODUCTION. Also don't use any of the above in production but this one is especially bad.
+        {
+          privateKey: COMRPOMISED_TEST_PRIVATE_KEY,
+          balance: "15100000000000000000000",
+        },
+
+
+      ],
       // forking: {
       //   url: "https://xdai-archive.blockscout.com/",
       //   blockNumber: 21908151,
@@ -86,8 +94,12 @@ module.exports = {
       url: "https://zksync2-testnet.zksync.dev",
       accounts: [process.env.TEST_PRIVATE_KEY]
     },
+    mantle: {
+      url: "https://rpc.ankr.com/mantle_testnet",
+      accounts: [process.env.TEST_PRIVATE_KEY],
+    },
     bscTest: {
-      url: "https://data-seed-prebsc-1-s3.binance.org:8545	",
+      url: "https://data-seed-prebsc-1-s3.binance.org:8545",
       accounts: [process.env.TEST_PRIVATE_KEY],
     },
     bnbSmartChain: {
@@ -136,7 +148,11 @@ module.exports = {
     },
     optimismMainnet: {
       url: "https://rpc.ankr.com/optimism",
-      accounts: [process.env.TEST_PRIVATE_KEY],
+      accounts: [COMRPOMISED_TEST_PRIVATE_KEY], //[process.env.TEST_PRIVATE_KEY],
+      forking: {
+        url: "https://mainnet.chainnodes.org/9643f26d-a67d-400a-ae95-9646a6fc881d",
+        blockNumber: 106887390,
+      },
     },
   },
 };

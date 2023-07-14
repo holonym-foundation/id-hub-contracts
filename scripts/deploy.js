@@ -6,7 +6,7 @@
 // global scope, and execute the script.
 // const hre = require("hardhat");
 
-// const { initContracts } = require("../utils/utils");
+const { initContracts, deployPoseidon } = require("../utils/utils");
 const { ethers } = require("hardhat");
 
 const constants = {
@@ -18,27 +18,31 @@ const constants = {
 }
 
 async function main() {
-  // Call some functions to check the supplied LEGACY_USRESIDENCY_CONTRACT and LEGACY_SYBILRESISTANCE_CONTRACT exist
-  try {
-    const legacyRes = await (await ethers.getContractFactory("IsUSResident")).attach(constants.LEGACY_USRESIDENCY_CONTRACT);
-    await legacyRes.usResidency(ethers.constants.AddressZero);
-    const legacySR = await (await ethers.getContractFactory("SybilResistance")).attach(constants.LEGACY_SYBILRESISTANCE_CONTRACT);
-    await legacySR.isUniqueForAction(ethers.constants.AddressZero,0);
-  } catch(e) {
-    console.error("Failed verifying that supplied LEGACY_USRESIDENCY_CONTRACT and LEGACY_SYBILRESISTANCE_CONTRACT exist");
-    process.exitCode = 1;
-    return;
-  }
-  const roots = await (await ethers.getContractFactory("Roots"))
-   .deploy();
+  await initContracts({
+    POSEIDONT6_ADDRESS : "0xd2Cb8C42177BaCBB2fAC8BB846bBe9973ecd49db",
+    INCREMENTALQUINTREE_ADDRESS : "0xcE285B19323CA8620ff175ba8b90e27e01D26c25"
+  });
+  // // Call some functions to check the supplied LEGACY_USRESIDENCY_CONTRACT and LEGACY_SYBILRESISTANCE_CONTRACT exist
+  // try {
+  //   const legacyRes = await (await ethers.getContractFactory("IsUSResident")).attach(constants.LEGACY_USRESIDENCY_CONTRACT);
+  //   await legacyRes.usResidency(ethers.constants.AddressZero);
+  //   const legacySR = await (await ethers.getContractFactory("SybilResistance")).attach(constants.LEGACY_SYBILRESISTANCE_CONTRACT);
+  //   await legacySR.isUniqueForAction(ethers.constants.AddressZero,0);
+  // } catch(e) {
+  //   console.error("Failed verifying that supplied LEGACY_USRESIDENCY_CONTRACT and LEGACY_SYBILRESISTANCE_CONTRACT exist");
+  //   process.exitCode = 1;
+  //   return;
+  // }
+  // const roots = await (await ethers.getContractFactory("Roots"))
+  //  .deploy();
 
-  const residency = await (await ethers.getContractFactory("IsUSResident"))
-    .deploy(roots.address, constants.ISSUER_ADDRESSES, constants.USRESIDENCY_PRICE || 0 , constants.LEGACY_USRESIDENCY_CONTRACT || ethers.constants.AddressZero);
-  const sr = await (await ethers.getContractFactory("SybilResistance"))
-    .deploy(roots.address, constants.ISSUER_ADDRESSES, constants.SYBILRESISTANCE_PRICE || 0, constants.LEGACY_SYBILRESISTANCE_CONTRACT || ethers.constants.AddressZero);
+  // const residency = await (await ethers.getContractFactory("IsUSResident"))
+  //   .deploy(roots.address, constants.ISSUER_ADDRESSES, constants.USRESIDENCY_PRICE || 0 , constants.LEGACY_USRESIDENCY_CONTRACT || ethers.constants.AddressZero);
+  // const sr = await (await ethers.getContractFactory("SybilResistance"))
+  //   .deploy(roots.address, constants.ISSUER_ADDRESSES, constants.SYBILRESISTANCE_PRICE || 0, constants.LEGACY_SYBILRESISTANCE_CONTRACT || ethers.constants.AddressZero);
   
-  console.log("residency", residency.address)
-  console.log("SR", sr.address)
+  // console.log("residency", residency.address)
+  // console.log("SR", sr.address)
 
   // Medical specialty contract
   // const rootsOptimismGoerliAddr = '0xa76C96acf9b95cC988d634F1fF52C9a2eF7a9371';
