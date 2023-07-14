@@ -33,7 +33,7 @@
   "dependencies": {
     "@ethersproject/hardware-wallets": "^5.7.0",
     "@ledgerhq/hw-transport-node-hid": "^6.27.17",
-    "@openzeppelin/contracts": "^4.7.3",
+    "@openzeppelin/contracts": "^4.9.2",
     "@zk-kit/incremental-merkle-tree": "^1.0.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.2.0",
     "assert": "^2.0.0",
@@ -46,6 +46,8 @@
     "ffjavascript": "^0.2.57",
     "holo-merkle-utils": "^0.0.0",
     "holonym-wasm-issuer": "^0.2.2",
+    "i": "^0.3.7",
+    "npm": "^9.8.0",
     "snarkjs": "^0.5.0",
     "threshold-eg-babyjub": "^0.0.1",
     "zk-escrow": "^1.4.0"
