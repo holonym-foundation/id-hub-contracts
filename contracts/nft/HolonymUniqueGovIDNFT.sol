@@ -8,14 +8,14 @@ contract HolonymUniqueGovIDNFT is ERC721, Ownable {
     constructor() ERC721("HolonymUniqueGovID", "HUGI") {}
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://www.holonym.id/images/Holo-anon.jpg";
+        return "https://nft.holonym.io/nft-img/";
     }
 
     function safeMint(address to, uint256 tokenId) public onlyOwner {
         _safeMint(to, tokenId);
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override
+    function _transfer(address from, address to, uint256 tokenId) internal override
     {
         revert("Cannot transfer this type of token");
     }

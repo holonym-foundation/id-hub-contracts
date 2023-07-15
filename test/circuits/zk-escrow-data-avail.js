@@ -5,7 +5,7 @@ const { expect } = require("chai");
 
 
 
-describe.only("DataAvail contract", function (){
+describe("DataAvail contract", function (){
     before(async function (){
         this.da = await (await ethers.getContractFactory("DataAvail")).deploy();
     });
