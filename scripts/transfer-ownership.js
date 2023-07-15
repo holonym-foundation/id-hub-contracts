@@ -9,20 +9,56 @@ const testing = true;
 
 const ETH = 1000000000n;
 const LEDGER_ADDR = "0xbe20d0a27b79ba2e53c9df150badaa21d4783d42";
-async function test() {
-    console.log("singers", await ethers.getSigners())
-    const [compromised] = await ethers.getSigners();
-    console.log("compromised", compromised);
-    // Fund the ledger with some ETH on hardhat
-    await network.provider.send("hardhat_setBalance", [
-        compromised.address,
-        "1000",
-      ]);
+const MINTER_ADDR = "0x457200042dfa5dd202897aFe9DBb5e26D4448Aea";
+const SBT_ADDR = "0xdD748977BAb5782625AF1466F4C5F02Eb92Fce31";
+const NFT_ADDR = "0xd922b0f45781cca93e996e7ba26811162c4927ed";
+
+async function sendOptimismFromLedger(tx) {
+    tx.from = LEDGER_ADDR;
+    tx.chainId = "10";
+    return await frame.request({
+        method: 'eth_sendTransaction',
+        params: [tx]
+    });
+}
+
+
+
+async function main() {
+
+    const nftDeployer = (await ethers.getContractFactory("HolonymUniqueGovIDNFT")).getDeployTransaction();
+    const nft = await ethers.getContractAt("HolonymUniqueGovIDNFT", NFT_ADDR);
+    console.log("nft", await nft.owner());
     
-    await compromised.sendTransaction({
-        to: LEDGER_ADDR,
-        value: ethers.utils.parseEther("0.005"), 
-      })
+    /* 
+    uncomment to transfer ownership to Ledger address 
+
+    const [compromised] = await ethers.getSigners();
+    console.log("compromised", compromised.address);
+    const sgi = await ethers.getContractAt("SybilGovID", SBT_ADDR);
+    console.log(await sgi.transferOwnership(LEDGER_ADDR));
+
+
+    */
+
+    // const uniqueness = await ethers.getContractAt("HolonymUniqueGovIDNFT", NFT_ADDR);
+    // let transferOwnershipTx = await nft.populateTransaction.transferOwnership(MINTER_ADDR);
+    // console.log(await sendOptimismFromLedger(transferOwnershipTx));
+    
+    // console.log("accounts", await frame.request({ method: 'eth_requestAccounts' }))
+
+    // const [compromised] = await ethers.getSigners();
+    // console.log("compromised", compromised);
+    // Fund the ledger with some ETH on hardhat
+    // await network.provider.send("hardhat_setBalance", [
+    //     compromised.address,
+    //     "1000",
+    //   ]);
+    
+    // await compromised.sendTransaction({
+    //     to: LEDGER_ADDR,
+    //     value: ethers.utils.parseEther("0.005"), 
+    //   })
 
     // console.log("abc", await frame.request(
     //     {
@@ -42,15 +78,15 @@ async function test() {
     //       })
     // );
 
-    const contractDeployer = await (await ethers.getContractFactory("SybilGovID")).connect(compromised).getDeployTransaction(
-        ethers.constants.AddressZero, [0], 0, ethers.constants.AddressZero
-    );
-    console.log(contractDeployer.chainId)
-    // Set to hardware wallet address
-    contractDeployer.from = LEDGER_ADDR;
-    // contractDeployer.chainId = "31337";
-    const deployed = await frame.request({ method: 'eth_sendTransaction', params: [contractDeployer] });
-    console.log("accounts", await frame.request({ method: 'eth_requestAccounts' }))
+    // const contractDeployer = await (await ethers.getContractFactory("SybilGovID")).connect(compromised).getDeployTransaction(
+    //     ethers.constants.AddressZero, [0], 0, ethers.constants.AddressZero
+    // );
+    // console.log(contractDeployer.chainId)
+    // // Set to hardware wallet address
+    // contractDeployer.from = LEDGER_ADDR;
+    // // contractDeployer.chainId = "31337";
+    // const deployed = await frame.request({ method: 'eth_sendTransaction', params: [contractDeployer] });
+    // console.log("accounts", await frame.request({ method: 'eth_requestAccounts' }))
 
     // assert.equal(await contract.owner(), "0xC8834C1FcF0Df6623Fc8C8eD25064A4148D99388");
     // assert.equal(await contract.price(), 0n);
@@ -63,17 +99,8 @@ async function test() {
     
     
 }
-// async function main() {
-//     let contract = await (await ethers.getContractFactory("SybilGovID")).attach("0xdD748977BAb5782625AF1466F4C5F02Eb92Fce31");
-//     console.log("Owner", await contract.owner());
-//     // // Note: has to be derived with this HD path, otherwise it won't work
-//     // const ledger = await new LedgerSigner(ethers.provider, "hid", "m/44'/60'/0'/0");
-//     // console.log("Ledger signer", await ledger.getAddress());
-//     // // console.log("signature", await ledger.signMessage("0xdeadbeef"));      
-//     console.log(await ethers.getSigners())                                                                                                               
-// }
 
-test().catch((error) => {
+main().catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });
