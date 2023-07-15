@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract HolonymUniqueGovID is ERC721, Ownable {
+contract HolonymUniqueGovIDNFT is ERC721, Ownable {
     constructor() ERC721("HolonymUniqueGovID", "HUGI") {}
 
     function _baseURI() internal pure override returns (string memory) {
@@ -17,6 +17,6 @@ contract HolonymUniqueGovID is ERC721, Ownable {
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override
     {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
+        revert("Cannot transfer this type of token");
     }
 }
