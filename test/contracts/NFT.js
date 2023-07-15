@@ -12,7 +12,7 @@ describe.only("GovIDUniqueness", function() {
         // console.log(this.contract)
         const [signer] = await ethers.getSigners();
         await this.contract.safeMint(signer.address, "0x69");
-        expect(await this.contract.tokenURI("0x69")).to.equal("https://nft.holonym.io/nft-img/105");
+        expect(await this.contract.tokenURI("0x69")).to.equal("https://nft.holonym.io/nft-metadata/105");
     });
 
     it("Is nontransferrable", async function() {

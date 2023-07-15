@@ -10,12 +10,15 @@ const testing = true;
 const ETH = 1000000000n;
 const LEDGER_ADDR = "0xbe20d0a27b79ba2e53c9df150badaa21d4783d42";
 const MINTER_ADDR = "0x457200042dfa5dd202897aFe9DBb5e26D4448Aea";
-const SBT_ADDR = "0xdD748977BAb5782625AF1466F4C5F02Eb92Fce31";
-const NFT_ADDR = "0xd922b0f45781cca93e996e7ba26811162c4927ed";
+const SYBIL_ID_ADDR = "0xdD748977BAb5782625AF1466F4C5F02Eb92Fce31";
+const SYBIL_PHONE_ADDR = "0xA40C8AAF7F47B18c1eDdBe7855b580f828eD9711";
+const RESIDENCY_ADDR = "0x7497636F5E657e1E7Ea2e851cDc8649487dF3aab";
+const NFT_ADDR = "0xaeb9b145fa1b6d1534f98f7f85815eb88845851d";
 
 async function sendOptimismFromLedger(tx) {
     tx.from = LEDGER_ADDR;
     tx.chainId = "10";
+    console.log("tx", tx);
     return await frame.request({
         method: 'eth_sendTransaction',
         params: [tx]
@@ -26,20 +29,19 @@ async function sendOptimismFromLedger(tx) {
 
 async function main() {
 
-    const nftDeployer = (await ethers.getContractFactory("HolonymUniqueGovIDNFT")).getDeployTransaction();
+    // const nftDeployer = (await ethers.getContractFactory("HolonymUniqueGovIDNFT")).getDeployTransaction();
+    // console.log(await sendOptimismFromLedger(nftDeployer));
+
     const nft = await ethers.getContractAt("HolonymUniqueGovIDNFT", NFT_ADDR);
-    console.log("nft", await nft.owner());
+    console.log("owner", await nft.owner());
+    console.log(await sendOptimismFromLedger(await nft.populateTransaction.transferOwnership(MINTER_ADDR)));
+    console.log("owner", await nft.owner());
+
+    // const contract = await ethers.getContractAt("IsUSResident", RESIDENCY_ADDR);
+    // console.log("owner", await con.owner());
+
     
-    /* 
-    uncomment to transfer ownership to Ledger address 
 
-    const [compromised] = await ethers.getSigners();
-    console.log("compromised", compromised.address);
-    const sgi = await ethers.getContractAt("SybilGovID", SBT_ADDR);
-    console.log(await sgi.transferOwnership(LEDGER_ADDR));
-
-
-    */
 
     // const uniqueness = await ethers.getContractAt("HolonymUniqueGovIDNFT", NFT_ADDR);
     // let transferOwnershipTx = await nft.populateTransaction.transferOwnership(MINTER_ADDR);
