@@ -43,6 +43,7 @@ contract SybilPhoneV2 is PaidProof {
 
     // It is useful to separate this from the prove() function which is changes state, so that somebody can call this off-chain as a view function.
     // Then, they can maintain their own off-chain list of footprints and verified address 
+    // This does not check against the legacy contract which does not have the same nullifier/hashbrown/masala scheme
     function proofIsValidNonLegacy(Proof calldata proof, uint[5] memory input) public view returns (bool isValid) {
         require(roots.rootIsRecent(input[0]), "The root provided was not found in the Merkle tree's recent root list");
         // Checking msg.sender no longer seems very necessary and prevents signature-free interactions. Without it, relayers can submit cross-chain transactions without the user signature. Thus, we are deprecating this check:

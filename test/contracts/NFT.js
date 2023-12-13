@@ -3,7 +3,7 @@ const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
-describe.only("GovIDUniqueness", function() { 
+describe("GovIDUniqueness", function() { 
     before(async function () {
         // Deploy the contract and get the signers
         this.contract = await (await ethers.getContractFactory("HolonymUniqueGovIDNFT")).deploy();
