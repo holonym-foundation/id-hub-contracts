@@ -25,6 +25,7 @@ contract Hub is PaidProofV3 {
     /// `sbtReciever` is the address the verifier specifies to recieve the SBT. 
     /// `nullifier` is an optional field (set to 0 if unused) which prevents the same ID from being used for >1 proof. Again this is given by the verifier but can be checked if the Verifier posts the proof to IPFS
     /// `publicValues` are the proofs' public inputs and outputs. They are stored with the SBT. Again, these can be checked if the proof is put in IPFS
+    /// To migrate SBT owners from the previous contract, the initially centralized trusted verifier can simply add them one-by-one
     function sendSBT(
         bytes32 circuitId,
         string calldata proofIPFSCID,
