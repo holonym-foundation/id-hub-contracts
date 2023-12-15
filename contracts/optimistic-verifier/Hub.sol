@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "hardhat/console.sol";
+import "./PaidProofV3.sol";
 
-contract Hub {
+contract Hub is PaidProofV3 {
     using ECDSA for bytes32;
 
     address verifier;
@@ -32,7 +32,7 @@ contract Hub {
         uint nullifier, 
         uint[] calldata publicValues, 
         bytes memory signature
-    ) public {
+    ) public payable needsPayment(circuitId) {
         bool success = keccak256(
             abi.encodePacked(
                 circuitId,
