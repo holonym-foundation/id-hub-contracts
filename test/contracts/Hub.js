@@ -42,9 +42,74 @@ describe.only("Hub", function() {
         );
         expect(await shouldSucc).to.be.ok;
     });
-    // it("Nullifier cannot be again", async function() {
-    //     console.error("not yet implemented")
-    //     process.exit(-1);
-    // });
+    it("Nullifier set to 0 can be used 2x", async function() {
+        const [signer, somebody, somebody2] = await ethers.getSigners();
+
+        const args = [
+            keccak256(Buffer.from("the circuitID")),
+            "",
+            somebody2.address, 
+            0,
+            [0n, 1n, 2n, 3n],
+        ];
+
+        const argTypes = [
+            "bytes32", 
+            "string", 
+            "address", 
+            "uint", 
+            "uint[]"
+        ];
+
+        const digest = ethers.utils.arrayify(solidityKeccak256(argTypes, args));
+
+        const shouldSucc1 = this.contract.sendSBT(
+            ...args,
+            signer.signMessage(digest)
+        );
+        const shouldSucc2 = this.contract.sendSBT(
+            ...args,
+            signer.signMessage(digest)
+        );
+
+        expect(await shouldSucc1).to.be.ok;
+        expect(await shouldSucc2).to.be.ok;
+    });
+
+    it("Another nullifier cannot be used 2x", async function() {
+        const [signer, somebody, somebody2] = await ethers.getSigners();
+
+        const args = [
+            keccak256(Buffer.from("the circuitID")),
+            "",
+            somebody2.address, 
+            69,
+            [0n, 1n, 2n, 3n],
+        ];
+
+        const argTypes = [
+            "bytes32", 
+            "string", 
+            "address", 
+            "uint", 
+            "uint[]"
+        ];
+        const digest = ethers.utils.arrayify(solidityKeccak256(argTypes, args));
+
+        const shouldSucc = this.contract.sendSBT(
+            ...args,
+            signer.signMessage(digest)
+        );
+        
+        expect(await shouldSucc).to.be.ok;
+
+        const shouldFail= this.contract.sendSBT(
+            ...args,
+            signer.signMessage(digest)
+        );
+
+        await expect(shouldFail).to.be.revertedWith("this is already been proven");
+        
+    });
 
 });
