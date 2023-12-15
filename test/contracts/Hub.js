@@ -1,8 +1,8 @@
 
 const { expect } = require("chai");
-const { BigNumber } = require("ethers");
-const { keccak256, solidityPack, solidityKeccak256 } = require("ethers/lib/utils");
+const { keccak256, solidityKeccak256 } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
+
 /// Utility function for an offhcain verifier to sign the arguments for the contract call
 /// `signer` is an ethers signer, e.g. one that is returned by calling `ethers.getSigners()`
 /// `args` are the types in the smart contract's ABI except the signature. I.e.: the args of of type argTypes
@@ -141,7 +141,7 @@ describe.only("Hub", function() {
         );
 
         await expect(shouldSucc2).to.be.ok;
-        
+
 
         // Test that a different circuit is still free
         const args2 = [
