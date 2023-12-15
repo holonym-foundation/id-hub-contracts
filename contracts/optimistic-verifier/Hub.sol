@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "hardhat/console.sol";
 
 contract Hub {
+    using ECDSA for bytes32;
+
     address verifier;
     mapping(uint => bool) public usedNullifiers;
     /// Mapping of (user, circuit) identifiers to the corresponding SBT value which is an array of uints
@@ -30,15 +33,19 @@ contract Hub {
         uint[] calldata publicValues, 
         bytes memory signature
     ) public {
-        bytes memory signableMsg = abi.encodePacked(
-            circuitId,
-            proofIPFSCID,
-            sbtReciever, 
-            nullifier, 
-            publicValues
-        );
-        bytes32 digest = keccak256(signableMsg);
-        require(ECDSA.recover(digest, signature) == verifier, "invalid signature");
+        bool success = keccak256(
+            abi.encodePacked(
+                circuitId,
+                proofIPFSCID,
+                sbtReciever, 
+                nullifier,
+                publicValues
+            )
+        )
+        .toEthSignedMessageHash()
+        .recover(signature) == verifier;
+        require(success, "unapproved verifier");
+
         if(nullifier != 0) {
             require(!usedNullifiers[nullifier], "this is already been proven");
             usedNullifiers[nullifier] = true;
