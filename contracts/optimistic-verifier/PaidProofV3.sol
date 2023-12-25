@@ -1,5 +1,6 @@
 pragma solidity ^0.8.0;
 import "./IPaidProofV3.sol";
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract PaidProofV3 is IPaidProofV3, Ownable {
@@ -15,8 +16,13 @@ contract PaidProofV3 is IPaidProofV3, Ownable {
         payable(owner()).transfer(address(this).balance);
     }
 
-    modifier needsPayment(bytes32 circuitId) {
-        require(msg.value == fees[circuitId], "Missing payment");
+    // modifier needsFee(bytes32 circuitId) {
+    //     require(msg.value == fees[circuitId], "Missing Feeeee");
+    //     _;
+    // }
+
+    modifier needsCustomFee(uint customFee) {
+        require(msg.value == customFee, "Missing Fee");
         _;
     }
 }
