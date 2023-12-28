@@ -1,4 +1,4 @@
-// const { prove } = require("wasm-vole-zk-adapter");
+const { prove } = require("wasm-vole-zk-adapter");
 const { WitnessCalculatorBuilder } = require("circom_runtime");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
@@ -24,7 +24,7 @@ async function createProofVOLEZK(circuitName, inputs) {
     const wc = await WitnessCalculatorBuilder(wasm);
     const witness =  (wc.circom_version() == 1) ? await wc.calculateBinWitness(inputs) : await wc.calculateWTNSBin(inputs);
     
-    return prove(witness, wasm)
+    return prove(r1cs, witness)
 }
 const Proofs = {
     // onAddLeaf : async (inputs: IOnAddLeafInputs) => {

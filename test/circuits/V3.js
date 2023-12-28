@@ -29,18 +29,13 @@ describe.only("Example Proof E2E", function (){
             R8y : this.issued.signature_r8.y,
             S: this.issued.signature_s,
             nullifierSecretKey: this.secret,
-            // signedLeaf: leaves.originalLeaf.digest, //originalLeaf.digest,
-            // newLeaf: leaves.newLeaf.digest, 
-            // signedLeafSecret: leaves.originalLeaf.inputs.secret,
-            // newLeafSecret: leaves.newLeaf.inputs.secret,
             iat :  this.issued.credentials.iat,
             scope : this.issued.credentials.scope,
             customFields : this.issued.credentials.custom_fields,
             actionId : "12321232123212321234567890987654321"
         }
-        console.log("circuit inputs", circuitInputs)
-        console.log("result is", await createProofVOLEZK("V3SybilResistance", circuitInputs));
-        throw new Error("not yet implemented");
+        
+        await createProofVOLEZK("V3SybilResistance", circuitInputs);
     });
     // Is this out of scope for these tests? I think so.
     it("Modifying it to fail", async function () {

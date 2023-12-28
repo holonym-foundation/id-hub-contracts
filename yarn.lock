@@ -7555,10 +7555,10 @@
 "walk-up-path@^3.0.1":
   "version" "3.0.1"
 
-"wasm-vole-zk-adapter@^0.1.0":
-  "integrity" "sha512-q1TNuXViy3xw6qJy9lkqMee3UWsgVR08z7BwCgF1gFiCtEqDWuaxWU1SnDexzNYuUiNlJiy0ks1h3wekhhlz5A=="
-  "resolved" "https://registry.npmjs.org/wasm-vole-zk-adapter/-/wasm-vole-zk-adapter-0.1.0.tgz"
-  "version" "0.1.0"
+"wasm-vole-zk-adapter@^0.1.1":
+  "integrity" "sha512-TSO4b2pyukvg5BNW7PYN2NQ7cvz++YjDTva94/kSRYmeB/y31gW50X0d32fqj3NfUnw0vq1vbxKrFjovQeu++w=="
+  "resolved" "https://registry.npmjs.org/wasm-vole-zk-adapter/-/wasm-vole-zk-adapter-0.1.1.tgz"
+  "version" "0.1.1"
 
 "wasmbuilder@0.0.16":
   "integrity" "sha512-Qx3lEFqaVvp1cEYW7Bfi+ebRJrOiwz2Ieu7ZG2l7YyeSJIok/reEQCQCuicj/Y32ITIJuGIM9xZQppGx5LrQdA=="
