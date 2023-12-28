@@ -12,8 +12,6 @@ template SybilResistance() {
     signal input R8y;
     signal input S;
 
-    signal input signedCredentialHash;
-
     // The secret key used to create nullifiers.
     signal input nullifierSecretKey;
 
@@ -42,7 +40,6 @@ template SybilResistance() {
     v3.R8x <== R8x;
     v3.R8y <== R8y; 
     v3.S <== S;
-    v3.signedCredentialHash <== signedCredentialHash;
     v3.nullifierSecretKey <== nullifierSecretKey;
     v3.iat <== iat;
     v3.scope <== scope; 

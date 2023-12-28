@@ -1,18 +1,45 @@
 const { expect } = require("chai");
 const { randomBytes } = require("crypto");
-const { issue } = require("holonym-wasm-issuer");
-// const { issue } = require("holonym-wasm-issuer");
-
+const { issue, get_pubkey } = require("holonym-wasm-issuer");
+const { createProofVOLEZK } = require("../../utils/proofs");
+const  { poseidon } = require("circomlibjs-old");
 // const { makeLeafMaker } = require("../../utils/leaves");
-// const { Proofs } = require("../../utils/proofs");
 // const { Issuer } = require("../../utils/issuer");
 // const { rejects } = require("assert");
 
 describe.only("Example Proof E2E", function (){
     before(async function (){
-        console.log("issued", await issue(randomBytes(32).toString("hex"), "123", "1234567890", "1234567890"));
+        this.secret = "111111111111111111111112";
+        // Nothing-up-my-sleeve value: SHA256("Holonym Issuance")
+        this.issuanceNullifier = poseidon([
+            BigInt(this.secret), 
+            BigInt("0x194ee5653c27cb200f64d0bd1ade2b4734e3341ea37712c6a5a4bd30870c33f1")
+        ]).toString();
+
+        const privateKey = randomBytes(32).toString("hex");
+        const issued = await issue(privateKey, this.issuanceNullifier, "1234567890", "1234567890");
+        this.issued = JSON.parse(issued);
     })
     it("Example Proof that should succeed", async function () {
+
+        const circuitInputs = {
+            pubKeyX : this.issued.pubkey.x,
+            pubKeyY : this.issued.pubkey.y,
+            R8x : this.issued.signature_r8.x,
+            R8y : this.issued.signature_r8.y,
+            S: this.issued.signature_s,
+            nullifierSecretKey: this.secret,
+            // signedLeaf: leaves.originalLeaf.digest, //originalLeaf.digest,
+            // newLeaf: leaves.newLeaf.digest, 
+            // signedLeafSecret: leaves.originalLeaf.inputs.secret,
+            // newLeafSecret: leaves.newLeaf.inputs.secret,
+            iat :  this.issued.credentials.iat,
+            scope : this.issued.credentials.scope,
+            customFields : this.issued.credentials.custom_fields,
+            actionId : "12321232123212321234567890987654321"
+        }
+        console.log("circuit inputs", circuitInputs)
+        console.log("result is", await createProofVOLEZK("V3SybilResistance", circuitInputs));
         throw new Error("not yet implemented");
     });
     // Is this out of scope for these tests? I think so.

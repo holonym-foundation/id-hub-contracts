@@ -18,8 +18,6 @@ template V3() {
     signal input R8y;
     signal input S;
 
-    signal input signedCredentialHash;
-
     // The secret key used to create nullifiers.
     signal input nullifierSecretKey;
 
