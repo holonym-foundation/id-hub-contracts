@@ -2,6 +2,7 @@
 pragma circom 2.0.0;
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
+include "../../../node_modules/circomlib/circuits/comparators.circom";
 
 template V3() {
     // Nothing-up-my-sleeve value: SHA256("Holonym Issuance")
@@ -24,6 +25,11 @@ template V3() {
     // Time the issuer says the credential was issued at
     signal input iat;
 
+    // A time the user can choose for their credential to expire. Max is one year from iat. 
+    // To keep anonymity, the user should choose a random time slightly before iat, depending
+    // On how long they want the anonymity
+    signal input expiry;
+
     // Scope of credentials (probably set to 0)
     signal input scope; 
 
@@ -32,9 +38,7 @@ template V3() {
 
     signal output issuerAddress;
 
-
-
-
+    
     // ------------------------------------------------------------------ //
     // ------------------------- Constraints ---------------------------- //
     // ------------------------------------------------------------------ //
@@ -72,4 +76,13 @@ template V3() {
     eddsaVerifier.S <== S;
     eddsaVerifier.M <== createCredentialHash.out;
 
+    // Check that expiry is <= 1 year of issuance
+    // We can assume 31536001 and iat are safe values to use with LessThan (the issuer wouldn't lie about iat and if they could, we have other problems...)
+    // However, we can't assume expiry - iat is safe, so we should check that it's at most 25 bits (31536001 has 25 bits)
+    component n2b = Num2Bits(25);
+    n2b.in <== expiry - iat;
+    component lt = LessThan(25);
+    lt.in[0] <== expiry - iat;
+    lt.in[1] <== 31536001; // 1 year + 1 second
+    lt.out === 1;
 }

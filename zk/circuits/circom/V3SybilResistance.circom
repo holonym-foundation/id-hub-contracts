@@ -18,6 +18,11 @@ template SybilResistance() {
     // Time the issuer says the credential was issued at
     signal input iat;
 
+    // A time the user can choose for their credential to expire. Max is one year from iat. 
+    // To keep anonymity, the user should choose a random time slightly before iat, depending
+    // On how long they want the anonymity
+    signal input expiry;
+    
     // Scope of credentials (probably set to 0)
     signal input scope; 
 
@@ -29,7 +34,7 @@ template SybilResistance() {
     signal output actionNullifier;
 
     signal output issuerAddress;
-
+    
     // ------------------------------------------------------------------ //
     // ------------------------- Constraints ---------------------------- //
     // ------------------------------------------------------------------ //
@@ -42,6 +47,7 @@ template SybilResistance() {
     v3.S <== S;
     v3.nullifierSecretKey <== nullifierSecretKey;
     v3.iat <== iat;
+    v3.expiry <== expiry;
     v3.scope <== scope; 
     v3.customFields <== customFields;
 

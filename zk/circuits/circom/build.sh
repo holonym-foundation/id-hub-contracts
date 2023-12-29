@@ -7,5 +7,7 @@
 
 
 # V3
+echo RUNNIGN STATIC ANALYSIS ON ${1}
+circomspect ${1}
 echo BUILDING ${1}
 circom ${1} --r1cs --wasm --sym --output=artifacts
