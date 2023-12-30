@@ -63,4 +63,4 @@ template SybilResistance() {
     actionNullifier <== createActionNullifier.out;
 }
 
-component main { public [actionId] } = SybilResistance();
+component main { public [actionId, expiry] } = SybilResistance();

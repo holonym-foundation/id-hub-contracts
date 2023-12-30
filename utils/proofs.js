@@ -23,7 +23,7 @@ async function createProofVOLEZK(circuitName, inputs) {
     
     const wc = await WitnessCalculatorBuilder(wasm);
     const witness =  (wc.circom_version() == 1) ? await wc.calculateBinWitness(inputs) : await wc.calculateWTNSBin(inputs);
-    
+    // fs.writeFile("tmp.wtns", witness, ()=>{})
     return prove(r1cs, witness)
 }
 const Proofs = {
