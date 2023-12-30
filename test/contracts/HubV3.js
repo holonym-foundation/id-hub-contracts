@@ -8,7 +8,7 @@ const { ethers } = require("hardhat");
 /// Utility function for an offhcain verifier to sign the arguments for the contract call
 /// `signer` is an ethers signer, e.g. one that is returned by calling `ethers.getSigners()`
 /// `args` are the types in the smart contract's ABI except the signature. I.e.: the args of of type argTypes
-const signArgs = (signer, args) => {
+const signArgsWithChainId = (signer, args, chainId) => {
     const argTypes = [
         "bytes32",
         // "string",
@@ -16,9 +16,10 @@ const signArgs = (signer, args) => {
         "uint",
         "uint",
         "uint",
-        "uint[]"
+        "uint[]",
+        "uint"
     ];
-    const digest = ethers.utils.arrayify(solidityKeccak256(argTypes, args));
+    const digest = ethers.utils.arrayify(solidityKeccak256(argTypes, [...args, chainId]));
     return signer.signMessage(digest);
 }
 const YEAR_IN_SECS = 365 * 24 * 60 * 60;
@@ -46,13 +47,13 @@ describe.only("Hub", function() {
         
         let shouldFail = this.contract.sendSBT(
             ...args,
-            signArgs(somebody, args)
+            signArgsWithChainId(somebody, args, 31337)
         );
         await expect(shouldFail).to.be.revertedWith("The Verifier did not sign the provided arguments in the provided order");
 
         let shouldSucc = this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
         expect(await shouldSucc).to.be.ok;
     });
@@ -74,11 +75,11 @@ describe.only("Hub", function() {
 
         const shouldSucc1 = this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
         const shouldSucc2 = this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
 
         expect(await shouldSucc1).to.be.ok;
@@ -102,18 +103,41 @@ describe.only("Hub", function() {
 
         const shouldSucc = this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
         
         expect(await shouldSucc).to.be.ok;
 
         const shouldFail = this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
 
         await expect(shouldFail).to.be.revertedWith("this is already been proven");
     });
+
+    it("Replay by modifiying chainId", async function() {
+        const [signer, somebody, somebody2] = await ethers.getSigners();
+
+        const args = [
+            keccak256(Buffer.from("the circuitID")),
+            // "",
+            somebody2.address, 
+            yearFromNow(),
+            0,
+            0,
+            [0n, 1n, 2n, 3n],
+        ];
+
+        const shouldFail = this.contract.sendSBT(
+            ...args,
+            signArgsWithChainId(signer, args, 69)
+        );
+
+        await expect(shouldFail).to.be.revertedWith("The Verifier did not sign the provided arguments in the provided order");
+
+    });
+
 
     it("Payments for specific circuits", async function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
@@ -141,7 +165,7 @@ describe.only("Hub", function() {
         
         const shouldSucc = this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
         
         
@@ -150,11 +174,11 @@ describe.only("Hub", function() {
 
         const shouldFailFee = this.contract.sendSBT(
             ...argsWithFee,
-            signArgs(signer, argsWithFee)
+            signArgsWithChainId(signer, argsWithFee, 31337)
         );
         const shouldFailSig = this.contract.sendSBT(
             ...args,
-            signArgs(signer, argsWithFee)
+            signArgsWithChainId(signer, argsWithFee, 31337)
         );
 
         await expect(shouldFailSig).to.be.revertedWith("The Verifier did not sign the provided arguments in the provided order");
@@ -163,7 +187,7 @@ describe.only("Hub", function() {
         // Test that with the correct payment amount, it succeeds
         const shouldSucc2 = this.contract.sendSBT(
             ...argsWithFee,
-            signArgs(signer, argsWithFee),
+            signArgsWithChainId(signer, argsWithFee, 31337),
             {value: 69}
         );
 
@@ -183,7 +207,7 @@ describe.only("Hub", function() {
 
         // const shouldSucc3 = this.contract.sendSBT(
         //     args2,
-        //     signArgs(signer, args2)
+        //     signArgsWithChainId(signer, args2, 31337)
         // );
         // await expect(shouldSucc3).to.be.ok;
     });
@@ -203,7 +227,7 @@ describe.only("Hub", function() {
 
         await this.contract.sendSBT(
             ...args,
-            signArgs(signer, args)
+            signArgsWithChainId(signer, args, 31337)
         );
         
         let sbt = await this.contract.getSBT(somebody2.address, keccak256(Buffer.from("the circuitID")));

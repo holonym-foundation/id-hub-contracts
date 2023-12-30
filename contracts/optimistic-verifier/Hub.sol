@@ -12,6 +12,7 @@ contract Hub is PaidProofV3 {
     using ECDSA for bytes32;
 
     address verifier;
+
     mapping(uint => bool) public usedNullifiers;
     /// Mapping of (user, circuit) identifiers to the corresponding SBT timestamp and value which is an array of uints
     mapping(bytes32 => SBT) public sbtOwners;
@@ -51,7 +52,8 @@ contract Hub is PaidProofV3 {
                 expiration,
                 customFee,
                 nullifier,
-                publicValues
+                publicValues,
+                block.chainid // Chain ID in signature prevents proof from being replayed on other chains for same native price
             )
         )
         .toEthSignedMessageHash()
