@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./PaidProofV3.sol";
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 struct SBT {
     uint expiry; // A Unix timestamp in the same format as block.timestamp
     uint[] publicValues; // The proof's public values
@@ -69,7 +69,6 @@ contract Hub is PaidProofV3 {
 
     function getSBT(address sbtOwner, bytes32 circuitId) public view returns (SBT memory sbt) {
         SBT memory s = sbtOwners[getIdentifier(sbtOwner, circuitId)];
-        console.log("timestamp", block.timestamp);
         require(s.expiry >= block.timestamp, "SBT is expired");
         return s;
     }

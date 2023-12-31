@@ -1,6 +1,6 @@
 
 const { expect } = require("chai");
-const { keccak256, solidityKeccak256 } = require("ethers/lib/utils");
+const { keccak256, solidityKeccak256, solidityPack } = require("ethers/lib/utils");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
 
@@ -22,6 +22,7 @@ const signArgsWithChainId = (signer, args, chainId) => {
     const digest = ethers.utils.arrayify(solidityKeccak256(argTypes, [...args, chainId]));
     return signer.signMessage(digest);
 }
+const CIRCUIT_ID = "V3SybilResistance";
 const YEAR_IN_SECS = 365 * 24 * 60 * 60;
 const yearFromNow = () => Math.floor(Date.now() / 1000) + YEAR_IN_SECS;
 
@@ -33,9 +34,9 @@ describe.only("Hub", function() {
     });
     it("Only the verifier can add the SBT ", async function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
-
+        
         const args = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -61,7 +62,7 @@ describe.only("Hub", function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
 
         const args = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -90,7 +91,7 @@ describe.only("Hub", function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
 
         const args = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -120,7 +121,7 @@ describe.only("Hub", function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
 
         const args = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -143,7 +144,7 @@ describe.only("Hub", function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
 
         const args = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -153,7 +154,7 @@ describe.only("Hub", function() {
         ];
 
         const argsWithFee = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -170,7 +171,7 @@ describe.only("Hub", function() {
         
         
         expect(await shouldSucc).to.be.ok;
-        // await this.contract.setFee(keccak256(Buffer.from("the circuitID")), 69);
+        // await this.contract.setFee(keccak256(Buffer.from(CIRCUIT_ID)), 69);
 
         const shouldFailFee = this.contract.sendSBT(
             ...argsWithFee,
@@ -216,7 +217,7 @@ describe.only("Hub", function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
 
         const args = [
-            keccak256(Buffer.from("the circuitID")),
+            keccak256(Buffer.from(CIRCUIT_ID)),
             // "",
             somebody2.address, 
             yearFromNow(),
@@ -230,11 +231,27 @@ describe.only("Hub", function() {
             signArgsWithChainId(signer, args, 31337)
         );
         
-        let sbt = await this.contract.getSBT(somebody2.address, keccak256(Buffer.from("the circuitID")));
+        let sbt = await this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)));
         expect(sbt.expiry).to.approximately(await time.latest() + YEAR_IN_SECS, 100);
         await time.increase(YEAR_IN_SECS + 1);
-        await expect(this.contract.getSBT(somebody2.address, keccak256(Buffer.from("the circuitID")))).to.be.revertedWith("SBT is expired");
+        await expect(this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)))).to.be.revertedWith("SBT is expired");
         
     });
+
+    it("Test integration with verifier server", async function() {
+        const jsonFromServer = JSON.parse("{\"values\":{\"circuit_id\":\"0x246573d89cb5c7092555e196ea706dd8c9dcc0cfda6f7529f6305ac2ed4d77da\",\"sbt_reciever\":\"0x70997970c51812dc3a010c7d01b50e0d17dc79c8\",\"expiration\":\"0xeaf6293a\",\"custom_fee\":\"0x123469\",\"nullifier\":\"0x10618764ddaf4a294979b4987e1236eeb5b279a798810ce53b4acedb1e1c0d79\",\"public_values\":[\"0xeaf6293a\",\"0x25f7bd02f163928099df325ec1cb1\",\"0x10618764ddaf4a294979b4987e1236eeb5b279a798810ce53b4acedb1e1c0d79\",\"0x24ab80541e32746ce3d3d2e6497d85f036ddacedc0e6a2ac22b40762e3bc9f57\"],\"chain_id\":\"0x7a69\"},\"sig\":\"0x78409a695246ca07398fef82f6d1bd9d2287f9a0083c5667fb8f997c3d9b288d4dc7f6ed77915a166c6794a4b14a37b25cf5f2e9279dbe9465d29917aec96cf41c\"}")
+        const contract2 = await (await ethers.getContractFactory("Hub")).deploy("0xc38cdaae95b817a1bc135700f971c86de75d05fb");
+        expect(await contract2.sendSBT(
+            jsonFromServer.values.circuit_id,
+            jsonFromServer.values.sbt_reciever,
+            jsonFromServer.values.expiration,
+            jsonFromServer.values.custom_fee,
+            jsonFromServer.values.nullifier,
+            jsonFromServer.values.public_values,
+            jsonFromServer.sig,
+            {value: 0x123469}
+        )).to.be.ok;
+        });
+        
 
 });
