@@ -12,7 +12,7 @@ const signArgsWithChainId = (signer, args, chainId) => {
     const argTypes = [
         "bytes32",
         // "string",
-        "address",
+        "uint",
         "uint",
         "uint",
         "uint",
@@ -239,7 +239,7 @@ describe.only("Hub", function() {
     });
 
     it("Test integration with verifier server", async function() {
-        const jsonFromServer = JSON.parse("{\"values\":{\"circuit_id\":\"0x246573d89cb5c7092555e196ea706dd8c9dcc0cfda6f7529f6305ac2ed4d77da\",\"sbt_reciever\":\"0x70997970c51812dc3a010c7d01b50e0d17dc79c8\",\"expiration\":\"0xeaf6293a\",\"custom_fee\":\"0x123469\",\"nullifier\":\"0x10618764ddaf4a294979b4987e1236eeb5b279a798810ce53b4acedb1e1c0d79\",\"public_values\":[\"0xeaf6293a\",\"0x25f7bd02f163928099df325ec1cb1\",\"0x10618764ddaf4a294979b4987e1236eeb5b279a798810ce53b4acedb1e1c0d79\",\"0x24ab80541e32746ce3d3d2e6497d85f036ddacedc0e6a2ac22b40762e3bc9f57\"],\"chain_id\":\"0x7a69\"},\"sig\":\"0x78409a695246ca07398fef82f6d1bd9d2287f9a0083c5667fb8f997c3d9b288d4dc7f6ed77915a166c6794a4b14a37b25cf5f2e9279dbe9465d29917aec96cf41c\"}")
+        const jsonFromServer = JSON.parse("{\"values\":{\"circuit_id\":\"0x246573d89cb5c7092555e196ea706dd8c9dcc0cfda6f7529f6305ac2ed4d77da\",\"sbt_reciever\":\"0x70997970c51812dc3a010c7d01b50e0d17dc79c8\",\"expiration\":\"0xeaf6293a\",\"custom_fee\":\"0x123469\",\"nullifier\":\"0x10618764ddaf4a294979b4987e1236eeb5b279a798810ce53b4acedb1e1c0d79\",\"public_values\":[\"0xeaf6293a\",\"0x70997970c51812dc3a010c7d01b50e0d17dc79c8\",\"0x25f7bd02f163928099df325ec1cb1\",\"0x10618764ddaf4a294979b4987e1236eeb5b279a798810ce53b4acedb1e1c0d79\",\"0x24ab80541e32746ce3d3d2e6497d85f036ddacedc0e6a2ac22b40762e3bc9f57\"],\"chain_id\":\"0x7a69\"},\"sig\":\"0x2ed9a0011d84b54c69524be6ad0e0e7776d12583f4bddd8162f8696aa5f4885c75d25fc0d328dca35063a043f52a3d2562835394306787b556ae0078ad4ec5431b\"}")
         const contract2 = await (await ethers.getContractFactory("Hub")).deploy("0xc38cdaae95b817a1bc135700f971c86de75d05fb");
         expect(await contract2.sendSBT(
             jsonFromServer.values.circuit_id,

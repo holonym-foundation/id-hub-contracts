@@ -69,4 +69,4 @@ template SybilResistance() {
     signal recipientSquared <== recipient * recipient;
 }
 
-component main { public [actionId, expiry] } = SybilResistance();
+component main { public [recipient, actionId, expiry] } = SybilResistance();

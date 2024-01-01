@@ -37,7 +37,7 @@ contract Hub is PaidProofV3 {
     function sendSBT(
         bytes32 circuitId,
         // string calldata proofIPFSCID,
-        address sbtReciever, 
+        uint sbtReciever, 
         uint expiration,
         uint customFee,
         uint nullifier, 
@@ -64,7 +64,7 @@ contract Hub is PaidProofV3 {
             require(!usedNullifiers[nullifier], "this is already been proven");
             usedNullifiers[nullifier] = true;
         }
-        sbtOwners[getIdentifier(sbtReciever, circuitId)] = SBT(expiration, publicValues);
+        sbtOwners[getIdentifier(address(uint160(sbtReciever)), circuitId)] = SBT(expiration, publicValues);
     }
 
     /// IMPORTANT: make sure you check the public values such as actionId from this. Someone can forge a proof if you don't check the public values
