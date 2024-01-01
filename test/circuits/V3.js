@@ -37,7 +37,8 @@ describe.only("Example Proof E2E", function (){
             expiry: (BigInt(this.issued.credentials.iat) + secureExpiryOffset()).toString(), // should be a random slightly less than 31536000n seconds (how much less determines anonymity set size)
             scope : this.issued.credentials.scope,
             customFields : this.issued.credentials.custom_fields,
-            actionId : "12321232123212321234567890987654321"
+            actionId : "12321232123212321234567890987654321",
+            recipient: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
         }
         // console.log("inputs", JSON.stringify(circuitInputs));
         await createProofVOLEZK("V3SybilResistance", circuitInputs);

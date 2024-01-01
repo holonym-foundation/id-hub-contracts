@@ -67,6 +67,8 @@ contract Hub is PaidProofV3 {
         sbtOwners[getIdentifier(sbtReciever, circuitId)] = SBT(expiration, publicValues);
     }
 
+    /// IMPORTANT: make sure you check the public values such as actionId from this. Someone can forge a proof if you don't check the public values
+    /// e.g., by using a different issuer or actionId
     function getSBT(address sbtOwner, bytes32 circuitId) public view returns (SBT memory sbt) {
         SBT memory s = sbtOwners[getIdentifier(sbtOwner, circuitId)];
         require(s.expiry >= block.timestamp, "SBT is expired");

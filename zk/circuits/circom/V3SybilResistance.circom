@@ -29,6 +29,9 @@ template SybilResistance() {
     // Three custom fields the issuer can put in the leaf (can be anything, e.g. [name, address, birthdate, phone #])
     signal input customFields[2];
 
+    // Recipient's wallet address or other identifier that they want to bind the proof to
+    signal input recipient;
+
     // A salt to derive the public nullifier for a public actionId from
     signal input actionId;
     signal output actionNullifier;
@@ -61,6 +64,9 @@ template SybilResistance() {
 
     // Output the action nullifier
     actionNullifier <== createActionNullifier.out;
+
+    // Constrain the recipient
+    signal recipientSquared <== recipient * recipient;
 }
 
 component main { public [actionId, expiry] } = SybilResistance();
