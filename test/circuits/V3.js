@@ -3,6 +3,7 @@ const { randomBytes } = require("crypto");
 const { issue, get_pubkey } = require("holonym-wasm-issuer");
 const { createProofVOLEZK } = require("../../utils/proofs");
 const  { poseidon } = require("circomlibjs-old");
+const { prove, verify } = require("wasm-vole-zk-adapter")
 // const { makeLeafMaker } = require("../../utils/leaves");
 // const { Issuer } = require("../../utils/issuer");
 // const { rejects } = require("assert");
@@ -41,7 +42,13 @@ describe.only("Example Proof E2E", function (){
             recipient: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
         }
         // console.log("inputs", JSON.stringify(circuitInputs));
-        await createProofVOLEZK("V3SybilResistance", circuitInputs);
+        const proof = await createProofVOLEZK("V3SybilResistance", circuitInputs);
+        let res = await fetch("https://verifier.holonym.io/verify/0x7a69/V3SybilResistance", {
+            method: "POST",
+            headers: { "Content-Type": "application/octet-stream" },
+            body: proof
+        });
+        expect((await res.text()).startsWith(`{"values":{"circuit_id":"`)).to.be.true;
     });
    
     it("Expiry > 1 year since issuance fails", async function () {

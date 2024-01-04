@@ -148,7 +148,7 @@ module.exports = {
     },
     optimismMainnet: {
       url: "https://rpc.ankr.com/optimism",
-      accounts: [COMRPOMISED_TEST_PRIVATE_KEY], //[process.env.TEST_PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY], //[process.env.TEST_PRIVATE_KEY],
       forking: {
         url: "https://mainnet.chainnodes.org/9643f26d-a67d-400a-ae95-9646a6fc881d",
         blockNumber: 106887390,

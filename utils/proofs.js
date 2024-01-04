@@ -1,4 +1,4 @@
-const { prove } = require("wasm-vole-zk-adapter");
+const { prove, verify } = require("wasm-vole-zk-adapter");
 const { WitnessCalculatorBuilder } = require("circom_runtime");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
@@ -24,7 +24,11 @@ async function createProofVOLEZK(circuitName, inputs) {
     const wc = await WitnessCalculatorBuilder(wasm);
     const witness =  (wc.circom_version() == 1) ? await wc.calculateBinWitness(inputs) : await wc.calculateWTNSBin(inputs);
     // fs.writeFile("tmp.wtns", witness, ()=>{})
-    return prove(r1cs, witness)
+    const proof = prove(r1cs, witness);
+    // const verifierR1cs = fs.readFileSync('/Users/nanaknihal/vole_zk/verifier-server/circuits/circom/V3SybilResistance.r1cs')
+    // const verification = verify(verifierR1cs, proof);
+    // console.log('verification', verification)
+    return proof
 }
 const Proofs = {
     // onAddLeaf : async (inputs: IOnAddLeafInputs) => {
