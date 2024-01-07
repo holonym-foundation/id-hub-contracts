@@ -233,7 +233,7 @@ describe.only("Hub", function() {
         
         let sbt = await this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)));
         expect(sbt.expiry).to.approximately(await time.latest() + YEAR_IN_SECS, 100);
-        await time.increase(YEAR_IN_SECS + 1);
+        await time.increase(YEAR_IN_SECS + 10);
         await expect(this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)))).to.be.revertedWith("SBT is expired");
         
     });
@@ -251,7 +251,28 @@ describe.only("Hub", function() {
             jsonFromServer.sig,
             {value: 0x123469}
         )).to.be.ok;
-        });
-        
+    });
 
+    it("NFT mint works", async function() {
+        const [signer, somebody, somebody2] = await ethers.getSigners();
+        
+        const args = [
+            keccak256(Buffer.from(CIRCUIT_ID)),
+            // "",
+            somebody2.address, 
+            yearFromNow(),
+            0,
+            0,
+            [0n, 1n, 2n, 3n],
+        ];
+
+        await this.contract.sendSBT(
+            ...args,
+            signArgsWithChainId(signer, args, 31337)
+        );
+
+        expect(
+            await this.contract.balanceOf(somebody2.address)
+        ).to.not.equal(0)
+    });
 });

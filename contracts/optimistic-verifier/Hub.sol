@@ -1,25 +1,45 @@
 // SPDX-License-Identifier: MIT
 
+// This contract accepts a signed attestation from a certain Verifier that a ZKP has been recieved. The attestation SHOULD be verifiable with offchain methods
+// After recieving a valid attestation and paying any required fee, the address given in the proof receives an SBT. 
+// THE EXISTENCE OF AN SBT ALONE IS NOT SUFFICIENT TO VERIFY A USER in most cases - typically the SBT's publicValues must be checked as well.
+// The existence of an SBT just shows the proof was verified and paid for but not that its public values are acceptable
+// Note that getSBT() checks SBT expiry and only returns non-expired SBTs but using standard NFT methods to check for ownership do not check expiry or really anything meaningful
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import "./PaidProofV3.sol";
 // import "hardhat/console.sol";
 struct SBT {
     uint expiry; // A Unix timestamp in the same format as block.timestamp
     uint[] publicValues; // The proof's public values
 }
-contract Hub is PaidProofV3 {
+contract Hub is PaidProofV3, ERC721URIStorage {
+    using Counters for Counters.Counter;
     using ECDSA for bytes32;
-
+    
     address verifier;
-
+    Counters.Counter private _tokenIds;
+    
+    /// For checking whether a nullifier has been used before
     mapping(uint => bool) public usedNullifiers;
+    
     /// Mapping of (user, circuit) identifiers to the corresponding SBT timestamp and value which is an array of uints
     mapping(bytes32 => SBT) public sbtOwners;
-    constructor(address v) {
+
+    constructor(address v) ERC721("Holonym V3", "H3") {
         verifier = v;
     }
 
+    /// NFT URL
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://nft.holonym.io/nft-metadata/v3/";
+    }
+    function _transfer(address from, address to, uint256 tokenId) internal override {
+        revert("Cannot transfer this type of token");
+    }
     /// Gets an identifier for a (user, circuit) pair. 
     function getIdentifier(address user, bytes32 circuitId) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(user, circuitId));
@@ -64,7 +84,18 @@ contract Hub is PaidProofV3 {
             require(!usedNullifiers[nullifier], "this is already been proven");
             usedNullifiers[nullifier] = true;
         }
-        sbtOwners[getIdentifier(address(uint160(sbtReciever)), circuitId)] = SBT(expiration, publicValues);
+
+        address receiver = address(uint160(sbtReciever));
+        bytes32 identifier = getIdentifier(receiver, circuitId);
+
+        // Set the SBT's data
+        sbtOwners[identifier] = SBT(expiration, publicValues);
+
+        // Call the ERC721's mint function
+        _tokenIds.increment();
+        uint tid = _tokenIds.current();
+        _safeMint(receiver, tid);
+        _setTokenURI(tid, Base64.encode(abi.encode(sbtOwners[identifier])));
     }
 
     /// IMPORTANT: make sure you check the public values such as actionId from this. Someone can forge a proof if you don't check the public values
