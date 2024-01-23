@@ -43,11 +43,14 @@ describe.only("Example Proof E2E", function (){
         }
         // console.log("inputs", JSON.stringify(circuitInputs));
         const proof = await createProofVOLEZK("V3SybilResistance", circuitInputs);
-        let res = await fetch("https://verifier.holonym.io/verify/0x7a69/V3SybilResistance", {
+        
+        let res = await fetch("http://localhost:3000/verify/0x7a69/V3PhoneSybilResistance", {
+        // let res = await fetch("https://verifier.holonym.io/verify/0x7a69/V3SybilResistance", {
             method: "POST",
             headers: { "Content-Type": "application/octet-stream" },
             body: proof
         });
+        console.log('res.text', await res);
         expect((await res.text()).startsWith(`{"values":{"circuit_id":"`)).to.be.true;
     });
    

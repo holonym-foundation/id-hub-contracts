@@ -21,7 +21,10 @@ const { ethers } = require("hardhat");
 async function main() {
   const [signer] = await ethers.getSigners();
   console.log("Signer address", signer.address);
-  console.log("Hub shoud now be deployed to " + (await (await ethers.getContractFactory("Hub")).deploy("0x656d1dfb96dbd7620de0e73fb16d2b169bb8da01")).address);
+  const hub = await (await ethers.getContractFactory("Hub")).deploy("0x656d1dfb96dbd7620de0e73fb16d2b169bb8da01");
+  await hub.transferOwnership("0xbe20d0A27B79BA2E53c9DF150BadAa21D4783D42");
+  console.log("Hub is deployed: " + hub.address);
+  console.log("Contract owner: " + await hub.owner());
 }
 
 // We recommend this pattern to be able to use async/await everywhere

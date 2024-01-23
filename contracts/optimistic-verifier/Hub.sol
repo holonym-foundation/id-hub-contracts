@@ -10,13 +10,15 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./PaidProofV3.sol";
 // import "hardhat/console.sol";
 struct SBT {
     uint expiry; // A Unix timestamp in the same format as block.timestamp
     uint[] publicValues; // The proof's public values
+    bool revoked; // Whether the SBT has been revoked
 }
-contract Hub is PaidProofV3, ERC721URIStorage {
+contract Hub is Ownable, PaidProofV3, ERC721URIStorage {
     using Counters for Counters.Counter;
     using ECDSA for bytes32;
     
@@ -89,7 +91,7 @@ contract Hub is PaidProofV3, ERC721URIStorage {
         bytes32 identifier = getIdentifier(receiver, circuitId);
 
         // Set the SBT's data
-        sbtOwners[identifier] = SBT(expiration, publicValues);
+        sbtOwners[identifier] = SBT(expiration, publicValues, false);
 
         // Call the ERC721's mint function
         _tokenIds.increment();
@@ -103,6 +105,16 @@ contract Hub is PaidProofV3, ERC721URIStorage {
     function getSBT(address sbtOwner, bytes32 circuitId) public view returns (SBT memory sbt) {
         SBT memory s = sbtOwners[getIdentifier(sbtOwner, circuitId)];
         require(s.expiry >= block.timestamp, "SBT is expired");
+        require(!s.revoked, "SBT has been revoked");
         return s;
     }
+
+    function revokeSBT(address sbtOwner, bytes32 circuitId) public onlyOwner() {
+        sbtOwners[getIdentifier(sbtOwner, circuitId)].revoked = true;
+    }
+
+    function changeVerifier(address newVerifier) public onlyOwner() {
+        verifier = newVerifier;
+    }
+
 }

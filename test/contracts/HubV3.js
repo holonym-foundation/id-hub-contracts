@@ -213,6 +213,30 @@ describe.only("Hub", function() {
         // await expect(shouldSucc3).to.be.ok;
     });
 
+    it("SBT Reading and Revocation", async function() {
+        const [signer, somebody, somebody2] = await ethers.getSigners();
+
+        const args = [
+            keccak256(Buffer.from(CIRCUIT_ID)),
+            // "",
+            somebody2.address, 
+            yearFromNow(),
+            0,
+            1234n,
+            [0n, 1n, 2n, 3n],
+        ];
+
+        await this.contract.sendSBT(
+            ...args,
+            signArgsWithChainId(signer, args, 31337)
+        );
+        
+        expect(await this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)))).to.not.be.reverted;
+        await this.contract.revokeSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)));
+        await expect(this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)))).to.be.revertedWith("SBT has been revoked");
+        
+    });
+
     it("SBT Reading and Expiration", async function() {
         const [signer, somebody, somebody2] = await ethers.getSigners();
 
@@ -234,8 +258,7 @@ describe.only("Hub", function() {
         let sbt = await this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)));
         expect(sbt.expiry).to.approximately(await time.latest() + YEAR_IN_SECS, 100);
         await time.increase(YEAR_IN_SECS + 10);
-        await expect(this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)))).to.be.revertedWith("SBT is expired");
-        
+        await expect(this.contract.getSBT(somebody2.address, keccak256(Buffer.from(CIRCUIT_ID)))).to.be.revertedWith("SBT is expired");        
     });
 
     it("Test integration with verifier server", async function() {
