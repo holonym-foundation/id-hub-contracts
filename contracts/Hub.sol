@@ -5,7 +5,7 @@
 // THE EXISTENCE OF AN SBT ALONE IS NOT SUFFICIENT TO VERIFY A USER in most cases - typically the SBT's publicValues must be checked as well.
 // The existence of an SBT just shows the proof was verified and paid for but not that its public values are acceptable
 // Note that getSBT() checks SBT expiry and only returns non-expired SBTs but using standard NFT methods to check for ownership do not check expiry or really anything meaningful
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.1;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
