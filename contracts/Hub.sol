@@ -11,14 +11,13 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./PaidProofV3.sol";
 // import "hardhat/console.sol";
 struct SBT {
     uint expiry; // A Unix timestamp in the same format as block.timestamp
     uint[] publicValues; // The proof's public values
     bool revoked; // Whether the SBT has been revoked
 }
-contract Hub is Ownable, PaidProofV3, ERC721URIStorage {
+contract Hub is Ownable, ERC721URIStorage {
     using Counters for Counters.Counter;
     using ECDSA for bytes32;
     
@@ -115,6 +114,15 @@ contract Hub is Ownable, PaidProofV3, ERC721URIStorage {
 
     function changeVerifier(address newVerifier) public onlyOwner() {
         verifier = newVerifier;
+    }
+
+    function collectFees() public onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    modifier needsCustomFee(uint customFee) {
+        require(msg.value == customFee, "Missing Fee");
+        _;
     }
 
 }
