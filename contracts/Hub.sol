@@ -30,6 +30,9 @@ contract Hub is Ownable, ERC721URIStorage {
     /// Mapping of (user, circuit) identifiers to the corresponding SBT timestamp and value which is an array of uints
     mapping(bytes32 => SBT) public sbtOwners;
 
+    /// Allows getting the SBT by nullifier, so they can be retrieved without the frontend having to know the SBT recipient address before retrieving it
+    mapping(uint => bytes32) public nullifiersToIdentifiers;
+
     constructor(address v) ERC721("Holonym V3", "H3") {
         verifier = v;
     }
@@ -55,7 +58,7 @@ contract Hub is Ownable, ERC721URIStorage {
     /// `nullifier` is an optional field (set to 0 if unused) which prevents the same ID from being used for >1 proof. Again this is given by the verifier but can be checked if the Verifier posts the proof to IPFS
     /// `publicValues` are the proofs' public inputs and outputs. They are stored with the SBT. Again, these can be checked if the proof is put in IPFS
     /// To migrate SBT owners from the previous contract, the initially centralized trusted verifier can simply add them one-by-one
-    function sendSBT(
+    function setSBT(
         bytes32 circuitId,
         // string calldata proofIPFSCID,
         uint sbtReciever, 
@@ -91,6 +94,7 @@ contract Hub is Ownable, ERC721URIStorage {
 
         // Set the SBT's data
         sbtOwners[identifier] = SBT(expiration, publicValues, false);
+        nullifiersToIdentifiers[nullifier] = identifier;
 
         // Call the ERC721's mint function
         _tokenIds.increment();
@@ -101,11 +105,25 @@ contract Hub is Ownable, ERC721URIStorage {
 
     /// IMPORTANT: make sure you check the public values such as actionId from this. Someone can forge a proof if you don't check the public values
     /// e.g., by using a different issuer or actionId
-    function getSBT(address sbtOwner, bytes32 circuitId) public view returns (SBT memory sbt) {
-        SBT memory s = sbtOwners[getIdentifier(sbtOwner, circuitId)];
-        require(s.expiry >= block.timestamp, "SBT is expired");
+    function _getSBT(bytes32 identifier) private view returns (SBT memory sbt){
+        SBT memory s = sbtOwners[identifier];
+        require(s.expiry >= block.timestamp, "SBT is expired or does not exist");
         require(!s.revoked, "SBT has been revoked");
         return s;
+    }
+
+    /// Wrapper for easier input, taking the SBT owner address and circuit ID
+    /// IMPORTANT: make sure you check the public values such as actionId from this. Someone can forge a proof if you don't check the public values
+    /// e.g., by using a different issuer or actionId
+    function getSBT(address sbtOwner, bytes32 circuitId) public view returns (SBT memory sbt) {
+        return _getSBT(getIdentifier(sbtOwner, circuitId));
+    }
+    
+    /// Wrapper so you can get the SBT by the nullifier instead
+    /// IMPORTANT: make sure you check the public values such as actionId from this. Someone can forge a proof if you don't check the public values
+    /// e.g., by using a different issuer or actionId
+    function getSBTByNullifier(uint nullifier) public view returns (SBT memory sbt) {
+        return _getSBT(nullifiersToIdentifiers[nullifier]);
     }
 
     function revokeSBT(address sbtOwner, bytes32 circuitId) public onlyOwner() {

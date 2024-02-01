@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
+// require("@nomicfoundation/hardhat-verify");
 require("hardhat-abi-exporter");
 require("dotenv").config();
-
 require("./tasks/deployMerkleTree");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -37,6 +37,13 @@ module.exports = {
     ],
   },
 
+  sourcify: {
+    enabled: true,
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  
   abiExporter: {
     path: "./data/abi",
     runOnCompile: true,
