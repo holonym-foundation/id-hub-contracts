@@ -1,5 +1,5 @@
 pragma circom 2.0.0;
-include "./V3SansExpiry.circom";
+include "./V3.circom";
 
 // Proves that a given first name, last name, and date of birth are in the user's signed creds
 template NameDOB() {
@@ -20,6 +20,13 @@ template NameDOB() {
     // Time the issuer says the credential was issued at
     signal input iat;
     
+    // A time the user can choose for their credential to expire. Max is one year from iat. 
+    // To keep anonymity, the user should choose a random time slightly before iat, depending
+    // On how long they want the anonymity. Why use expiry instead of iat, even in this case
+    // where we are not creating an on-chain SBT that needs an expiry? We don't want to 
+    // expose iat directly because doing so could dox the user (to us).
+    signal input expiry;
+
     // Scope of credentials (probably set to 0)
     signal input scope; 
 
@@ -45,19 +52,20 @@ template NameDOB() {
     // ------------------------- Constraints ---------------------------- //
     // ------------------------------------------------------------------ //
     // Check the constraints necessary in any Holonym V3 circuit
-    component v3SansExpiry = V3SansExpiry();
-    v3SansExpiry.pubKeyX <== pubKeyX;
-    v3SansExpiry.pubKeyY <== pubKeyY;
-    v3SansExpiry.R8x <== R8x;
-    v3SansExpiry.R8y <== R8y;
-    v3SansExpiry.S <== S;
-    v3SansExpiry.nullifierSecretKey <== nullifierSecretKey;
-    v3SansExpiry.iat <== iat;
-    v3SansExpiry.scope <== scope; 
-    v3SansExpiry.customFields <== customFields;
+    component v3 = V3();
+    v3.pubKeyX <== pubKeyX;
+    v3.pubKeyY <== pubKeyY;
+    v3.R8x <== R8x;
+    v3.R8y <== R8y;
+    v3.S <== S;
+    v3.nullifierSecretKey <== nullifierSecretKey;
+    v3.iat <== iat;
+    v3.expiry <== expiry;
+    v3.scope <== scope; 
+    v3.customFields <== customFields;
 
     // Output the issuer's address
-    issuerAddress <== v3SansExpiry.issuerAddress;
+    issuerAddress <== v3.issuerAddress;
 
     // Calculate customFields[1] from raw inputs.
     // See this function for how these values are hashed together to form customFields[1]:
@@ -88,4 +96,4 @@ template NameDOB() {
     nameDobCitySubdivisionZipStreetExpireHash.out === customFields[1];
 }
 
-component main { public [firstName, lastName, dob, expirationDate] } = NameDOB();
+component main { public [firstName, lastName, dob, expiry] } = NameDOB();
