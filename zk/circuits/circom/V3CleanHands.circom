@@ -1,9 +1,10 @@
 pragma circom 2.0.0;
 include "./V3.circom";
-include "./encryptElGamalFixedPubkey.circom";
+// include "./encryptElGamalFixedPubkey.circom";
+include "./encryptElGamalVariablePubkey.circom";
 include "./twistedIsomorphism.circom";
 
-template V3CleanHands(encryptedTo) {
+template V3CleanHands() {
     // ------------------------------------------------------------------ //
     // -------------------------- Constants ----------------------------- //
     // ------------------------------------------------------------------ //
@@ -16,7 +17,7 @@ template V3CleanHands(encryptedTo) {
     // ------------------------------------------------------------------ //
 
     // ElGamal encryption parameters
-    // signal input encryptedTo[2]; // The public key the messages are encrypted to
+    signal input encryptedTo[2]; // The public key the messages are encrypted to
     signal input ephemeralSecretKey[numMsgsToEncrypt];
     signal input msgsAsPoints[numMsgsToEncrypt][2];
 
@@ -122,7 +123,8 @@ template V3CleanHands(encryptedTo) {
         toTwisted[i].in <== msgsAsPoints[i];
 
         // Prove encryption
-        encryptors[i] = EncryptElGamal(encryptedTo);
+        encryptors[i] = EncryptElGamal();
+        encryptors[i].pubkey <== encryptedTo;
         encryptors[i].y <== ephemeralSecretKey[i];
         encryptors[i].messageAsPoint <== toTwisted[i].out;
 
@@ -139,9 +141,4 @@ template V3CleanHands(encryptedTo) {
     }
 }
 
-component main { public [recipient, actionId, expiry] } = V3CleanHands(
-    [
-        21609830343315904049524181606753962975462328303279356801467062047600769114735, 
-        1588926857477440591393228107950586647689308661610579384393065788091842388305
-    ]
-);
+component main { public [recipient, actionId, expiry] } = V3CleanHands();
