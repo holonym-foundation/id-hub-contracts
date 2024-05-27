@@ -1,6 +1,7 @@
 pragma circom 2.0.0;
 include "./V3.circom";
 include "./encryptElGamalFixedPubkey.circom";
+include "./twistedIsomorphism.circom";
 
 template V3CleanHands(encryptedTo) {
     // ------------------------------------------------------------------ //
@@ -105,6 +106,10 @@ template V3CleanHands(encryptedTo) {
 
     signal firstTwentyFourBytesOfY[numMsgsToEncrypt];
 
+    component toTwisted[numMsgsToEncrypt];
+    component toUntwisted[numMsgsToEncrypt * 2];
+
+    var untwistedIdx = 0;
     // Note that the elements of msgsAsPoints should be ordered [firstName, lastName, birthdate]
     for(var i = 0; i < numMsgsToEncrypt; i++) {
         // Compare the y-coordinate of each point to the corresponding message.
@@ -112,13 +117,31 @@ template V3CleanHands(encryptedTo) {
         firstTwentyFourBytesOfY[i] <-- msgsAsPoints[i][1] & twentyFourBytes;
         msgs[i] === firstTwentyFourBytesOfY[i];
         
+        // We must convert the untwisted points to twisted points before encrypting
+        toTwisted[i] = UntwistedToTwisted();
+        toTwisted[i].in <== msgsAsPoints[i];
+
         // Prove encryption
         encryptors[i] = EncryptElGamal(encryptedTo);
         encryptors[i].y <== ephemeralSecretKey[i];
-        encryptors[i].messageAsPoint <== msgsAsPoints[i];
+        encryptors[i].messageAsPoint <== toTwisted[i].out;
+
+        // Convert ciphertext points back to untwisted points
+        toUntwisted[untwistedIdx] = TwistedToUntwisted();
+        toUntwisted[untwistedIdx].in <== encryptors[i].c1;
+        toUntwisted[untwistedIdx + 1] = TwistedToUntwisted();
+        toUntwisted[untwistedIdx + 1].in <== encryptors[i].c2;
+
         // ElGamal encryption values
-        encryptions[i] <== [encryptors[i].c1, encryptors[i].c2];
+        encryptions[i] <== [toUntwisted[untwistedIdx].out, toUntwisted[untwistedIdx + 1].out];
+
+        untwistedIdx += 2;
     }
 }
 
-component main { public [recipient, actionId, expiry] } = V3CleanHands([0, 0]);
+component main { public [recipient, actionId, expiry] } = V3CleanHands(
+    [
+        21609830343315904049524181606753962975462328303279356801467062047600769114735, 
+        1588926857477440591393228107950586647689308661610579384393065788091842388305
+    ]
+);
