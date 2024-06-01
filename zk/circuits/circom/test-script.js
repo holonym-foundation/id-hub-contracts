@@ -258,9 +258,12 @@ async function V3CleanHands() {
    const inputs = {
       encryptedTo: pubkey,
        ephemeralSecretKey: [
-         3978785569, 
-         4260601071, 
-         499321157
+         '15219242633815656831485775100299900419930232172338789909295807669388532445331',
+         '15219242633815656831485775100299900419930232172338789909295807669388532445331',
+         '15219242633815656831485775100299900419930232172338789909295807669388532445331',
+         // 3978785569, 
+         // 4260601071, 
+         // 499321157
        ],
        msgsAsPoints: [
          msgAsPointSatoshi,
@@ -296,6 +299,20 @@ async function V3CleanHands() {
        './V3CleanHands_0001.zkey'
    )
    console.log('publicSignals', publicSignals)
+
+   // console.log(JSON.stringify({proof, publicSignals}))
+
+   const actionNullifier = publicSignals[0]
+   const issuerAddress = publicSignals[1]
+   const pubkey1 = [publicSignals[2], publicSignals[3]]
+   const ciphertext1 = [publicSignals[4], publicSignals[5]]
+   const pubkey2 = [publicSignals[6], publicSignals[7]]
+   const ciphertext2 = [publicSignals[8], publicSignals[9]]
+   const pubkey3 = [publicSignals[10], publicSignals[11]]
+   const ciphertext3 = [publicSignals[12], publicSignals[13]]
+   const expiry = new Date(publicSignals[14] * 1000)
+   const recipient = ethers.utils.getAddress('0x' + BigInt(publicSignals[15]).toString(16))
+   const actionId = publicSignals[16]
 
    const vKey = JSON.parse(
        fs.readFileSync("./V3CleanHands.verification_key.json", 'utf8')
