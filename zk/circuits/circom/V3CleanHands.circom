@@ -141,4 +141,4 @@ template V3CleanHands() {
     }
 }
 
-component main { public [recipient, actionId, expiry] } = V3CleanHands();
+component main { public [encryptedTo, recipient, actionId, expiry] } = V3CleanHands();
