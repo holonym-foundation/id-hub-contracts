@@ -51,7 +51,7 @@
     "npm": "^9.8.0",
     "snarkjs": "^0.5.0",
     "threshold-eg-babyjub": "^0.0.1",
-    "wasm-vole-zk-adapter": "file:../../vole_zk/wasm-vole-zk-adapter/node-pkg",
+    "wasm-vole-zk-adapter-nodejs": "^0.1.0",
     "zk-escrow": "^1.4.0"
   }
 }

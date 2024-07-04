@@ -3,7 +3,7 @@ const { randomBytes } = require("crypto");
 const { issue, get_pubkey } = require("holonym-wasm-issuer");
 const { createProofVOLEZK } = require("../../utils/proofs");
 const  { poseidon } = require("circomlibjs-old");
-const { prove, verify } = require("wasm-vole-zk-adapter");
+const { prove, verify } = require("wasm-vole-zk-adapter-nodejs");
 const { sha512 } = require("ethers/lib/utils");
 // const { makeLeafMaker } = require("../../utils/leaves");
 // const { Issuer } = require("../../utils/issuer");
@@ -41,21 +41,21 @@ describe.only("Example Proof E2E", function (){
             scope : this.issued.credentials.scope,
             customFields : this.issued.credentials.custom_fields,
             actionId : "123456789",
-            recipient : BigInt(sha512(Buffer.from("testaccount.testnet"))) % modulus // for NEAR, commit to an accountId that is potentially >32-byte
-            // recipient: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" // for Optimism, can put 20-byte address directly in a field element
+            // recipient : BigInt(sha512(Buffer.from("testaccount.testnet"))) % modulus // for NEAR, commit to an accountId that is potentially >32-byte
+            recipient: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" // for Optimism, can put 20-byte address directly in a field element
         }
-        console.log("abc", (BigInt(sha512(Buffer.from("testaccount.testnet"))) % modulus));
+        // console.log("abc", (BigInt(sha512(Buffer.from("testaccount.testnet"))) % modulus));
         // console.log("inputs", JSON.stringify(circuitInputs));
         const proof = await createProofVOLEZK("V3SybilResistance", circuitInputs);
         
         // let res = await fetch("http://localhost:3000/verify/NEAR/V3KYCSybilResistance", {
-        let res = await fetch("https://verifier.holonym.io/verify/NEAR/V3KYCSybilResistance", {
+        let res = await fetch("https://verifier.holonym.io/verify/0x0a/V3KYCSybilResistance", {
             method: "POST",
             headers: { "Content-Type": "application/octet-stream" },
             body: proof
         });
-        console.log('res.text', await res.text());
-        expect((await res.text()).startsWith(`{"values":{"circuit_id":"`)).to.be.true;
+        // console.log('res.text', await res.text());
+        expect((await res.text()).startsWith(`{"SignedVerification":{"values":{"circuit_id":"`)).to.be.true;
     });
    
     it("Expiry > 1 year since issuance fails", async function () {
