@@ -26,6 +26,9 @@ module.exports = {
   solidity: {
     compilers: [
       {
+        version: "0.8.21",
+      },
+      {
         version: "0.8.9",
       },
       {
@@ -161,5 +164,9 @@ module.exports = {
         blockNumber: 106887390,
       },
     },
+    linea: {
+      url: "https://rpc.linea.build",
+      accounts: [process.env.TEST_PRIVATE_KEY],
+    }
   },
 };
