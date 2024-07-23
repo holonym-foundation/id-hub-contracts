@@ -1,4 +1,4 @@
-const { prove, verify } = require("wasm-vole-zk-adapter");
+const { prove, verify } = require("wasm-vole-zk-adapter-nodejs");
 const { WitnessCalculatorBuilder } = require("circom_runtime");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
