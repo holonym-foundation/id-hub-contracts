@@ -1,8 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
-// require("@nomicfoundation/hardhat-verify");
 require("hardhat-abi-exporter");
 require("dotenv").config();
-require("./tasks/deployMerkleTree");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -18,11 +16,9 @@ const COMRPOMISED_TEST_PRIVATE_KEY = "0x8ebd807b1973800dcf0eea7f299166c574d9d777
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
-module.exports = {
-  // solidity: "0.8.9",
+
+const config = {
+  // solidity: "0.8.21",
   solidity: {
     compilers: [
       {
@@ -78,8 +74,6 @@ module.exports = {
           privateKey: COMRPOMISED_TEST_PRIVATE_KEY,
           balance: "15100000000000000000000",
         },
-
-
       ],
       // forking: {
       //   url: "https://xdai-archive.blockscout.com/",
@@ -89,8 +83,6 @@ module.exports = {
     mumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_MUMBAI_APIKEY}`,
       accounts: [process.env.TEST_PRIVATE_KEY],
-      // gas: 2100000,
-      // gasPrice: 2000000000,
     },
     polygonMainnet: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_POLYGONMAINNET_APIKEY}`,
@@ -158,7 +150,7 @@ module.exports = {
     },
     optimismMainnet: {
       url: "https://rpc.ankr.com/optimism",
-      accounts: [process.env.TEST_PRIVATE_KEY], //[process.env.TEST_PRIVATE_KEY],
+      accounts: [process.env.TEST_PRIVATE_KEY],
       forking: {
         url: "https://mainnet.chainnodes.org/9643f26d-a67d-400a-ae95-9646a6fc881d",
         blockNumber: 106887390,
@@ -170,3 +162,5 @@ module.exports = {
     }
   },
 };
+
+module.exports = config;
