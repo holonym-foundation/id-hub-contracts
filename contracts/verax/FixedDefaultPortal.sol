@@ -4,10 +4,9 @@ pragma solidity 0.8.21;
 import { AttestationPayload } from "@verax-attestation-registry/verax-contracts/contracts/types/Structs.sol";
 import { AbstractPortal } from "@verax-attestation-registry/verax-contracts/contracts/abstracts/AbstractPortal.sol";
 /**
- * @title Zeronym V3 Portal
- * @author Holonym Foundation
+ * Default Verax portal that fixes the replacement vulnerability.
  */
-contract ZeronymV3Portal is AbstractPortal {
+contract FixedDefaultPortal is AbstractPortal {
     constructor(address[] memory modules, address router) AbstractPortal(modules, router) {}
 
     /// @inheritdoc AbstractPortal
