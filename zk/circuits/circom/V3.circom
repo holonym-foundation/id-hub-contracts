@@ -85,4 +85,8 @@ template V3() {
     lt.in[0] <== expiry - iat;
     lt.in[1] <== 31536001; // 1 year + 1 second
     lt.out === 1;
+    component lt2 = LessThan(25); // check that iat < expiry
+    lt.in[0] <== iat;
+    lt.in[1] <== expiry;
+    lt.out === 1;
 }
