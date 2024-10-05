@@ -17,7 +17,7 @@
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.3.16",
     "@types/mocha": "^10.0.7",
-    "@verax-attestation-registry/verax-contracts": "^0.0.3",
+    "@verax-attestation-registry/verax-contracts": "^9.0.0",
     "@zk-kit/incremental-merkle-tree": "^1.1.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.7.0",
     "assert": "^2.1.0",
@@ -40,9 +40,9 @@
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
     "typescript": "^5.5.3",
-    "zk-escrow": "^1.4.0",
-    "zokrates-js": "^1.1.2",
+    "wasm-vole-zk-adapter": "file:../../vole_zk/wasm-vole-zk-adapter/node-pkg",
     "wasm-vole-zk-adapter-nodejs": "^0.1.0",
-    "wasm-vole-zk-adapter": "file:../../vole_zk/wasm-vole-zk-adapter/node-pkg"
+    "zk-escrow": "^1.4.0",
+    "zokrates-js": "^1.1.2"
   }
 }

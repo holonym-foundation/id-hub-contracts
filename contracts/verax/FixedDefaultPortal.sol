@@ -3,6 +3,9 @@ pragma solidity 0.8.21;
 
 import { AttestationPayload } from "@verax-attestation-registry/verax-contracts/contracts/types/Structs.sol";
 import { AbstractPortal } from "@verax-attestation-registry/verax-contracts/contracts/abstracts/AbstractPortal.sol";
+
+// Uses version 0.0.3 of @verax-attestation-registry/verax-contracts
+
 /**
  * Default Verax portal that fixes the replacement vulnerability.
  */
