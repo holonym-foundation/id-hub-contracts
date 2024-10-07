@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-verify");
 require("hardhat-abi-exporter");
 require("dotenv").config();
 
@@ -158,9 +159,24 @@ const config = {
     },
     linea: {
       url: "https://rpc.linea.build",
-      accounts: [process.env.TEST_PRIVATE_KEY],
+      accounts: [process.env.PRIVATE_KEY],
     }
   },
+  etherscan: {
+    apiKey: {
+      linea: process.env.LINEASCAN_API_KEY
+    },
+    customChains: [
+      {
+        network: "linea",
+        chainId: 59144,
+        urls: {
+          apiURL: "https://api.lineascan.build/api",
+          browserURL: "https://lineascan.build"
+        }
+      }
+    ]
+  }
 };
 
 module.exports = config;
