@@ -15,6 +15,7 @@ typechain
 typechain-types
 v2ArchRoadmap.md
 target
+dest
 
 #Hardhat files
 cache
