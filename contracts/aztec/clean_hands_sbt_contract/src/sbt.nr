@@ -1,34 +1,23 @@
 use dep::aztec::{
     prelude::AztecAddress,
-    protocol_types::{traits::{Serialize, Deserialize, Packable}},
+    protocol_types::{traits::{Serialize, Deserialize, Packable, FromField, ToField}},
 };
 use std::meta::derive;
 
 #[derive(Serialize, Deserialize)]
 pub struct SBT {
-    id: Field,
+    pub id: Field,
     // The address of the user that the SBT is attesting for
-    recipient: AztecAddress,
+    pub recipient: AztecAddress,
+    /// Expiry should be UNIX timestamp in seconds
     // TODO: is u64 the right type for this? Should we use a date library?
-    expiry: u64,
-    action_id: Field,
-    action_nullifier: Field,
-    revoked: bool,
+    pub expiry: u64,
+    pub action_id: Field,
+    pub action_nullifier: Field,
+    pub revoked: bool,
     // We store the minter, in case we change it and need to revoke all SBTs minted by a specific minter
-    minter: AztecAddress,
+    pub minter: AztecAddress,
 }
-
-// impl Deserialize<LEADER_SERIALIZED_LEN> for Leader {
-//     fn deserialize(fields: [Field; LEADER_SERIALIZED_LEN]) -> Self {
-//         Leader { account: AztecAddress::from_field(fields[0]), points: fields[1] as u8 }
-//     }
-// }
-
-// impl Serialize<LEADER_SERIALIZED_LEN> for Leader {
-//     fn serialize(self) -> [Field; LEADER_SERIALIZED_LEN] {
-//         [self.account.to_field(), self.points as Field]
-//     }
-// }
 
 global SBT_SERIALIZED_LEN: u32 = 7;
 

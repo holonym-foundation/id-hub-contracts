@@ -1,6 +1,9 @@
+mod test;
 mod sbt;
 
 use dep::aztec::macros::aztec;
+
+// TODO: Test
 
 #[aztec]
 contract CleanHandsSBT {
@@ -11,6 +14,7 @@ contract CleanHandsSBT {
             storage::storage,
         },
         prelude::{AztecAddress, Map, PublicImmutable, PublicMutable},
+        protocol_types::{traits::{Serialize, FromField, ToField}},
     };
 
     #[storage]
@@ -66,8 +70,8 @@ contract CleanHandsSBT {
 
     #[public]
     #[view]
-    fn get_owner() -> Field {
-        storage.owner.read().to_field()
+    fn get_owner() -> AztecAddress {
+        storage.owner.read()
     }
 
     #[public]

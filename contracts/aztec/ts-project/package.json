@@ -1,0 +1,21 @@
+{
+  "name": "dapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "yarn clean && tsc -b",
+    "build:dev": "tsc -b --watch",
+    "clean": "rm -rf ./dest tsconfig.tsbuildinfo",
+    "start": "yarn build && LOG_LEVEL=info node ./dest/index.js"
+  },
+  "dependencies": {
+    "@aztec/accounts": "^0.71.0",
+    "@aztec/aztec.js": "^0.71.0",
+    "@aztec/noir-contracts.js": "^0.71.0",
+    "@types/node": "^22.10.10",
+    "typescript": "^5.7.3"
+  }
+}
