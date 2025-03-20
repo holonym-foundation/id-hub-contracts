@@ -30,11 +30,11 @@ import {
   Point,
   type PublicKey,
   PublicKeys,
-  type UnencryptedL2Log,
   type Wallet,
+  type U128Like,
   type WrappedFieldLike,
 } from '@aztec/aztec.js';
-import CleanHandsSBTContractArtifactJson from './clean_hands_sbt_contract-CleanHandsSBT.json' assert { type: 'json' };
+import CleanHandsSBTContractArtifactJson from './clean_hands_sbt_contract-CleanHandsSBT.json' with { type: 'json' };
 export const CleanHandsSBTContractArtifact = loadContractArtifact(CleanHandsSBTContractArtifactJson as NoirCompiledContract);
 
 
@@ -134,9 +134,6 @@ nullifier_to_sbt_id: {
   /** Type-safe wrappers for the public methods exposed by the contract. */
   public declare methods: {
     
-    /** compute_note_hash_and_optionally_a_nullifier(contract_address: struct, nonce: field, storage_slot: field, note_type_id: field, compute_nullifier: boolean, serialized_note: array) */
-    compute_note_hash_and_optionally_a_nullifier: ((contract_address: AztecAddressLike, nonce: FieldLike, storage_slot: FieldLike, note_type_id: FieldLike, compute_nullifier: boolean, serialized_note: FieldLike[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
-
     /** constructor(owner: struct) */
     constructor: ((owner: AztecAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
@@ -155,8 +152,8 @@ nullifier_to_sbt_id: {
     /** mint(recipient: struct, action_id: field, action_nullifier: field, expiry: integer) */
     mint: ((recipient: AztecAddressLike, action_id: FieldLike, action_nullifier: FieldLike, expiry: (bigint | number)) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
-    /** process_log(log_plaintext: struct, tx_hash: field, unique_note_hashes_in_tx: struct, first_nullifier_in_tx: field, recipient: struct) */
-    process_log: ((log_plaintext: { storage: FieldLike[], len: (bigint | number) }, tx_hash: FieldLike, unique_note_hashes_in_tx: { storage: FieldLike[], len: (bigint | number) }, first_nullifier_in_tx: FieldLike, recipient: AztecAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+    /** process_log(_log_plaintext: struct, _tx_hash: field, _unique_note_hashes_in_tx: struct, _first_nullifier_in_tx: field, _recipient: struct) */
+    process_log: ((_log_plaintext: { storage: FieldLike[], len: (bigint | number) }, _tx_hash: FieldLike, _unique_note_hashes_in_tx: { storage: FieldLike[], len: (bigint | number) }, _first_nullifier_in_tx: FieldLike, _recipient: AztecAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
     /** public_dispatch(selector: field) */
     public_dispatch: ((selector: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
