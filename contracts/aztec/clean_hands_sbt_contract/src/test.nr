@@ -1,4 +1,4 @@
-use crate::CleanHandsSBT;
+use crate::CleanHandsSBTContract;
 use dep::aztec::{
     prelude::{AztecAddress},
     test::helpers::{test_environment::TestEnvironment},
@@ -19,8 +19,8 @@ pub unconstrained fn setup() -> (&mut TestEnvironment, AztecAddress, AztecAddres
     env.impersonate(owner);
 
     // Deploy contract
-    let initializer_call_interface = CleanHandsSBT::interface().constructor(owner);
-    let sbt_contract = env.deploy_self("CleanHandsSBT").with_public_void_initializer(initializer_call_interface);
+    let initializer_call_interface = CleanHandsSBTContract::interface().constructor(owner);
+    let sbt_contract = env.deploy_self("CleanHandsSBTContract").with_public_void_initializer(initializer_call_interface);
     let contract_address = sbt_contract.to_address();
     env.advance_block_by(1);
     (&mut env, contract_address, owner, recipient)
@@ -34,15 +34,15 @@ unconstrained fn access_control() {
     let (env, contract_address, owner, recipient) = setup();
 
     // Set a new owner
-    CleanHandsSBT::at(contract_address).set_owner(recipient).call(&mut env.public());
+    CleanHandsSBTContract::at(contract_address).set_owner(recipient).call(&mut env.public());
 
     // Check it worked
-    let owner = CleanHandsSBT::at(contract_address).get_owner().view(&mut env.public());
+    let owner = CleanHandsSBTContract::at(contract_address).get_owner().view(&mut env.public());
     assert(owner == recipient);
 
     // Impersonate original owner
     // env.impersonate(owner);
 
     // Try to set ourselves as owner, fail miserably
-    env.assert_public_call_fails(CleanHandsSBT::at(contract_address).set_owner(recipient));
+    env.assert_public_call_fails(CleanHandsSBTContract::at(contract_address).set_owner(recipient));
 }
