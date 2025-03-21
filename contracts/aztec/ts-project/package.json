@@ -12,9 +12,9 @@
     "start": "yarn build && LOG_LEVEL=info node ./dest/index.js"
   },
   "dependencies": {
-    "@aztec/accounts": "0.80.0",
-    "@aztec/aztec.js": "0.80.0",
-    "@aztec/noir-contracts.js": "0.80.0",
+    "@aztec/accounts": "0.81.0",
+    "@aztec/aztec.js": "0.81.0",
+    "@aztec/noir-contracts.js": "0.81.0",
     "@types/node": "^22.10.10",
     "typescript": "^5.7.3"
   }
