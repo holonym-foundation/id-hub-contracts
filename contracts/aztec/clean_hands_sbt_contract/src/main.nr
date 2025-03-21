@@ -6,7 +6,7 @@ use dep::aztec::macros::aztec;
 // TODO: Test
 
 #[aztec]
-contract CleanHandsSBT {
+pub contract CleanHandsSBTContract {
     use crate::sbt::SBT;
     use dep::aztec::{
         macros::{
