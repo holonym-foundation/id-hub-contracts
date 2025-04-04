@@ -1,5 +1,5 @@
 module human_id::sbt {
-    use sui::event;
+    use sui::{event, dynamic_field};
 
     public struct SoulBoundToken has key {
         id: UID,
@@ -67,7 +67,7 @@ module human_id::sbt {
     }
 
     public entry fun mint(
-		_cap: &MinterCap,  // Reference to the capability ensures only the minter can call
+		cap: &mut MinterCap,  // Passing the capability ensures only the minter can call
         recipient: address,
         circuit_id: u256,
         action_id: u256,
@@ -75,6 +75,12 @@ module human_id::sbt {
         expiry: u64,
         ctx: &mut TxContext
     ) {
+        // Check if the nullifier is already used
+        let key = action_nullifier + circuit_id;
+        assert!(!dynamic_field::exists_(&cap.id, key), 1);
+        // We store nullifier as a dynamic field in the MinterCap object.
+        dynamic_field::add(&mut cap.id, key, true);
+
         let sender = tx_context::sender(ctx);
         let sbt = SoulBoundToken {
             id: object::new(ctx),
@@ -172,13 +178,13 @@ module human_id::tests {
 
         // Second transaction: Mint an SBT
         {
-            let cap = test_scenario::take_from_sender<sbt::MinterCap>(&scenario);
+            let mut cap = test_scenario::take_from_sender<sbt::MinterCap>(&scenario);
             
             // Scope for ctx usage
             {
                 let ctx = test_scenario::ctx(&mut scenario);
                 sbt::mint(
-                    &cap,
+                    &mut cap,
                     recipient,
                     123, // circuit_id
                     1337, // action_id
