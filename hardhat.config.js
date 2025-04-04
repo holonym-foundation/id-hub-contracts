@@ -23,6 +23,9 @@ const config = {
   solidity: {
     compilers: [
       {
+        version: "0.8.26",
+      },
+      {
         version: "0.8.21",
       },
       {
@@ -80,6 +83,10 @@ const config = {
       //   url: "https://xdai-archive.blockscout.com/",
       //   blockNumber: 21908151,
       // },
+    },
+    sepolia: {
+      url: 'https://ethereum-sepolia-rpc.publicnode.com',
+      accounts: [process.env.TEST_PRIVATE_KEY],
     },
     mumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_MUMBAI_APIKEY}`,
