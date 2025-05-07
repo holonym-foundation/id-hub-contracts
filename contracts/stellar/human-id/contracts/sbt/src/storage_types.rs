@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, U256, Vec};
+use soroban_sdk::{contracttype, Address, U256, BytesN, Vec};
 
 // pub(crate) const DAY_IN_LEDGERS: u32 = 17280;
 // pub(crate) const INSTANCE_BUMP_AMOUNT: u32 = 7 * DAY_IN_LEDGERS;
@@ -16,7 +16,7 @@ pub struct SBT {
     pub action_nullifier: U256,
     pub public_values: Vec<U256>,
     pub revoked: bool,
-    pub minter: Address,
+    pub minter: BytesN<32>,
 }
 
 #[derive(Clone)]
@@ -26,5 +26,6 @@ pub enum DataKey {
     SBTID(U256),
     /// For storing (action_nullifier => SBTID) mapping
     Nullifier(U256),
-    Verifier
+    VerifierPubKey,
+    Admin
 }

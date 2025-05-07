@@ -1,27 +1,23 @@
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, Env, Address, Vec, Bytes, BytesN, U256,
-    FromVal, symbol_short,
-    crypto::Crypto
+    symbol_short, crypto::Crypto, xdr::ToXdr,
 };
 
+mod admin;
 mod constants;
 mod errors;
 mod storage_types;
 mod verifier;
 
+use admin::{_get_admin, _set_admin};
 use constants::{SECONDS_IN_DAY, DAY_IN_LEDGERS, YEAR_IN_LEDGERS};
 use errors::Error;
 use verifier::{_get_verifier, _set_verifier};
 use storage_types::{SBT, DataKey};
 
-pub fn _address_to_bytes32(env: &Env, address: &Address) -> BytesN<32> {
-    BytesN::<32>::from_val(env, &address.to_val())
-}
-
-pub fn _address_to_bytes(env: &Env, address: &Address) -> Bytes {
-    let addr_bytes32 = _address_to_bytes32(env, address);
-    Bytes::from_slice(&env, &addr_bytes32.to_array())
+pub fn _address_to_xdr_bytes(env: &Env, address: &Address) -> Bytes {
+    address.to_xdr(env)
 }
 
 pub fn _get_sbt_by_id(env: &Env, id: &U256) -> Result<SBT, Error> {
@@ -43,7 +39,7 @@ pub fn _get_sbt_by_id(env: &Env, id: &U256) -> Result<SBT, Error> {
 }
 
 pub fn _get_sbt_id(env: &Env, recipient: &Address, circuit_id: &U256) -> Result<U256, Error> {
-    let addr_bytes = _address_to_bytes(env, recipient);
+    let addr_bytes = _address_to_xdr_bytes(env, recipient);
     let mut concatenated = Bytes::new(&env);
     concatenated.append(&circuit_id.to_be_bytes());
     concatenated.append(&addr_bytes);
@@ -68,8 +64,11 @@ pub struct SBTContract;
 
 #[contractimpl]
 impl SBTContract {
-    pub fn __constructor(env: Env, verifier: Address) {
-        _set_verifier(&env, &verifier);
+    pub fn __constructor(env: Env, admin: Address, verifier_pubkey: BytesN<32>) {
+        // The admin is an account that has the privilege to set the verifier pubkey.
+        // The verifier pubkey is used to verify signatures for minting SBTs.
+        _set_admin(&env, &admin);
+        _set_verifier(&env, &verifier_pubkey);
     }
 
     // ------------ SBT accessors ------------
@@ -124,7 +123,7 @@ impl SBTContract {
 
         let mut message = Bytes::new(&env);
         message.append(&circuit_id.to_be_bytes());
-        message.append(&_address_to_bytes(&env, &recipient));
+        message.append(&_address_to_xdr_bytes(&env, &recipient));
         message.append(&Bytes::from_slice(&env, &expiration.to_be_bytes()));
         message.append(&action_nullifier.to_be_bytes());
         for value in &public_values {
@@ -132,7 +131,7 @@ impl SBTContract {
         }
         
         // Panics if signature is invalid
-        env.crypto().ed25519_verify(&_address_to_bytes32(&env, &verifier), &message, &signature);
+        env.crypto().ed25519_verify(&verifier, &message, &signature);
         
         // Create the SBT
         let sbt = SBT {
@@ -143,7 +142,7 @@ impl SBTContract {
             action_nullifier,
             public_values: public_values.clone(),
             revoked: false,
-            minter: env.current_contract_address(),
+            minter: verifier,
         };
 
         // Store the SBT
@@ -166,42 +165,85 @@ impl SBTContract {
 
     pub fn set_verifier(
         env: Env,
-        current_verifier: Address,
-        new_verifier: Address,
-        message: Bytes,
-        signature: BytesN<64>
+        new_verifier_pubkey: BytesN<32>,
+        admin: Address
     ) -> Result<(), Error> {
-        // Make sure current verifier authorized this call
-        current_verifier.require_auth();
+        let actual_admin = _get_admin(&env)?;
 
-        // Make sure new verifier authorized this action
-        // An Address for a contract ("C...") account cannot be converted to a public key and so
-        // cannot be used to verify signatures in the same way that a "G..." account can.
-        // This signature verification is to make sure new_verifier is a "G..." account.
-        let new_pubkey = _address_to_bytes32(&env, &new_verifier);
-        env.crypto().ed25519_verify(&new_pubkey, &message, &signature);
-        
+        // This might not be necessary. Maybe we can just call require_auth() on the Address
+        // returned by _get_admin()
+        if admin != actual_admin {
+            return Err(Error::InvalidAdmin);
+        }
+
+        // TODO: Should we use require_auth_for_args instead?
+        actual_admin.require_auth();
+
         // Set
-        _set_verifier(&env, &new_verifier);
+        _set_verifier(&env, &new_verifier_pubkey);
 
         // Extend TTL of contract instance and contract code
         env.deployer().extend_ttl(env.current_contract_address(), YEAR_IN_LEDGERS, YEAR_IN_LEDGERS);
 
         // Emit event
-        env.events().publish((symbol_short!("verifier"), symbol_short!("set")), new_verifier);
+        env.events().publish((symbol_short!("verifier"), symbol_short!("set")), new_verifier_pubkey);
 
         Ok(())
     }
 
-    pub fn get_verifier(env: Env) -> Result<Address, Error> {
+    pub fn get_verifier(env: Env) -> Result<BytesN<32>, Error> {
         _get_verifier(&env)
+    }
+
+    // ------------ Admin fns ------------
+
+    pub fn set_admin(
+        env: Env,
+        current_admin: Address,
+        new_admin: Address,
+    ) -> Result<(), Error> {
+        let admin = _get_admin(&env)?;
+
+        // This might not be necessary. Maybe we can just call require_auth() on the Address
+        // returned by _get_admin()
+        if current_admin != admin {
+            return Err(Error::InvalidAdmin);
+        }
+
+        current_admin.require_auth();
+
+        new_admin.require_auth();
+
+        // Set
+        _set_admin(&env, &new_admin);
+
+        // Extend TTL of contract instance and contract code
+        env.deployer().extend_ttl(env.current_contract_address(), YEAR_IN_LEDGERS, YEAR_IN_LEDGERS);
+
+        // Emit event
+        env.events().publish((symbol_short!("admin"), symbol_short!("set")), new_admin);
+
+        Ok(())
+    }
+
+    pub fn get_admin(env: Env) -> Result<Address, Error> {
+        _get_admin(&env)
     }
 
     // ------------ SBT revocation ------------
 
-    pub fn revoke_sbt(env: Env, verifier: Address, recipient: Address, circuit_id: U256) -> Result<(), Error> {
-        // Make sure verifier authorized this call
-        verifier.require_auth();
+    pub fn revoke_sbt(env: Env, admin: Address, recipient: Address, circuit_id: U256) -> Result<(), Error> {
+        let actual_admin = _get_admin(&env)?;
+
+        // This might not be necessary. Maybe we can just call require_auth() on the Address
+        // returned by _get_admin()
+        if actual_admin != admin {
+            return Err(Error::InvalidAdmin);
+        }
+
+        // Make sure admin authorized this call
+        admin.require_auth();
+
 
         let storage = env.storage().persistent();
 

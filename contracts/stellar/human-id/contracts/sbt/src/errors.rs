@@ -9,7 +9,9 @@ pub enum Error {
     VerifierAddressIsNotGAccount = 3,
     InvalidExpiration = 4,
     VerifierNotSet = 5,
-    Revoked = 6,
-    Expired = 7,
-    FailedToParseDaysUntilExpiry = 8
+    AdminNotSet = 6,
+    Revoked = 7,
+    Expired = 8,
+    FailedToParseDaysUntilExpiry = 9,
+    InvalidAdmin = 10,
 }
