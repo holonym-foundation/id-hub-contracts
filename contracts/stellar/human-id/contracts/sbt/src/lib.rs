@@ -69,6 +69,9 @@ impl SBTContract {
         // The verifier pubkey is used to verify signatures for minting SBTs.
         _set_admin(&env, &admin);
         _set_verifier(&env, &verifier_pubkey);
+
+        // Extend TTL of contract instance and contract code
+        env.deployer().extend_ttl(env.current_contract_address(), YEAR_IN_LEDGERS, YEAR_IN_LEDGERS);
     }
 
     // ------------ SBT accessors ------------
