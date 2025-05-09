@@ -1,6 +1,6 @@
 #![no_std]
 use soroban_sdk::{
-    contract, contractimpl, Env, Address, Vec, Bytes, BytesN, U256,
+    contract, contractimpl, Env, Address, Vec, Bytes, U256,
     symbol_short, crypto::Crypto, xdr::ToXdr,
 };
 
@@ -8,12 +8,10 @@ mod admin;
 mod constants;
 mod errors;
 mod storage_types;
-mod verifier;
 
 use admin::{_get_admin, _set_admin};
 use constants::{SECONDS_IN_DAY, DAY_IN_LEDGERS, YEAR_IN_LEDGERS};
 use errors::Error;
-use verifier::{_get_verifier, _set_verifier};
 use storage_types::{SBT, DataKey};
 
 pub fn _address_to_xdr_bytes(env: &Env, address: &Address) -> Bytes {
@@ -64,11 +62,8 @@ pub struct SBTContract;
 
 #[contractimpl]
 impl SBTContract {
-    pub fn __constructor(env: Env, admin: Address, verifier_pubkey: BytesN<32>) {
-        // The admin is an account that has the privilege to set the verifier pubkey.
-        // The verifier pubkey is used to verify signatures for minting SBTs.
+    pub fn __constructor(env: Env, admin: Address) {
         _set_admin(&env, &admin);
-        _set_verifier(&env, &verifier_pubkey);
 
         // Extend TTL of contract instance and contract code
         env.deployer().extend_ttl(env.current_contract_address(), YEAR_IN_LEDGERS, YEAR_IN_LEDGERS);
@@ -102,13 +97,21 @@ impl SBTContract {
 
     pub fn mint_sbt(
         env: Env,
+        admin: Address,
         recipient: Address,
         circuit_id: U256,
         expiration: u64,
         action_nullifier: U256,
         public_values: Vec<U256>,
-        signature: BytesN<64>,  // Assuming ed25519 signature
     ) -> Result<U256, Error> {
+        let actual_admin = _get_admin(&env)?;
+        // This might not be necessary. Maybe we can just call require_auth() on the Address
+        // returned by _get_admin()
+        if actual_admin != admin {
+            return Err(Error::InvalidAdmin);
+        }
+        admin.require_auth();
+
         // Get the contract's storage
         let storage = env.storage().persistent();
         
@@ -120,22 +123,7 @@ impl SBTContract {
 
         // Generate the SBT ID
         let sbt_id = _get_sbt_id(&env, &recipient, &circuit_id)?;
-        
-        // Verify the signature
-        let verifier = _get_verifier(&env)?;
 
-        let mut message = Bytes::new(&env);
-        message.append(&circuit_id.to_be_bytes());
-        message.append(&_address_to_xdr_bytes(&env, &recipient));
-        message.append(&Bytes::from_slice(&env, &expiration.to_be_bytes()));
-        message.append(&action_nullifier.to_be_bytes());
-        for value in &public_values {
-            message.append(&value.to_be_bytes())
-        }
-        
-        // Panics if signature is invalid
-        env.crypto().ed25519_verify(&verifier, &message, &signature);
-        
         // Create the SBT
         let sbt = SBT {
             id: sbt_id.clone(),
@@ -145,7 +133,7 @@ impl SBTContract {
             action_nullifier,
             public_values: public_values.clone(),
             revoked: false,
-            minter: verifier,
+            minter: admin,
         };
 
         // Store the SBT
@@ -162,40 +150,6 @@ impl SBTContract {
         env.events().publish((symbol_short!("sbt"), symbol_short!("mint")), &sbt_id);
 
         Ok(sbt_id)
-    }
-
-    // ------------ Verifier fns ------------
-
-    pub fn set_verifier(
-        env: Env,
-        new_verifier_pubkey: BytesN<32>,
-        admin: Address
-    ) -> Result<(), Error> {
-        let actual_admin = _get_admin(&env)?;
-
-        // This might not be necessary. Maybe we can just call require_auth() on the Address
-        // returned by _get_admin()
-        if admin != actual_admin {
-            return Err(Error::InvalidAdmin);
-        }
-
-        // TODO: Should we use require_auth_for_args instead?
-        actual_admin.require_auth();
-
-        // Set
-        _set_verifier(&env, &new_verifier_pubkey);
-
-        // Extend TTL of contract instance and contract code
-        env.deployer().extend_ttl(env.current_contract_address(), YEAR_IN_LEDGERS, YEAR_IN_LEDGERS);
-
-        // Emit event
-        env.events().publish((symbol_short!("verifier"), symbol_short!("set")), new_verifier_pubkey);
-
-        Ok(())
-    }
-
-    pub fn get_verifier(env: Env) -> Result<BytesN<32>, Error> {
-        _get_verifier(&env)
     }
 
     // ------------ Admin fns ------------

@@ -1,12 +1,9 @@
 #![cfg(test)]
 
-use core::option::Iter;
-
 use super::*;
 use ed25519_dalek::Keypair;
-use ed25519_dalek::Signer;
 use rand::thread_rng;
-use soroban_sdk::{log, symbol_short, testutils::Address as TestAddress, IntoVal, vec, xdr::MessageType, Address, Bytes, BytesN, Env, U256};
+use soroban_sdk::{log, symbol_short, testutils::Address as TestAddress, IntoVal, vec, Address, BytesN, Env, U256};
 
 fn generate_keypair() -> Keypair {
     Keypair::generate(&mut thread_rng())
@@ -25,37 +22,18 @@ fn signer_public_key(env: &Env, signer: &Keypair) -> BytesN<32> {
 //     return Address::from_str(env, strkey_str.as_str());
 // }
 
-fn create_test_env<'a>() -> (Env, SBTContractClient<'a>, Address, Keypair) {
+fn create_test_env<'a>() -> (Env, SBTContractClient<'a>, Address) {
     let env = Env::default();
     let initial_admin = Address::generate(&env);
-    let initial_verifier = generate_keypair();
-    let verifier_pubkey = signer_public_key(&env, &initial_verifier);
-    let contract_id = env.register(SBTContract, (&initial_admin,&verifier_pubkey));
+    let contract_id = env.register(SBTContract, (&initial_admin,));
     let client = SBTContractClient::new(&env, &contract_id);
 
-    (env, client, initial_admin, initial_verifier)
-}
-
-#[test]
-fn test_get_set_verifier() {
-    let (env, client, initial_admin, initial_verifier) = create_test_env();
-    env.mock_all_auths();
-
-    let first_verifier = client.get_verifier();
-
-    let new_verifier_keypair = generate_keypair();
-    let new_verifier_pubkey = signer_public_key(&env, &new_verifier_keypair);
-    let _result = client.set_verifier(&new_verifier_pubkey, &initial_admin);
-
-    let expected_verifier = client.get_verifier();
-
-    assert_eq!(new_verifier_pubkey, expected_verifier);
-    assert_ne!(first_verifier, expected_verifier);
+    (env, client, initial_admin)
 }
 
 #[test]
 fn test_get_set_admin() {
-    let (env, client, initial_admin, initial_verifier) = create_test_env();
+    let (env, client, initial_admin) = create_test_env();
     env.mock_all_auths();
 
     let first_admin = client.get_admin();
@@ -71,7 +49,7 @@ fn test_get_set_admin() {
 
 #[test]
 fn test_sbt() {
-    let (env, client, initial_admin, initial_verifier) = create_test_env();
+    let (env, client, initial_admin) = create_test_env();
     env.mock_all_auths();
 
     // Set args
@@ -87,36 +65,13 @@ fn test_sbt() {
         U256::from_u128(&env, 44444444444)
     ];
 
-    // Create message
-    let mut message = Bytes::new(&env);
-    message.append(&circuit_id.to_be_bytes());
-    message.append(&_address_to_xdr_bytes(&env, &recipient));
-    message.append(&Bytes::from_slice(&env, &expiration.to_be_bytes()));
-    message.append(&action_nullifier.to_be_bytes());
-    for value in &public_values {
-        message.append(&value.to_be_bytes())
-    }
-    
-    // We use a slice with a hardcoded length because we cannot convert soroban_sdk::Bytes
-    // into a u8 slice, and so manually defining a slice is the best way to convert from
-    // Bytes to &[u8].
-    let message_bytes = &mut [0u8; 240];
-
-    for i in 0..message.len() {
-        let val = message.get_unchecked(i);
-        message_bytes[i as usize] = val;
-    }
-
-    let signature = initial_verifier.sign(message_bytes);
-    let sig_bytes: BytesN<64> = BytesN::from_array(&env, &signature.to_bytes());
-
     let sbt_id = client.mint_sbt(
+        &initial_admin,
         &recipient,
         &circuit_id,
         &expiration,
         &action_nullifier,
-        &public_values,
-        &sig_bytes
+        &public_values
     );
 
     log!(&env, "SBT ID", sbt_id);
@@ -130,7 +85,7 @@ fn test_sbt() {
     assert_eq!(sbt.action_nullifier, action_nullifier);
     assert_eq!(sbt.public_values, public_values);
     assert_eq!(sbt.revoked, false);
-    assert_eq!(sbt.minter, signer_public_key(&env, &initial_verifier));
+    assert_eq!(sbt.minter, initial_admin);
 
     let sbt_by_address = client.get_sbt(&recipient, &circuit_id);
     assert_eq!(sbt_by_address.id, sbt_id);

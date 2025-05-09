@@ -6,12 +6,10 @@ use soroban_sdk::contracterror;
 pub enum Error {
     NotFound = 1,
     NullifierAlreadyUsed = 2,
-    VerifierAddressIsNotGAccount = 3,
-    InvalidExpiration = 4,
-    VerifierNotSet = 5,
-    AdminNotSet = 6,
-    Revoked = 7,
-    Expired = 8,
-    FailedToParseDaysUntilExpiry = 9,
-    InvalidAdmin = 10,
+    InvalidExpiration = 3,
+    AdminNotSet = 4,
+    Revoked = 5,
+    Expired = 6,
+    FailedToParseDaysUntilExpiry = 7,
+    InvalidAdmin = 8,
 }
