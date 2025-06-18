@@ -1,0 +1,11 @@
+[package]
+name = "sbt-verifier"
+edition = "2024.beta"
+
+[dependencies]
+human-id = { git = "https://github.com/holonym-foundation/id-hub-contracts", subdir = "contracts/sui/human-id", rev = "main" }
+
+[addresses]
+sbt_verifier = "0x0"
+
+[dev-addresses]
