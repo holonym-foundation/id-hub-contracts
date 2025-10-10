@@ -21,6 +21,13 @@ interface IHub {
 contract HubBatch {
     IHub public immutable hub;
 
+    struct Result {
+        bool success;
+        string message;
+        uint256 errorCode;
+        bytes lowLevelData;
+    }
+
     event SetSBTSuccess(uint256 indexed index, bytes32 indexed circuitId, uint256 indexed sbtReceiver);
     event SetSBTFailed(uint256 indexed index, bytes32 indexed circuitId, string reason);
     event SetSBTPanic(uint256 indexed index, bytes32 indexed circuitId, uint256 errorCode);
@@ -34,6 +41,7 @@ contract HubBatch {
      * @notice Batch mint SBTs for multiple users
      * @dev Each array parameter corresponds to one setSBT call
      * @dev Failed individual setSBT calls will not revert the entire batch
+     * @return results Array of Result structs indicating success/failure and error messages
      */
     function setSBTBatch(
         bytes32[] calldata circuitIds,
@@ -43,7 +51,7 @@ contract HubBatch {
         uint256[] calldata nullifiers,
         uint256[][] calldata publicValues,
         bytes[] calldata signatures
-    ) external {
+    ) external returns (Result[] memory results) {
         uint256 length = circuitIds.length;
         require(length <= 100, "Batch too large");
         require(length == sbtRecievers.length, "Length mismatch");
@@ -52,6 +60,8 @@ contract HubBatch {
         require(length == nullifiers.length, "Length mismatch");
         require(length == publicValues.length, "Length mismatch");
         require(length == signatures.length, "Length mismatch");
+
+        results = new Result[](length);
 
         for (uint256 i = 0; i < length; i++) {
             // Use try/catch to continue on failure
@@ -65,15 +75,19 @@ contract HubBatch {
                 signatures[i]
             ) {
                 // Success - emit event and continue to next
+                results[i] = Result(true, "", 0, "");
                 emit SetSBTSuccess(i, circuitIds[i], sbtRecievers[i]);
             } catch Error(string memory reason) {
                 // Catch revert messages (e.g., require, revert with string)
+                results[i] = Result(false, reason, 0, "");
                 emit SetSBTFailed(i, circuitIds[i], reason);
             } catch Panic(uint256 errorCode) {
                 // Catch panic errors (e.g., division by zero, array out-of-bounds)
+                results[i] = Result(false, "", errorCode, "");
                 emit SetSBTPanic(i, circuitIds[i], errorCode);
             } catch (bytes memory lowLevelData) {
                 // Catch all other low-level errors
+                results[i] = Result(false, "", 0, lowLevelData);
                 emit SetSBTLowLevelError(i, circuitIds[i], lowLevelData);
             }
         }
@@ -113,4 +127,5 @@ contract HubBatch {
             );
         }
     }
+
 }
