@@ -21,6 +21,11 @@ interface IHub {
 contract HubBatch {
     IHub public immutable hub;
 
+    event SetSBTSuccess(uint256 indexed index, bytes32 indexed circuitId, uint256 indexed sbtReceiver);
+    event SetSBTFailed(uint256 indexed index, bytes32 indexed circuitId, string reason);
+    event SetSBTPanic(uint256 indexed index, bytes32 indexed circuitId, uint256 errorCode);
+    event SetSBTLowLevelError(uint256 indexed index, bytes32 indexed circuitId, bytes errorData);
+
     constructor(address _hub) {
         hub = IHub(_hub);
     }
@@ -40,6 +45,7 @@ contract HubBatch {
         bytes[] calldata signatures
     ) external {
         uint256 length = circuitIds.length;
+        require(length <= 100, "Batch too large");
         require(length == sbtRecievers.length, "Length mismatch");
         require(length == expirations.length, "Length mismatch");
         require(length == customFees.length, "Length mismatch");
@@ -58,10 +64,17 @@ contract HubBatch {
                 publicValues[i],
                 signatures[i]
             ) {
-                // Success - continue to next
-            } catch {
-                // Failure - continue to next (individual failures don't stop the batch)
-                // You could emit an event here if you want to track failures on-chain
+                // Success - emit event and continue to next
+                emit SetSBTSuccess(i, circuitIds[i], sbtRecievers[i]);
+            } catch Error(string memory reason) {
+                // Catch revert messages (e.g., require, revert with string)
+                emit SetSBTFailed(i, circuitIds[i], reason);
+            } catch Panic(uint256 errorCode) {
+                // Catch panic errors (e.g., division by zero, array out-of-bounds)
+                emit SetSBTPanic(i, circuitIds[i], errorCode);
+            } catch (bytes memory lowLevelData) {
+                // Catch all other low-level errors
+                emit SetSBTLowLevelError(i, circuitIds[i], lowLevelData);
             }
         }
     }
